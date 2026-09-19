@@ -1,0 +1,73 @@
+# Architecture
+
+## Stack
+
+| Concern      | Choice                                                              | Notes                                                             |
+| ------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Build / UI   | Vite + React 19 + TypeScript (`strict`, `noUncheckedIndexedAccess`) | SPA. Path alias `@/` → `src/`.                                    |
+| Routing      | React Router (data-router, lazy routes per feature)                 | Role-guarded route groups: `/admin/*`, `/coach/*` (see below).    |
+| Server state | TanStack Query                                                      | All Supabase calls live in `features/*/api`, wrapped by hooks.    |
+| Backend      | Supabase: Postgres, Auth, RLS, Realtime, one Edge Function          | Local dev via Docker (`npx supabase start`).                      |
+| Styling      | Tailwind CSS v4 (`@theme` tokens in `src/styles/index.css`)         | Logical properties only (RTL). Radix primitives for a11y widgets. |
+| Forms        | react-hook-form + zod (`@hookform/resolvers`)                       | One zod schema per form in `features/*/schemas.ts`.               |
+| i18n         | i18next + react-i18next                                             | `ar` (default, RTL) and `en`. See [07-i18n.md](07-i18n.md).       |
+| Charts       | Recharts                                                            | Brand palette only.                                               |
+| Dates        | date-fns                                                            | Gregorian; store `date` columns as ISO `YYYY-MM-DD`.              |
+| Icons        | lucide-react                                                        | Flip directional icons in RTL.                                    |
+| PWA          | vite-plugin-pwa (Phase 8)                                           | Installable on phones.                                            |
+| Tests        | Vitest + Testing Library; SQL RLS tests; Playwright smoke (Phase 8) |                                                                   |
+
+## Folder layout
+
+```
+src/
+  app/             router, providers (QueryClient, Auth, i18n), layouts (AdminShell, CoachShell, AuthLayout)
+  components/ui/   design-system components (Button, Input, Select, Card, Dialog, Badge, DataList, Toast, EmptyState…)
+  features/
+    auth/          login, session, role guards
+    players/  coaches/  subscriptions/  discounts/  sessions/  attendance/
+    expenses/  reports/  activity/  settings/
+      api/         supabase queries/mutations (thin, typed)
+      hooks/       useXxx wrappers around TanStack Query
+      components/  feature-specific UI
+      pages/       route components
+      schemas.ts   zod schemas + inferred types
+  lib/             supabase.ts, money.ts, pricing.ts, dates.ts, i18n.ts, utils.ts
+  locales/{ar,en}/ one JSON namespace per feature (common, players, subscriptions, …)
+  styles/          index.css (Tailwind + tokens)
+  test/            vitest setup, factories
+supabase/          config.toml, migrations/, seed.sql, functions/create-coach/, tests/
+docs/              this documentation
+public/brand/      logo assets
+```
+
+## Data flow
+
+```
+Page → hook (TanStack Query) → feature api (supabase-js) → Postgres (RLS enforces role rules)
+                                                     └→ RPC for multi-row writes (single transaction)
+Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (invalidates query)
+```
+
+- **RLS is the security boundary.** The UI hides what a role cannot do, but never relies on hiding.
+- **Composite writes use RPCs** (`create_subscription`, `save_attendance`, `generate_monthly_salaries`, …) so they are atomic and can write the activity log.
+- **Reports use SQL RPCs** (`report_summary`, `revenue_by_month`, `expenses_by_category`) — sums are computed in Postgres in integer fils.
+- **Types:** generate DB types with `npx supabase gen types typescript --local > src/lib/database.types.ts` after each migration; feature `types.ts` derive from it.
+
+## Routing and roles
+
+- `/login` — public.
+- `/` — redirects by role: admin → `/admin`, coach → `/coach`.
+- `/admin/*` — admin only: home, players, coaches, subscriptions, discounts, sessions, expenses, reports, settings.
+- `/coach/*` — coach (admin may also visit): home, my players, subscriptions, sessions/attendance.
+- Guards read the role from `profiles` via the Auth provider; unauthorized → redirect to the role's home.
+- Shared feature pages (players, subscriptions, sessions) are the same components mounted under both prefixes; RLS scopes the data.
+
+## Patterns to follow
+
+- **One place per concept:** money → `lib/money.ts`; total calculation → `lib/pricing.ts` (mirrored by SQL `calc_subscription_total`); date-range helpers → `lib/dates.ts`.
+- **Query keys** are arrays starting with the feature: `['players', { search, coachId }]`. Mutations invalidate by feature prefix.
+- **Errors:** api functions throw typed errors; hooks surface them; UI shows a translated toast. Never show raw Postgres messages.
+- **Loading/empty/error states** are required for every list and page (use `EmptyState`, skeletons).
+- **Responsive lists:** `DataList` renders a table ≥ `md` and cards below.
+- **No business logic in components** — extract to `lib/` or `features/*/` pure functions with unit tests.

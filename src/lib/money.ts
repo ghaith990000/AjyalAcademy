@@ -1,0 +1,31 @@
+/**
+ * Money helpers. All amounts are integer FILS (1 BD = 1000 fils). Never store or sum floats.
+ * See docs/05-business-rules.md.
+ */
+
+export const FILS_PER_BD = 1000
+
+/** Convert a BD amount typed by a user (e.g. 12.5 or "12.500") to integer fils. */
+export function fromBD(bd: number | string): number {
+  const value = typeof bd === 'string' ? Number(bd.replace(',', '.')) : bd
+  if (!Number.isFinite(value)) throw new Error(`Invalid BD amount: ${bd}`)
+  return Math.round(value * FILS_PER_BD)
+}
+
+/** Convert integer fils to a BD number (for display/inputs only, never for arithmetic). */
+export function toBD(fils: number): number {
+  return fils / FILS_PER_BD
+}
+
+/** "20.000" — Latin digits, always 3 decimals (Bahraini convention), in every language. */
+export function formatBDAmount(fils: number): string {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  }).format(toBD(fils))
+}
+
+/** "20.000 BD" / "20.000 د.ب". Wrap the result in <bdi> when rendering inside RTL text. */
+export function formatBHD(fils: number, language: 'ar' | 'en'): string {
+  return `${formatBDAmount(fils)} ${language === 'ar' ? 'د.ب' : 'BD'}`
+}

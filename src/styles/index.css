@@ -1,0 +1,44 @@
+@import 'tailwindcss';
+
+/* Ajyal design tokens — see docs/06-design-system.md. Brand colors sampled from the supplied logo. */
+@theme {
+  --color-brand-blue: #1860c8;
+  --color-brand-blue-600: #144fa5;
+  --color-brand-blue-50: #eaf1fc;
+  --color-brand-navy: #0e2f6b;
+  --color-brand-pink: #e02068;
+  --color-brand-pink-50: #fdebf2;
+  --color-surface: #ffffff;
+  --color-page: #f3f6fc;
+  --color-ink: #10203f;
+  --color-ink-muted: #5b6b8a;
+  --color-line: #dde5f3;
+  --color-success: #12805c;
+  --color-warning: #b7791f;
+  --color-danger: #c62828;
+
+  --font-sans: 'Poppins', 'Cairo', system-ui, sans-serif;
+  --font-arabic: 'Cairo', 'Poppins', system-ui, sans-serif;
+
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --shadow-card: 0 4px 20px -6px rgb(24 96 200 / 0.18);
+}
+
+html[dir='rtl'] body {
+  font-family: var(--font-arabic);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}

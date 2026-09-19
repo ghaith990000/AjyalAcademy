@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "Ajyal Academy",
+    "tagline": "Symbol of trust in teaching the fundamentals of football",
+    "status": "Foundation ready — features arrive phase by phase."
+  },
+  "language": {
+    "switchTo": "العربية"
+  }
+}
