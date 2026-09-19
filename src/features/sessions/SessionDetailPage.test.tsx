@@ -8,7 +8,7 @@ import { AuthContext } from '@/features/auth/auth-context'
 import * as coachesApi from '@/features/coaches/api'
 import i18n from '@/lib/i18n'
 import { fakeAuth } from '@/test/auth'
-import { FUTURE, fakeMark, fakeSession } from '@/test/sessions'
+import { FUTURE, PAST, fakeMark, fakeSession } from '@/test/sessions'
 import * as api from './api'
 import SessionDetailPage from './SessionDetailPage'
 
@@ -85,6 +85,11 @@ describe('SessionDetailPage', () => {
   })
 
   describe('who attended', () => {
+    beforeEach(() => {
+      // Attendance is taken from the session's day on, so these use a session that has started.
+      vi.mocked(api.getSession).mockResolvedValue({ ...session, session_date: PAST })
+    })
+
     it('says so while attendance has not been taken, and offers to take it', async () => {
       const router = renderDetail('coach')
       expect(
@@ -122,6 +127,29 @@ describe('SessionDetailPage', () => {
       expect(
         await screen.findByText("Attendance hasn't been taken for this session yet."),
       ).toBeInTheDocument()
+    })
+  })
+
+  describe('a session dated in the future', () => {
+    it("doesn't offer attendance yet, and says when it opens", async () => {
+      renderDetail('coach')
+      expect(
+        await screen.findByText('Attendance opens on the day of the session.'),
+      ).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Take attendance' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Edit attendance' })).not.toBeInTheDocument()
+      // everything else is still available
+      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Cancel session' })).toBeInTheDocument()
+    })
+
+    it('offers attendance once the day has come, with no waiting note', async () => {
+      vi.mocked(api.getSession).mockResolvedValue({ ...session, session_date: PAST })
+      renderDetail('coach')
+      expect(await screen.findByRole('link', { name: 'Take attendance' })).toBeInTheDocument()
+      expect(
+        screen.queryByText('Attendance opens on the day of the session.'),
+      ).not.toBeInTheDocument()
     })
   })
 

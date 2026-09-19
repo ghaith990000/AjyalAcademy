@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canTakeAttendance,
   findConflicts,
   groupByDate,
   hhmm,
@@ -94,6 +95,29 @@ describe('sessionStatus', () => {
     expect(sessionStatus(at('2026-09-19', '16:30', '17:30'), now)).toBe('upcoming')
     expect(sessionStatus(at('2026-09-19', '16:00', '17:00'), now)).toBe('done')
     expect(sessionStatus(at('2026-09-19', '10:00:00', '11:00:00'), now)).toBe('done')
+  })
+})
+
+describe('canTakeAttendance', () => {
+  const now = new Date(2026, 8, 19, 9, 0) // 19 Sep 2026, 09:00 local
+  const on = (session_date: string, cancelled_at: string | null = null) => ({
+    session_date,
+    cancelled_at,
+  })
+
+  it("is open from the session's day on, whatever the time of day", () => {
+    expect(canTakeAttendance(on('2026-09-19'), now)).toBe(true) // today, even before it starts
+    expect(canTakeAttendance(on('2026-09-18'), now)).toBe(true)
+    expect(canTakeAttendance(on('2020-01-01'), now)).toBe(true)
+  })
+
+  it('is closed for a session dated tomorrow or later', () => {
+    expect(canTakeAttendance(on('2026-09-20'), now)).toBe(false)
+    expect(canTakeAttendance(on('2099-01-05'), now)).toBe(false)
+  })
+
+  it('is closed for a cancelled session, whatever its date', () => {
+    expect(canTakeAttendance(on('2026-09-18', '2026-09-17T10:00:00Z'), now)).toBe(false)
   })
 })
 

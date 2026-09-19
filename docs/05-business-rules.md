@@ -108,7 +108,7 @@ Reports also show: collected per month (12 bars for a year), expenses by categor
 
 - A session has a date, a start and an end time (`end > start`), one **coach** (an active coach; a coach schedules only for themself, an admin picks), an optional location and notes. "Repeat weekly" creates 2–26 sessions a week apart, the first included. A clash with the same coach's other non-cancelled sessions (same day, overlapping times; touching ends do not clash) is a **warning**, never a block.
 - Session status: **cancelled** (final), else **done** once its end time has passed, else **upcoming**. The agenda's default filter "Today & upcoming" shows everything not cancelled from today on, whatever the time, so a session that has just ended can still be marked (D-058).
-- Attendance is **present / absent** only (D-023). The screen starts everyone absent; saving records the whole roster and can be repeated to correct marks. A cancelled session cannot be marked; only the session's coach or an admin can save.
+- Attendance is **present / absent** only (D-023). The screen starts everyone absent; saving records the whole roster and can be repeated to correct marks. **Attendance can be taken from the session's day on** (D-062): a cancelled session or one dated after today (academy date) cannot be marked — the database refuses it and the screens don't offer it. Only the session's coach or an admin can save.
 - **Attendance rate** (player page) = sessions marked present ÷ sessions with a mark, as a whole percent (half up); "—" when there is nothing to divide; cancelled sessions are not counted (D-059).
 
 ## Activity feed rules

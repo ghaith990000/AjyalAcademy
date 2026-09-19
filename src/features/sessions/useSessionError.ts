@@ -6,6 +6,7 @@ const KNOWN_CODES = [
   'invalid_coach',
   'session_cancelled',
   'session_has_attendance',
+  'session_in_future',
   'session_not_found',
   'not_on_roster',
   'invalid_records',

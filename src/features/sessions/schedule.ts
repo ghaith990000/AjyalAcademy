@@ -58,6 +58,17 @@ export function sessionStatus(
   return minutesOf(session.end_time) > now.getHours() * 60 + now.getMinutes() ? 'upcoming' : 'done'
 }
 
+/**
+ * Attendance can be taken from the session's day on — never for a cancelled session or one dated in the future
+ * (the database refuses both; this only decides what the screens offer). Uses the browser's date, as D-047.
+ */
+export function canTakeAttendance(
+  session: { session_date: string; cancelled_at: string | null },
+  now: Date = new Date(),
+): boolean {
+  return !session.cancelled_at && session.session_date <= todayISO(now)
+}
+
 /** PostgREST `or(...)` expression for the not-cancelled sessions that are over at `now`. */
 export function doneFilter(now: Date = new Date()): string {
   const today = todayISO(now)

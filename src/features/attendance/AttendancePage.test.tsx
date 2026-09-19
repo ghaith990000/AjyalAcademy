@@ -8,7 +8,7 @@ import * as sessionsApi from '@/features/sessions/api'
 import * as subscriptionsApi from '@/features/subscriptions/api'
 import i18n from '@/lib/i18n'
 import { fakeAuth } from '@/test/auth'
-import { fakeMark, fakeSession } from '@/test/sessions'
+import { FUTURE, fakeMark, fakeSession } from '@/test/sessions'
 import * as api from './api'
 import AttendancePage from './AttendancePage'
 
@@ -253,6 +253,29 @@ describe('AttendancePage', () => {
       expect(await screen.findByText('This session was cancelled')).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Save attendance' })).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /Ali Hassan/ })).not.toBeInTheDocument()
+    })
+
+    it('will not take attendance for a session dated in the future', async () => {
+      vi.mocked(sessionsApi.getSession).mockResolvedValue(
+        fakeSession({ id: 's1', session_date: FUTURE }),
+      )
+      renderPage()
+      expect(await screen.findByText("Attendance isn't open yet")).toBeInTheDocument()
+      expect(
+        screen.getByText('Attendance can be taken from the day of the session.'),
+      ).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Save attendance' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Ali Hassan/ })).not.toBeInTheDocument()
+    })
+
+    it("explains the database's refusal if the academy's date has moved on differently from this device's", async () => {
+      vi.mocked(api.saveAttendance).mockRejectedValue(new Error('ajyal:session_in_future'))
+      renderPage()
+      await screen.findByRole('button', { name: /Ali Hassan/ })
+      await userEvent.click(screen.getByRole('button', { name: 'Save attendance' }))
+      expect(
+        await screen.findByText('Attendance can only be taken from the day of the session.'),
+      ).toBeInTheDocument()
     })
 
     it('explains an empty roster', async () => {

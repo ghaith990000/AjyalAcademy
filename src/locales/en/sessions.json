@@ -118,7 +118,8 @@
     "notFound": {
       "title": "Session not found",
       "description": "It may have been removed, or it belongs to another coach."
-    }
+    },
+    "attendanceOpens": "Attendance opens on the day of the session."
   },
   "cancelDialog": {
     "title": "Cancel this session?",
@@ -133,6 +134,7 @@
     "session_not_found": "This session no longer exists, or it belongs to another coach.",
     "not_on_roster": "One of the players isn't on this coach's roster any more. Reload and try again.",
     "invalid_records": "The attendance couldn't be read. Reload and try again.",
-    "forbidden": "You don't have permission to do that."
+    "forbidden": "You don't have permission to do that.",
+    "session_in_future": "Attendance can only be taken from the day of the session."
   }
 }

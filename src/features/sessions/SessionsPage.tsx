@@ -17,7 +17,7 @@ import type { Language } from '@/lib/i18n'
 import { useLanguage } from '@/lib/useLanguage'
 import { DEFAULT_SESSION_FILTERS, type SessionFilters, type SessionRow } from './api'
 import { useSessionsBasePath, useSessionsList } from './hooks'
-import { groupByDate, sessionStatus, SESSION_STATUSES } from './schedule'
+import { canTakeAttendance, groupByDate, sessionStatus, SESSION_STATUSES } from './schedule'
 import { SessionFormDialog } from './SessionFormDialog'
 import { SessionStatusBadge } from './SessionStatusBadge'
 
@@ -26,8 +26,6 @@ function SessionCard({ session, showCoach }: { session: SessionRow; showCoach: b
   const { language } = useLanguage()
   const base = useSessionsBasePath()
   const status = sessionStatus(session)
-  // Attendance is taken on the day or after; a future session has nobody to mark yet.
-  const canTakeAttendance = status !== 'cancelled' && session.session_date <= todayISO()
 
   return (
     <li className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
@@ -58,7 +56,7 @@ function SessionCard({ session, showCoach }: { session: SessionRow; showCoach: b
           </span>
         )}
       </Link>
-      {canTakeAttendance && (
+      {canTakeAttendance(session) && (
         <div className="border-t border-line px-3.5 py-2">
           <Button asChild variant="secondary" className="w-full sm:w-auto">
             <Link to={`${base}/${session.id}/attendance`}>{t('list.takeAttendance')}</Link>

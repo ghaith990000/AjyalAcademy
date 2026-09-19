@@ -30,6 +30,10 @@
     "title": "This session was cancelled",
     "description": "Attendance can't be taken for a cancelled session."
   },
+  "future": {
+    "title": "Attendance isn't open yet",
+    "description": "Attendance can be taken from the day of the session."
+  },
   "loadError": {
     "title": "Couldn't load the attendance screen",
     "description": "Check your connection and try again."

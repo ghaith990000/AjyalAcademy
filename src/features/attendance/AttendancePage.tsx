@@ -1,4 +1,4 @@
-import { Ban, CalendarX, Check, ChevronLeft, CloudOff, Users, X } from 'lucide-react'
+import { Ban, CalendarClock, CalendarX, Check, ChevronLeft, CloudOff, Users, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/toast-context'
 import { useAuth } from '@/features/auth/useAuth'
 import { useSession, useSessionsBasePath } from '@/features/sessions/hooks'
-import { sessionStatus } from '@/features/sessions/schedule'
+import { canTakeAttendance, sessionStatus } from '@/features/sessions/schedule'
 import { useSessionError } from '@/features/sessions/useSessionError'
 import { usePlayersCoveredOn } from '@/features/subscriptions/hooks'
 import { formatDate, formatLongDate, formatTimeRange } from '@/lib/dates'
@@ -138,6 +138,21 @@ export default function AttendancePage() {
             icon={Ban}
             title={t('attendance:cancelled.title')}
             description={t('attendance:cancelled.description')}
+          />
+        </Card>
+      </>
+    )
+  }
+
+  if (!canTakeAttendance(session)) {
+    return (
+      <>
+        {back}
+        <Card>
+          <EmptyState
+            icon={CalendarClock}
+            title={t('attendance:future.title')}
+            description={t('attendance:future.description')}
           />
         </Card>
       </>

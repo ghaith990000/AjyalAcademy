@@ -13,7 +13,7 @@ import { formatDate, formatLongDate, formatTimeRange } from '@/lib/dates'
 import { useLanguage } from '@/lib/useLanguage'
 import { CancelSessionDialog } from './CancelSessionDialog'
 import { useSession, useSessionsBasePath } from './hooks'
-import { sessionStatus } from './schedule'
+import { canTakeAttendance, sessionStatus } from './schedule'
 import { SessionFormDialog } from './SessionFormDialog'
 import { SessionStatusBadge } from './SessionStatusBadge'
 
@@ -145,24 +145,31 @@ export default function SessionDetailPage() {
               {t('sessions:detail.cancelledNotice')}
             </p>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link to={`${base}/${session.id}/attendance`}>
-                  <ClipboardCheck className="size-5" aria-hidden />
-                  {attendance.data && attendance.data.length > 0
-                    ? t('sessions:detail.editAttendance')
-                    : t('sessions:detail.takeAttendance')}
-                </Link>
-              </Button>
-              <Button variant="secondary" onClick={() => setEditing(true)}>
-                <Pencil className="size-4" aria-hidden />
-                {t('sessions:detail.edit')}
-              </Button>
-              <Button variant="danger" onClick={() => setCancelling(true)}>
-                <Ban className="size-4" aria-hidden />
-                {t('sessions:detail.cancel')}
-              </Button>
-            </div>
+            <>
+              {!canTakeAttendance(session) && (
+                <p className="text-ink-muted">{t('sessions:detail.attendanceOpens')}</p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {canTakeAttendance(session) && (
+                  <Button asChild>
+                    <Link to={`${base}/${session.id}/attendance`}>
+                      <ClipboardCheck className="size-5" aria-hidden />
+                      {attendance.data && attendance.data.length > 0
+                        ? t('sessions:detail.editAttendance')
+                        : t('sessions:detail.takeAttendance')}
+                    </Link>
+                  </Button>
+                )}
+                <Button variant="secondary" onClick={() => setEditing(true)}>
+                  <Pencil className="size-4" aria-hidden />
+                  {t('sessions:detail.edit')}
+                </Button>
+                <Button variant="danger" onClick={() => setCancelling(true)}>
+                  <Ban className="size-4" aria-hidden />
+                  {t('sessions:detail.cancel')}
+                </Button>
+              </div>
+            </>
           )}
         </Card>
 

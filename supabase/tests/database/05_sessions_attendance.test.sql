@@ -3,8 +3,8 @@
 -- See 01_access_control.test.sql for how to run. Ids: tests.u(n) = f8000000-…-n.
 --   users: admin u(1), coach1 u(2), coach2 u(3), inactive coach u(4)
 --   players: coach1 has u(11), u(12), u(13) and a removed one u(14); coach2 has u(21)
---   sessions: u(101) cancel test, u(102) main attendance, u(103) attended then cancelled, u(104) coach change,
---             u(105) atomicity
+--   sessions (all today unless noted): u(101) cancel test, u(102) main attendance, u(103) attended then cancelled,
+--             u(104) coach change, u(105) atomicity, u(106) tomorrow (no attendance yet), u(107) yesterday
 begin;
 
 create extension if not exists pgtap with schema extensions;
@@ -93,14 +93,16 @@ select throws_ok($$insert into public.training_sessions (session_date, start_tim
 select throws_ok($$insert into public.training_sessions (session_date, start_time, end_time, coach_id)
   values (public.today_bh(), '16:00', '17:00', tests.u(4))$$, '23514', 'ajyal:invalid_coach', 'nor can an inactive coach');
 select lives_ok($$insert into public.training_sessions (id, session_date, start_time, end_time, coach_id) values
-  (tests.u(103), public.today_bh() + 1, '16:00', '17:00', tests.u(2)),
-  (tests.u(104), public.today_bh() + 2, '16:00', '17:00', tests.u(2)),
-  (tests.u(105), public.today_bh() + 3, '16:00', '17:00', tests.u(2))$$, 'several sessions in one statement (repeat weekly)');
+  (tests.u(103), public.today_bh(), '16:00', '17:00', tests.u(2)),
+  (tests.u(104), public.today_bh(), '16:00', '17:00', tests.u(2)),
+  (tests.u(105), public.today_bh(), '16:00', '17:00', tests.u(2)),
+  (tests.u(106), public.today_bh() + 1, '16:00', '17:00', tests.u(2)),
+  (tests.u(107), public.today_bh() - 1, '16:00', '17:00', tests.u(2))$$, 'several sessions in one statement (repeat weekly)');
 select tests.reset();
 
 select is((select count(*)::int from public.activity_log where action = 'session.created' and entity_id = tests.u(101) and actor_id = tests.u(2)), 1, 'creation is logged once, by the coach');
 select is((select summary ->> 'coach_name' from public.activity_log where action = 'session.created' and entity_id = tests.u(101)), 'Coach One', 'with a display snapshot');
-select is((select count(*)::int from public.activity_log where action = 'session.created' and entity_id in (tests.u(103), tests.u(104), tests.u(105))), 3, 'each session of a batch is logged');
+select is((select count(*)::int from public.activity_log where action = 'session.created' and entity_id in (tests.u(103), tests.u(104), tests.u(105), tests.u(106), tests.u(107))), 5, 'each session of a batch is logged');
 
 -- ---------------------------------------------------------------------------
 -- isolation: a coach sees and edits only their own sessions
@@ -110,9 +112,9 @@ select is_empty($$select id from public.training_sessions where id in (tests.u(1
 select is(tests.affected($$update public.training_sessions set location = 'x' where id = tests.u(101)$$), 0, 'nor edit them');
 select tests.act_as(tests.u(2));
 select throws_ok($$update public.training_sessions set coach_id = tests.u(3) where id = tests.u(101)$$, '42501', null, 'a coach cannot hand a session to another coach');
-select is((select count(*)::int from public.training_sessions where id between tests.u(101) and tests.u(105)), 5, 'a coach sees their own');
+select is((select count(*)::int from public.training_sessions where id between tests.u(101) and tests.u(107)), 7, 'a coach sees their own');
 select tests.act_as(tests.u(1));
-select is((select count(*)::int from public.training_sessions where id between tests.u(101) and tests.u(105)), 5, 'an admin sees every session');
+select is((select count(*)::int from public.training_sessions where id between tests.u(101) and tests.u(107)), 7, 'an admin sees every session');
 select tests.reset();
 
 -- ---------------------------------------------------------------------------
@@ -131,6 +133,7 @@ select is((select count(*)::int from public.activity_log where action = 'session
 -- ---------------------------------------------------------------------------
 select tests.act_as(tests.u(2));
 select lives_ok($$select public.save_attendance(tests.u(102), tests.recs(array[11, 13], array[12]))$$, 'the session coach saves attendance');
+select throws_ok($$select public.save_attendance(tests.u(106), tests.recs(array[11]))$$, '55000', 'ajyal:session_in_future', 'a coach cannot take attendance for a session dated tomorrow');
 select is((select count(*)::int from public.attendance where session_id = tests.u(102)), 3, 'one row per player');
 select is((select string_agg(status::text, ',' order by player_id) from public.attendance where session_id = tests.u(102)), 'present,absent,present', 'with the right statuses');
 select is((select count(*)::int from public.attendance where session_id = tests.u(102) and marked_by = tests.u(2)), 3, 'marked by the coach');
@@ -160,6 +163,11 @@ select throws_ok($$select public.save_attendance(tests.u(105), tests.recs(array[
 select is((select count(*)::int from public.attendance where session_id = tests.u(105)), 0, 'and nothing of it is saved');
 select throws_ok($$select public.save_attendance(tests.u(101), tests.recs(array[11]))$$, '55000', 'ajyal:session_cancelled', 'a cancelled session cannot be marked');
 select throws_ok($$select public.save_attendance(gen_random_uuid(), tests.recs(array[11]))$$, 'P0002', 'ajyal:session_not_found', 'an unknown session is not found');
+select throws_ok($$select public.save_attendance(tests.u(106), tests.recs(array[11]))$$, '55000', 'ajyal:session_in_future', 'nor can an admin, for a session dated in the future');
+select is((select count(*)::int from public.attendance where session_id = tests.u(106)), 0, 'and nothing is saved for it');
+select lives_ok($$select public.save_attendance(tests.u(107), tests.recs(array[11], array[12]))$$, 'a session from yesterday can still be marked');
+select lives_ok($$update public.training_sessions set session_date = public.today_bh() where id = tests.u(106)$$, 'a future session moved to today ...');
+select lives_ok($$select public.save_attendance(tests.u(106), tests.recs(array[11]))$$, '... can be marked from then on');
 select tests.reset();
 
 -- ---------------------------------------------------------------------------
@@ -192,7 +200,7 @@ select is((select has_function_privilege('authenticated', 'public.trg_sessions_g
 -- ---------------------------------------------------------------------------
 select is((select count(*)::int from public.activity_log where action = 'attendance.saved' and entity_id = tests.u(102)), 3, 'each successful save logs one entry (coach twice, admin once)');
 select is((select count(*)::int from public.activity_log where action = 'attendance.saved' and entity_id = tests.u(102) and actor_id = tests.u(2) and (summary ->> 'present_count') || '/' || (summary ->> 'total_count') || '/' || (summary ->> 'actor_name') || '/' || (summary ->> 'coach_name') = '2/3/Coach One/Coach One'), 1, 'with counts and names as a snapshot (the first save: 2 of 3 present)');
-select is((select count(*)::int from public.activity_log where action = 'attendance.saved' and entity_id in (tests.u(105), tests.u(101))), 0, 'refused saves are not logged');
+select is((select count(*)::int from public.activity_log where action = 'attendance.saved' and entity_id in (tests.u(105), tests.u(101))), 0, 'refused saves are not logged (cancelled, future, invalid)');
 
 -- ---------------------------------------------------------------------------
 -- moving a session between coaches
@@ -212,14 +220,14 @@ select tests.act_as(tests.u(1));
 select lives_ok($$select public.save_attendance(tests.u(103), tests.recs(array[11]))$$, 'attendance is taken for a session ...');
 select tests.act_as(tests.u(2));
 select lives_ok($$update public.training_sessions set cancelled_at = now() where id = tests.u(103)$$, '... which is then cancelled');
-select is((select count(*)::int from public.player_attendance where player_id = tests.u(11)), 1, 'the history skips the cancelled session');
-select is((select count(*)::int from public.attendance where player_id = tests.u(11)), 2, 'though its mark is kept');
-select is((select status::text || '/' || session_date::text from public.player_attendance where player_id = tests.u(11)), 'present/' || public.today_bh()::text, 'a row carries the status and the session date');
-select is((select count(*)::int from public.player_attendance where player_id = tests.u(11) and status = 'present'), 1, 'the rate can be counted from it');
+select is((select count(*)::int from public.player_attendance where player_id = tests.u(11)), 3, 'the history skips the cancelled session (sessions 102, 106 and 107 count)');
+select is((select count(*)::int from public.attendance where player_id = tests.u(11)), 4, 'though its mark is kept');
+select is((select status::text || '/' || session_date::text from public.player_attendance where player_id = tests.u(11) and session_id = tests.u(102)), 'present/' || public.today_bh()::text, 'a row carries the status and the session date');
+select is((select count(*)::int from public.player_attendance where player_id = tests.u(11) and status = 'present'), 3, 'the rate can be counted from it');
 select tests.act_as(tests.u(3));
 select is_empty($$select 1 from public.player_attendance where player_id in (tests.u(11), tests.u(12), tests.u(13))$$, 'another coach sees no history of these players');
 select tests.act_as(tests.u(1));
-select is((select count(*)::int from public.player_attendance where player_id in (tests.u(11), tests.u(12), tests.u(13))), 3, 'an admin sees it all');
+select is((select count(*)::int from public.player_attendance where player_id in (tests.u(11), tests.u(12), tests.u(13))), 6, 'an admin sees it all (3 + 1 + 2 marks)');
 select tests.reset();
 
 select * from finish();
