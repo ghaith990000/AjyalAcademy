@@ -108,6 +108,19 @@ describe('route guards', () => {
     expect(screen.queryByRole('link', { name: 'Coaches' })).not.toBeInTheDocument()
   })
 
+  it('keeps a coach out of the expenses and reports pages', async () => {
+    for (const path of ['/admin/expenses', '/admin/reports']) {
+      const router = renderAt(path, fakeAuth('coach'))
+      // The reports route is lazy: the router loads its chunk (the charting library) before it renders anything,
+      // which can take a moment on a loaded machine.
+      await screen.findAllByRole('navigation', { name: 'Main navigation' }, { timeout: 10_000 })
+      expect(router.state.location.pathname).toBe('/coach')
+      expect(screen.queryByRole('heading', { name: 'Expenses' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Reports' })).not.toBeInTheDocument()
+      document.body.innerHTML = ''
+    }
+  }, 20_000)
+
   it('keeps an admin out of /coach', async () => {
     const router = renderAt('/coach/players', fakeAuth('admin'))
     await screen.findAllByRole('navigation', { name: 'Main navigation' })

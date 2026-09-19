@@ -8,6 +8,7 @@ import { Dialog } from './Dialog'
 import { Field } from './Field'
 import { Input } from './Input'
 import { LanguageToggle } from './LanguageToggle'
+import { Money } from './Money'
 import { Avatar } from './Avatar'
 
 describe('Button', () => {
@@ -146,6 +147,27 @@ describe('DataList', () => {
       />,
     )
     expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
+  })
+})
+
+describe('Money', () => {
+  it('shows an amount with its unit in the active language', async () => {
+    await i18n.changeLanguage('en')
+    const { unmount } = render(<Money fils={540_000} />)
+    expect(screen.getByText('540.000 BD')).toBeInTheDocument()
+    unmount()
+    await i18n.changeLanguage('ar')
+    render(<Money fils={540_000} />)
+    expect(screen.getByText('540.000 د.ب')).toBeInTheDocument()
+  })
+
+  it('keeps a negative amount left-to-right so the minus sign stays in front of the digits', async () => {
+    await i18n.changeLanguage('ar')
+    const { container } = render(<Money fils={-20_000} />)
+    const number = screen.getByText('-20.000')
+    expect(number.tagName).toBe('BDI')
+    expect(number).toHaveAttribute('dir', 'ltr')
+    expect(container).toHaveTextContent('-20.000 د.ب')
   })
 })
 

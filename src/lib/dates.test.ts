@@ -4,6 +4,8 @@ import {
   defaultEndDate,
   formatDate,
   formatLongDate,
+  formatMonthName,
+  formatMonthYear,
   formatTime,
   formatTimeRange,
   isValidISODate,
@@ -25,6 +27,19 @@ describe('dates', () => {
     expect(formatTime('16:30', 'en')).toBe('4:30 PM')
     expect(formatTime('09:05', 'en')).toBe('9:05 AM')
     expect(formatTime('16:30', 'ar')).toMatch(/^4:30 [^\d\s]+$/)
+  })
+})
+
+describe('month names', () => {
+  it('names a month and year in the language, with Latin digits', () => {
+    expect(formatMonthYear(2026, 9, 'en')).toBe('September 2026')
+    expect(formatMonthYear(2026, 9, 'ar')).toMatch(/^[^\d]+ 2026$/)
+  })
+
+  it('names a month on its own, long or short', () => {
+    expect(formatMonthName(1, 'en')).toBe('January')
+    expect(formatMonthName(12, 'en', 'short')).toBe('Dec')
+    expect(formatMonthName(3, 'ar')).toMatch(/^[^\d]+$/)
   })
 })
 

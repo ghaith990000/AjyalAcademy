@@ -172,7 +172,7 @@ Rules (enforced in `create_subscription` RPC): row count = `plans.player_count`;
 | `summary`     | jsonb           | **snapshot** for display (e.g. `{ "player_name": "Ali", "plan": "duo" }`) so removed rows still render |
 | `created_at`  | timestamptz     | indexed desc; table is in the `supabase_realtime` publication                                          |
 
-Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigned`, `subscription.created`, `subscription.cancelled`, `payment.recorded`, `discount.created`, `session.created`, `session.cancelled`, `attendance.saved`, `expense.created`, `coach.created`. UI maps each to a translated sentence with the `summary` values.
+Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigned`, `subscription.created`, `subscription.cancelled`, `payment.recorded`, `discount.created`, `session.created`, `session.cancelled`, `attendance.saved`, `expense.created`, `expense.updated`, `expense.deleted`, `expense.salaries_generated`, `coach.created`. UI maps each to a translated sentence with the `summary` values.
 
 ## RPCs and SQL functions
 
@@ -184,9 +184,9 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 | `cancel_subscription(id, reason)`        | admin, coach (own)         | Sets `cancelled_at`, logs activity.                                                                            |
 | `save_attendance(session_id, records)`   | admin, session coach       | Upserts attendance rows (records = JSON array), logs one `attendance.saved`.                                   |
 | `assign_players(player_ids[], coach_id)` | admin                      | Bulk (re)assignment, logs `player.reassigned`.                                                                 |
-| `generate_monthly_salaries(month date)`  | admin                      | Idempotently inserts a `coach_salary` expense per active coach with a salary.                                  |
+| `generate_monthly_salaries(month date)`  | admin                      | Idempotently inserts a `coach_salary` expense per active coach with a salary (created / skipped counts).       |
 | `report_summary(from, to)`               | admin                      | `{ collected_fils, expenses_fils, profit_fils, margin_bps }`.                                                  |
-| `revenue_by_month(year)`                 | admin                      | 12 rows: month, collected, expenses, profit.                                                                   |
+| `revenue_by_month(year)`                 | admin                      | 12 rows: `month_start`, collected, expenses, profit.                                                           |
 | `expenses_by_category(from, to)`         | admin                      | category, total.                                                                                               |
 
 ### As built (Phase 4)
@@ -200,7 +200,7 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 
 Player create/update use plain table access + triggers (RLS-scoped); **removal is the `remove_player(id)` RPC** (D-033). The activity trigger records the actor via `auth.uid()`.
 
-**Implementation status:** `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` ✅ (Phase 4 — see below) · `remove_player` ✅ (Phase 2) · `assign_players(p_player_ids uuid[], p_coach_id uuid default null) → integer` ✅ (Phase 3: admin only; `null` unassigns; skips removed players and rows already on that coach; max 500; the players trigger logs one `player.reassigned` per changed player; D-042) · `save_attendance(p_session_id uuid, p_records jsonb) → void` ✅ (Phase 5) · `generate_monthly_salaries`, `report_summary`, `revenue_by_month`, `expenses_by_category` → Phase 6 (D-032).
+**Implementation status:** `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` ✅ (Phase 4 — see below) · `remove_player` ✅ (Phase 2) · `assign_players(p_player_ids uuid[], p_coach_id uuid default null) → integer` ✅ (Phase 3: admin only; `null` unassigns; skips removed players and rows already on that coach; max 500; the players trigger logs one `player.reassigned` per changed player; D-042) · `save_attendance(p_session_id uuid, p_records jsonb) → void` ✅ (Phase 5) · `generate_monthly_salaries(p_month date) → (created_count, skipped_count, created_fils)`, `report_summary(p_from date, p_to date) → (collected_fils, expenses_fils, profit_fils, margin_bps)`, `revenue_by_month(p_year integer) → 12 × (month_start, collected_fils, expenses_fils, profit_fils)`, `expenses_by_category(p_from date, p_to date) → (category, total_fils)` ✅ (Phase 6 — see below).
 
 ### As built (Phase 5)
 
@@ -209,12 +209,20 @@ Player create/update use plain table access + triggers (RLS-scoped); **removal i
 - **Error codes** (`ajyal:<code>`): `forbidden`, `session_not_found`, `session_cancelled`, `session_in_future`, `session_has_attendance`, `invalid_coach`, `invalid_records`, `not_on_roster`.
 - **View** `player_attendance` (`security_invoker`, D-059): one row per mark joined with its session (`player_id, session_id, status, marked_at, session_date, start_time, end_time, location, coach_id`), **cancelled sessions left out**; RLS applies as the caller, so a coach only sees marks from sessions they run.
 
+### As built (Phase 6)
+
+- **Expenses are written with plain table access** (admin only, RLS from Phase 2). `trg_expenses_guard` (BEFORE INSERT/UPDATE) adds what RLS cannot express: `created_by` is always the caller and cannot be edited; an expense **cannot be dated after today's academy date** (`ajyal:future_date`, D-047 — checked on insert and when the date changes); a salary's coach must have role `coach` (`ajyal:invalid_coach`; an inactive coach can still be paid for a past month). The table's own checks still tie `coach_id` to `coach_salary` and require an amount above zero. Updates and deletes are logged by `trg_expenses_activity_change` (`expense.updated` / `expense.deleted`, snapshot `category`, `amount_fils`, `expense_date`) — an expense is hard-deleted, so the log is what remains of it (D-063).
+- `generate_monthly_salaries(p_month)` — admin only. `p_month` is any date in the month; a month after the current one is refused (`ajyal:invalid_period`). Inserts, for each **active** coach with `monthly_salary_fils > 0` who has no `coach_salary` expense dated in that month, one expense dated the **1st** with the salary as it is now. Returns how many were created, how many eligible coaches were skipped, and the fils created. A transaction-level advisory lock per month serialises two admins pressing the button together. It logs **one** `expense.salaries_generated` entry (`month`, `created_count`, `created_fils`) — and only when something was created; the per-row `expense.created` entries are switched off for the run (`ajyal.bulk`). D-065.
+- **Report functions** (`report_summary`, `revenue_by_month`, `expenses_by_category`) are `SECURITY DEFINER` with an explicit active-admin check: through RLS a coach can read the payments of their own players, so a plain invoker function would have let them add up the academy's takings. Ranges are **inclusive** on `payments.paid_at` / `expenses.expense_date`; `report_summary` sums every payment, including those of cancelled subscriptions and removed players (the money was received); `margin_bps = round(profit × 10000 ÷ collected)` half away from zero, `null` when nothing was collected; `revenue_by_month` always returns 12 rows, zero where nothing happened, and its `month_start` values are the 1st of each month; `expenses_by_category` returns only categories that have expenses, biggest first. All date maths is plain `date` arithmetic (no time-zone round trips). D-064.
+- **Error codes** (`ajyal:<code>`): `forbidden`, `invalid_period` (a from after to, a missing date, a year outside 2000–2100, or a future month for salaries), `future_date`, `invalid_coach`.
+- pgTAP: `supabase/tests/database/06_finance_reports.test.sql` (77 assertions): the worked example, month/year/leap-day edges, zero-filled months, year = Σ of its 12 months, rounding half away from zero, admin-only access (coach, inactive admin, signed-out), salary generation idempotency, the guard trigger and the activity trail.
+
 ## Triggers
 
 - `on_auth_user_created` → nothing (profiles are inserted by the `create-coach` Edge Function / seed, never self-signup).
 - `players` AFTER INSERT → `player.created`; AFTER UPDATE of `deleted_at` (null → not null) → `player.removed`; AFTER UPDATE of `coach_id` → `player.reassigned`.
 - `training_sessions` BEFORE INSERT/UPDATE → `trg_sessions_guard` (see Phase 5 above).
-- `discounts` AFTER INSERT → `discount.created`; `training_sessions` AFTER INSERT/cancel → `session.*`; `expenses` AFTER INSERT → `expense.created`.
+- `discounts` AFTER INSERT → `discount.created`; `training_sessions` AFTER INSERT/cancel → `session.*`; `expenses` AFTER INSERT → `expense.created` (skipped inside `generate_monthly_salaries`), AFTER UPDATE/DELETE → `expense.updated` / `expense.deleted`; `expenses` BEFORE INSERT/UPDATE → `trg_expenses_guard` (see Phase 6 above).
 - All activity inserts are `SECURITY DEFINER` functions (`log_activity`, not callable through the API); the table itself has **no insert policy** for clients. `coach.created` is written by the `create-coach` Edge Function (D-038).
 
 ## RLS matrix

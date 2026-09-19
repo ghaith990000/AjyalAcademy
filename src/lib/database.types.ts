@@ -663,6 +663,21 @@ export type Database = {
         Args: never
         Returns: Database['public']['Enums']['user_role']
       }
+      expenses_by_category: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          category: Database['public']['Enums']['expense_category']
+          total_fils: number
+        }[]
+      }
+      generate_monthly_salaries: {
+        Args: { p_month: string }
+        Returns: {
+          created_count: number
+          created_fils: number
+          skipped_count: number
+        }[]
+      }
       is_active_user: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       log_activity: {
@@ -686,6 +701,24 @@ export type Database = {
         Returns: string
       }
       remove_player: { Args: { p_player_id: string }; Returns: undefined }
+      report_summary: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          collected_fils: number
+          expenses_fils: number
+          margin_bps: number
+          profit_fils: number
+        }[]
+      }
+      revenue_by_month: {
+        Args: { p_year: number }
+        Returns: {
+          collected_fils: number
+          expenses_fils: number
+          month_start: string
+          profit_fils: number
+        }[]
+      }
       save_attendance: {
         Args: { p_records: Json; p_session_id: string }
         Returns: undefined

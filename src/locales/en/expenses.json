@@ -1,0 +1,103 @@
+{
+  "description": "Record what the academy spends and generate coaches' monthly salaries.",
+  "add": "Add expense",
+  "caption": "Expenses",
+  "columns": {
+    "expense": "Expense",
+    "date": "Date",
+    "amount": "Amount"
+  },
+  "category": {
+    "coach_salary": "Coach salary",
+    "field_rent": "Field rent",
+    "transportation": "Transportation",
+    "equipment": "Equipment",
+    "other": "Other"
+  },
+  "filters": {
+    "category": "Category",
+    "all": "All"
+  },
+  "totals": {
+    "month": "Total for {{month}}"
+  },
+  "empty": {
+    "title": "No expenses in {{month}}",
+    "titleCategory": "No {{category}} expenses in {{month}}",
+    "description": "Add an expense, or generate this month's salaries."
+  },
+  "loadError": {
+    "title": "Couldn't load expenses",
+    "description": "Check your connection and try again."
+  },
+  "list": {
+    "showing": "Showing {{shown}} of {{total}}",
+    "showMore": "Show more"
+  },
+  "form": {
+    "createTitle": "Add expense",
+    "editTitle": "Edit expense",
+    "submitCreate": "Add expense",
+    "submitEdit": "Save changes",
+    "category": {
+      "label": "Category"
+    },
+    "coach": {
+      "label": "Coach",
+      "placeholder": "Choose a coach",
+      "inactive": "{{name}} (inactive)",
+      "required": "Choose the coach this salary is for"
+    },
+    "amount": {
+      "label": "Amount (BD)",
+      "hint": "For example 50 or 12.500",
+      "invalid": "Enter an amount above zero, such as 50 or 12.500",
+      "tooHigh": "That amount is too high"
+    },
+    "date": {
+      "label": "Date",
+      "invalid": "Enter a valid date",
+      "future": "The date can't be in the future"
+    },
+    "description": {
+      "label": "Note",
+      "tooLong": "The note is too long (200 characters at most)"
+    },
+    "delete": "Delete this expense"
+  },
+  "toast": {
+    "created": "Expense added",
+    "updated": "Expense updated",
+    "deleted": "Expense deleted"
+  },
+  "deleteDialog": {
+    "title": "Delete this expense?",
+    "description": "It disappears from the reports. The deletion is kept in the activity log.",
+    "keep": "Keep it",
+    "confirm": "Delete"
+  },
+  "salaries": {
+    "open": "Generate salaries",
+    "title": "Generate monthly salaries",
+    "description": "Adds one salary expense for each active coach who has a monthly salary, dated the 1st of the month.",
+    "generate": "Generate",
+    "cancel": "Cancel",
+    "done": "Done",
+    "noSalaries": "No active coach has a monthly salary yet.",
+    "toCoaches": "Set salaries on the Coaches page",
+    "preview": "Coaches with a monthly salary: {{n}}. Total:",
+    "previewNote": "A coach who already has a salary this month is skipped, so running it twice is safe.",
+    "result": {
+      "created": "Salaries created: {{n}}",
+      "nothingNew": "Every salary for this month already exists — nothing was added.",
+      "total": "Total added",
+      "skipped": "Already had a salary this month: {{n}}"
+    }
+  },
+  "error": {
+    "future_date": "The date can't be in the future.",
+    "invalid_coach": "Choose a coach for the salary.",
+    "invalid_period": "That month can't be used.",
+    "expense_not_found": "This expense no longer exists."
+  }
+}

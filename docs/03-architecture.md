@@ -76,7 +76,7 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 
 - Routes are declared in `src/app/routes.tsx` (an array of `RouteObject`s, so tests can use `createMemoryRouter(routes)`); `src/app/App.tsx` creates the browser router. Until Phase 2 the `/admin` and `/coach` areas are open; Phase 2 adds role guards. `/dev/ui` exists only when `import.meta.env.DEV`.
 - Providers live in `src/app/providers.tsx` (Radix `Direction.Provider` + `ToastProvider`). TanStack Query and Auth providers arrive in Phase 2.
-- Placeholder pages (`src/app/PlaceholderPage.tsx`) show "arrives in phase N" for sections built later; replace each route element as its phase lands.
+- Placeholder pages showed "arrives in phase N" for sections built later (`PlaceholderPage`, removed in Phase 6 once its last two routes were built).
 
 ## As built (Phase 2)
 
@@ -107,3 +107,11 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - **`src/features/attendance`:** `marks.ts` (pure: initial marks, toggle, mark all, counts, records, "has changes", rate), `api.ts` (roster, a session's marks, `save_attendance`, a player's history from `player_attendance`, present count), `hooks.ts`, `AttendancePage` (the on-pitch screen), `SessionAttendanceCard` (who attended, on the session page), `PlayerAttendanceCard` (rate + history, on the player page).
 - **Routes:** `/admin|coach/sessions`, `…/sessions/:id`, `…/sessions/:id/attendance`. Query keys `['sessions', 'list' | 'detail' | 'range', …]`, `['attendance', 'roster' | 'session' | 'player' | 'player-present', …]`; saving attendance invalidates `['attendance']`, session writes invalidate `['sessions']`.
 - The roster warning uses `usePlayersCoveredOn` (subscriptions feature): `subscription_players` joined to non-cancelled subscriptions covering the session date.
+
+## As built (Phase 6)
+
+- **`src/lib/reports.ts`** (pure, tested): `marginBps` / `formatMargin` / `sharePercent`, the `Period` type (a calendar month or year) with `periodRange`, `shiftPeriod`, `switchKind`, `isLatestPeriod`, and the CSV helpers (`csvCell` neutralises formula-looking text, `toCsv`, `CSV_BOM`, `csvFileName`). `dates.ts` gained `formatMonthYear` / `formatMonthName`; `money.ts` gained `currencyLabel`.
+- **`src/features/expenses`:** `categories.ts`, `schema.ts` (zod; `toExpenseInput`), `api.ts` (month list with category filter and paging, create/update/delete, `generateMonthlySalaries`), `hooks.ts` (every write invalidates `['expenses']` and `['reports']`), `useExpenseError.ts`, `ExpensesPage` (month switcher, totals bar, category chips, list), `ExpenseFormDialog` (a salary asks for the coach and prefills their salary), `DeleteExpenseDialog`, `GenerateSalariesDialog`, `CategoryChips`.
+- **`src/features/reports`:** `api.ts` (the three report functions mapped to camelCase, plus the paged CSV reads), `hooks.ts` (`['reports', 'summary' | 'months' | 'categories', …]`), `PeriodSwitcher` (shared with the expenses page and the salary dialog), `ReportsPage` (KPI cards, chart, category breakdown, month table, export), `RevenueChart` (Recharts `ComposedChart`), `CategoryBreakdown`, `MonthsTable`, `ExportCard`, `exportCsv.ts` (builders + `downloadCsv`).
+- **Routes:** `/admin/expenses` and `/admin/reports` (admin only — a coach is redirected to `/coach`). The reports route is `lazy` and the admin route group has a `HydrateFallback` (`app/RouteLoading`).
+- The expenses page reuses `useExpensesByCategory` from the reports feature for its totals bar, so the month's total is the same number the report shows.

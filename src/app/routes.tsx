@@ -1,10 +1,10 @@
-import { ChartColumn, Receipt } from 'lucide-react'
 import type { RouteObject } from 'react-router-dom'
 import AttendancePage from '@/features/attendance/AttendancePage'
 import { RedirectIfSignedIn, RequireRole, RootRedirect } from '@/features/auth/guards'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import CoachesPage from '@/features/coaches/CoachesPage'
 import DiscountsPage from '@/features/discounts/DiscountsPage'
+import ExpensesPage from '@/features/expenses/ExpensesPage'
 import PlayerDetailPage from '@/features/players/PlayerDetailPage'
 import PlayersPage from '@/features/players/PlayersPage'
 import SessionDetailPage from '@/features/sessions/SessionDetailPage'
@@ -18,7 +18,7 @@ import { AdminShell } from './layouts/AdminShell'
 import { AuthLayout } from './layouts/AuthLayout'
 import { CoachShell } from './layouts/CoachShell'
 import NotFoundPage from './NotFoundPage'
-import PlaceholderPage from './PlaceholderPage'
+import { RouteLoading } from './RouteLoading'
 
 /** `/admin/*` needs an active admin, `/coach/*` an active coach (see features/auth/guards). */
 export const routes: RouteObject[] = [
@@ -30,6 +30,8 @@ export const routes: RouteObject[] = [
   },
   {
     element: <RequireRole role="admin" />,
+    // Only the reports page is lazy; opened directly, it needs something on screen while it loads.
+    HydrateFallback: RouteLoading,
     children: [
       {
         path: '/admin',
@@ -46,13 +48,13 @@ export const routes: RouteObject[] = [
           { path: 'sessions/:id/attendance', element: <AttendancePage /> },
           { path: 'coaches', element: <CoachesPage /> },
           { path: 'discounts', element: <DiscountsPage /> },
+          { path: 'expenses', element: <ExpensesPage /> },
           {
-            path: 'expenses',
-            element: <PlaceholderPage title="expenses" phase={6} icon={Receipt} />,
-          },
-          {
+            // Loaded on demand: it is the only screen that needs the charting library.
             path: 'reports',
-            element: <PlaceholderPage title="reports" phase={6} icon={ChartColumn} />,
+            lazy: async () => ({
+              Component: (await import('@/features/reports/ReportsPage')).default,
+            }),
           },
           { path: 'settings', element: <SettingsPage /> },
         ],

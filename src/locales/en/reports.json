@@ -1,0 +1,69 @@
+{
+  "description": "Fees collected, expenses and profit — by month and by year.",
+  "period": {
+    "label": "Period",
+    "month": "Month",
+    "year": "Year",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "previousYear": "Previous year",
+    "nextYear": "Next year"
+  },
+  "kpi": {
+    "label": "Summary",
+    "collected": "Collected",
+    "expenses": "Expenses",
+    "profit": "Profit",
+    "margin": "Margin"
+  },
+  "chart": {
+    "title": "Collected vs expenses — {{year}}",
+    "collected": "Collected",
+    "expenses": "Expenses",
+    "profit": "Profit",
+    "aria": "Chart of the fees collected, the expenses and the profit for each month of {{year}}. The table below lists the same figures.",
+    "axisHint": "Months, January to December (left to right)",
+    "empty": {
+      "title": "Nothing recorded in {{year}}",
+      "description": "Payments and expenses will show up here as they are recorded."
+    }
+  },
+  "categories": {
+    "title": "Expenses by category",
+    "empty": "No expenses in this period."
+  },
+  "months": {
+    "title": "Month by month — {{year}}",
+    "caption": "Collected, expenses and profit for each month",
+    "month": "Month",
+    "collected": "Collected",
+    "expenses": "Expenses",
+    "profit": "Profit",
+    "total": "Year",
+    "unit": "Amounts in BD"
+  },
+  "export": {
+    "title": "Export",
+    "description": "Download every payment or expense of the selected period as a spreadsheet file (CSV).",
+    "payments": "Payments (CSV)",
+    "expenses": "Expenses (CSV)",
+    "done": "File downloaded",
+    "failed": "Couldn't create the file",
+    "columns": {
+      "date": "Date",
+      "amount": "Amount (BD)",
+      "method": "Method",
+      "players": "Players",
+      "plan": "Plan",
+      "note": "Note",
+      "receivedBy": "Received by",
+      "category": "Category",
+      "coach": "Coach",
+      "description": "Note"
+    }
+  },
+  "loadError": {
+    "title": "Couldn't load the report",
+    "description": "Check your connection and try again."
+  }
+}

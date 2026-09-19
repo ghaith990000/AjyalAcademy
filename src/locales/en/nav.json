@@ -14,10 +14,6 @@
   "tab": {
     "subscriptions": "Billing"
   },
-  "comingSoon": {
-    "title": "This section is on its way",
-    "description": "The design system is ready. Features are built phase by phase — this page arrives in phase {{phase}}."
-  },
   "notFound": {
     "title": "Page not found",
     "description": "The page you are looking for does not exist or was moved.",

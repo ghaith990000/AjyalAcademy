@@ -17,5 +17,6 @@
     "back": "Back",
     "search": "Search",
     "retry": "Try again"
-  }
+  },
+  "loading": "Loading…"
 }

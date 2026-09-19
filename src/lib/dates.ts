@@ -25,6 +25,24 @@ export function formatLongDate(value: Date | string, language: Language): string
   }).format(toDate(value))
 }
 
+/** "September 2026" / "سبتمبر 2026" — the month's name in the language, the year in Latin digits. */
+export function formatMonthYear(year: number, month: number, language: Language): string {
+  return new Intl.DateTimeFormat(DATE_LOCALE[language], { month: 'long', year: 'numeric' }).format(
+    new Date(year, month - 1, 1),
+  )
+}
+
+/** "September" / "سبتمبر" (`long`), "Sep" (`short`) — for month rows and chart tooltips. */
+export function formatMonthName(
+  month: number,
+  language: Language,
+  style: 'long' | 'short' = 'long',
+): string {
+  return new Intl.DateTimeFormat(DATE_LOCALE[language], { month: style }).format(
+    new Date(2000, month - 1, 1),
+  )
+}
+
 /** Formats a "HH:mm" (or Date) time: "4:30 PM" in English, "4:30 م" in Arabic. */
 export function formatTime(value: string | Date, language: Language): string {
   let date: Date

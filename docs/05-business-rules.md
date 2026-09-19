@@ -81,7 +81,8 @@ _Fee values above assume the **placeholder** settings: T-shirt 5000 fils, transp
 
 Expense categories: `coach_salary`, `field_rent`, `transportation`, `equipment`, `other`. Expenses are attributed to the period of `expense_date`.
 
-- **Monthly salaries:** the "Generate monthly salaries" action (month picker) inserts one `coach_salary` expense per **active** coach with `monthly_salary_fils > 0`, dated the 1st of the month, and is **idempotent** (skips coaches already having a salary expense that month).
+- An expense has a category, an amount above zero, a date, an optional note and — for a salary — the coach it is for (required for a salary, not allowed for anything else). **It cannot be dated in the future** (the academy's date); who created it is always recorded. Only admins can see or change expenses. Editing or deleting one is allowed and is written to the activity log (D-063).
+- **Monthly salaries:** the "Generate monthly salaries" action (month picker) inserts one `coach_salary` expense per **active** coach with `monthly_salary_fils > 0`, dated the 1st of the month, and is **idempotent** (skips a coach who already has a salary expense dated anywhere in that month — including one entered by hand). It uses each coach's salary as it is on the day it runs, refuses a month that has not begun, and tells the admin how many were created and skipped (D-065).
 
 For a period (a calendar month, or a calendar year):
 
@@ -92,9 +93,16 @@ profit     = collected − expenses
 margin     = profit / collected × 100 %    (shown as "—" when collected = 0)
 ```
 
-Example — October: collected 540.000 BD, expenses 210.000 (salaries 150 + field rent 50 + transportation 10) → profit 330.000, margin 61.11 %. Negative profit/margin are shown in the danger color.
+Example — October: collected 540.000 BD, expenses 210.000 (salaries 150 + field rent 50 + transportation 10) → profit 330.000, margin 61.11 %. Negative profit/margin are shown in the danger color (and carry a minus sign, so colour is never the only cue).
 
-Reports also show: collected per month (12 bars for a year), expenses by category, and CSV export of the period's payments and expenses.
+- Both ends of a period are **inclusive**: a payment on the 31st belongs to that month, one on the 1st of the next month does not; the last day of the year belongs to that year. A year's figures equal the sum of its 12 months.
+- The margin is kept in basis points (61.11 % = 6111), rounded half away from zero (so −0.5 bp is −1), and is "—" when nothing was collected — a month with expenses and no takings is a loss with no margin, not "−100 %".
+- Payments of a **cancelled** subscription and of a **removed** player still count as collected: the money was received (cancelling is not a refund).
+- Nothing is reported for a period that has not begun: the period switcher stops at the current month / year.
+
+Reports also show: collected vs expenses per month for the selected year (12 bars + a profit line, with the same numbers in a table below), expenses by category (amount and share), and CSV export of the period's payments and expenses.
+
+**CSV export** (admin): two separate files for the selected period — payments (date, amount, method, players, plan, note, received by) and expenses (date, category, amount, coach, note). Every row of the period is included, not just a screenful. Dates are `yyyy-MM-dd` and amounts plain BD with three decimals (`540.000`, no currency text) so a spreadsheet can sort and add them; column names and labels follow the language the admin is using. UTF-8 with a byte-order mark, so Arabic names open correctly in Excel. Text that starts with `=`, `+`, `-` or `@` gets a leading apostrophe so a spreadsheet cannot run it as a formula (D-066).
 
 ## Player rules
 

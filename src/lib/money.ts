@@ -25,9 +25,14 @@ export function formatBDAmount(fils: number): string {
   }).format(toBD(fils))
 }
 
+/** "BD" / "د.ب" */
+export function currencyLabel(language: 'ar' | 'en'): string {
+  return language === 'ar' ? 'د.ب' : 'BD'
+}
+
 /** "20.000 BD" / "20.000 د.ب". Wrap the result in <bdi> when rendering inside RTL text. */
 export function formatBHD(fils: number, language: 'ar' | 'en'): string {
-  return `${formatBDAmount(fils)} ${language === 'ar' ? 'د.ب' : 'BD'}`
+  return `${formatBDAmount(fils)} ${currencyLabel(language)}`
 }
 
 /**

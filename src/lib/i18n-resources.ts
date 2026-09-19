@@ -5,9 +5,11 @@ import arCoaches from '@/locales/ar/coaches.json'
 import arDiscounts from '@/locales/ar/discounts.json'
 import arDev from '@/locales/ar/dev.json'
 import arErrors from '@/locales/ar/errors.json'
+import arExpenses from '@/locales/ar/expenses.json'
 import arHome from '@/locales/ar/home.json'
 import arNav from '@/locales/ar/nav.json'
 import arPlayers from '@/locales/ar/players.json'
+import arReports from '@/locales/ar/reports.json'
 import arSessions from '@/locales/ar/sessions.json'
 import arSettings from '@/locales/ar/settings.json'
 import arSubscriptions from '@/locales/ar/subscriptions.json'
@@ -19,9 +21,11 @@ import enCoaches from '@/locales/en/coaches.json'
 import enDiscounts from '@/locales/en/discounts.json'
 import enDev from '@/locales/en/dev.json'
 import enErrors from '@/locales/en/errors.json'
+import enExpenses from '@/locales/en/expenses.json'
 import enHome from '@/locales/en/home.json'
 import enNav from '@/locales/en/nav.json'
 import enPlayers from '@/locales/en/players.json'
+import enReports from '@/locales/en/reports.json'
 import enSessions from '@/locales/en/sessions.json'
 import enSettings from '@/locales/en/settings.json'
 import enSubscriptions from '@/locales/en/subscriptions.json'
@@ -44,6 +48,8 @@ export const resources = {
     subscriptions: enSubscriptions,
     sessions: enSessions,
     attendance: enAttendance,
+    expenses: enExpenses,
+    reports: enReports,
   },
   ar: {
     common: arCommon,
@@ -60,6 +66,8 @@ export const resources = {
     subscriptions: arSubscriptions,
     sessions: arSessions,
     attendance: arAttendance,
+    expenses: arExpenses,
+    reports: arReports,
   },
 } as const
 
