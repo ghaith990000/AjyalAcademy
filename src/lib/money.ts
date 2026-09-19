@@ -29,3 +29,14 @@ export function formatBDAmount(fils: number): string {
 export function formatBHD(fils: number, language: 'ar' | 'en'): string {
   return `${formatBDAmount(fils)} ${language === 'ar' ? 'د.ب' : 'BD'}`
 }
+
+/**
+ * Parse a BD amount typed by a user into integer fils, or `null` if it is not a valid amount.
+ * Accepts "12", "12.5", "12,500" (comma as decimal mark), up to 3 decimals; no signs, no thousands separators.
+ */
+export function parseBD(input: string): number | null {
+  const text = input.trim().replace(',', '.')
+  if (!/^\d+(\.\d{1,3})?$/.test(text)) return null
+  const [whole = '0', fraction = ''] = text.split('.')
+  return Number(whole) * FILS_PER_BD + Number(fraction.padEnd(3, '0'))
+}

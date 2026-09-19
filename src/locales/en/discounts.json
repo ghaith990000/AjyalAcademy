@@ -1,0 +1,83 @@
+{
+  "description": "Reusable discount codes for subscriptions.",
+  "add": "Add discount",
+  "caption": "Discounts",
+  "columns": {
+    "name": "Discount",
+    "value": "Value",
+    "validity": "Valid",
+    "uses": "Uses",
+    "status": "Status"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "validity": {
+    "always": "Always",
+    "from": "From {{date}}",
+    "until": "Until {{date}}",
+    "range": "{{from}} – {{to}}"
+  },
+  "uses": {
+    "unlimited": "{{used}} used",
+    "limited": "{{used}} of {{max}} used"
+  },
+  "empty": {
+    "title": "No discounts yet",
+    "description": "Create a code such as SIBLING10 that staff can apply to a subscription."
+  },
+  "loadError": {
+    "title": "Couldn't load discounts",
+    "description": "Check your connection and try again."
+  },
+  "form": {
+    "createTitle": "Add discount",
+    "editTitle": "Edit discount",
+    "name": {
+      "label": "Name",
+      "required": "Enter a name",
+      "tooLong": "The name is too long"
+    },
+    "code": {
+      "label": "Code",
+      "hint": "Letters, digits, - and _. Staff type this when creating a subscription.",
+      "invalid": "Use 2–30 letters, digits, - or _",
+      "taken": "This code already exists"
+    },
+    "type": {
+      "label": "Type",
+      "percent": "Percentage",
+      "fixed": "Fixed amount"
+    },
+    "value": {
+      "percentLabel": "Percentage (%)",
+      "fixedLabel": "Amount (BD)",
+      "percentInvalid": "Enter a percentage between 0.01 and 100",
+      "fixedInvalid": "Enter an amount such as 5 or 2.500"
+    },
+    "validFrom": {
+      "label": "Valid from",
+      "invalid": "Enter a valid date"
+    },
+    "validTo": {
+      "label": "Valid until",
+      "before": "The end date cannot be before the start date"
+    },
+    "maxUses": {
+      "label": "Maximum uses",
+      "hint": "Leave empty for unlimited. Cancelled subscriptions free a use.",
+      "invalid": "Enter a whole number, 1 or more"
+    },
+    "active": {
+      "label": "Active",
+      "hint": "Inactive codes cannot be applied."
+    },
+    "submitCreate": "Add discount",
+    "submitEdit": "Save changes"
+  },
+  "toast": {
+    "created": "Discount added",
+    "updated": "Discount updated"
+  }
+}

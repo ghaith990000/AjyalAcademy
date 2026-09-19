@@ -189,9 +189,18 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 | `revenue_by_month(year)`                 | admin                      | 12 rows: month, collected, expenses, profit.                                                                   |
 | `expenses_by_category(from, to)`         | admin                      | category, total.                                                                                               |
 
+### As built (Phase 4)
+
+- `create_subscription(p_start_date, p_end_date, p_players jsonb, p_discount_code, p_manual_discount_type, p_manual_discount_value, p_manual_discount_reason, p_initial_payment_fils, p_payment_method, p_payment_note) → uuid` — `p_players` = `[{player_id, transport?, tshirt?}]` (1–4; the `tshirt` override is honoured for admins only). Checks, in order: caller active → players (own for a coach, not removed) → dates → plan for the count (active) → **overlap** (`23P01`, DETAIL = conflicting player ids; the end date is inclusive) → fees → discount (code **or** manual, not both) → totals (`calc_subscription_total`) → initial payment ≤ total. Writes subscription + players (+ payment) and logs `subscription.created` (+ `payment.recorded`).
+- `record_payment(p_subscription_id, p_amount_fils, p_method default 'cash', p_paid_at default today, p_note) → uuid` — amount > 0, not future-dated, `paid + amount ≤ total`, subscription not cancelled.
+- `cancel_subscription(p_subscription_id, p_reason)` — reason required; payments are kept.
+- `calc_subscription_total(plan, tshirt_total, transport_total, type, value) → (subtotal, discount, total)` — internal, pinned to the worked examples (pgTAP + `pricing.test.ts`). `today_bh()` — the academy's date (D-047). `subscription_player_names`, `add_payment_internal` — internal.
+- **Error codes** (`ajyal:<code>`): `forbidden`, `player_not_found`, `invalid_players`, `invalid_dates`, `plan_unavailable`, `overlap`, `discount_not_found|inactive|not_started|expired|exhausted|conflict`, `manual_discount_reason_required|invalid`, `overpayment`, `invalid_amount`, `invalid_date`, `subscription_not_found|cancelled`, `already_cancelled`, `reason_required`.
+- **Views** (`security_invoker`, D-049): `subscription_overview` = subscription + `plan_code`, `paid_fils`, `balance_fils`, `status`, `player_names` (visible players only), `player_count`; `player_subscription_status` = one row per player with the subscription that best describes them (current → upcoming → latest; cancelled ignored).
+
 Player create/update use plain table access + triggers (RLS-scoped); **removal is the `remove_player(id)` RPC** (D-033). The activity trigger records the actor via `auth.uid()`.
 
-**Implementation status:** `remove_player` ✅ (Phase 2) · `assign_players(p_player_ids uuid[], p_coach_id uuid default null) → integer` ✅ (Phase 3: admin only; `null` unassigns; skips removed players and rows already on that coach; max 500; the players trigger logs one `player.reassigned` per changed player; D-042) · `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` → Phase 4 · `save_attendance` → Phase 5 · `generate_monthly_salaries`, `report_summary`, `revenue_by_month`, `expenses_by_category` → Phase 6 (D-032).
+**Implementation status:** `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` ✅ (Phase 4 — see below) · `remove_player` ✅ (Phase 2) · `assign_players(p_player_ids uuid[], p_coach_id uuid default null) → integer` ✅ (Phase 3: admin only; `null` unassigns; skips removed players and rows already on that coach; max 500; the players trigger logs one `player.reassigned` per changed player; D-042) · `save_attendance` → Phase 5 · `generate_monthly_salaries`, `report_summary`, `revenue_by_month`, `expenses_by_category` → Phase 6 (D-032).
 
 ## Triggers
 

@@ -576,7 +576,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      player_subscription_status: {
+        Row: {
+          end_date: string | null
+          player_id: string | null
+          start_date: string | null
+          status: string | null
+          subscription_id: string | null
+        }
+        Relationships: []
+      }
+      subscription_overview: {
+        Row: {
+          balance_fils: number | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string | null
+          created_by: string | null
+          discount_fils: number | null
+          discount_id: string | null
+          discount_reason: string | null
+          discount_type: Database['public']['Enums']['discount_type'] | null
+          discount_value: number | null
+          end_date: string | null
+          id: string | null
+          paid_fils: number | null
+          plan_code: string | null
+          plan_id: string | null
+          plan_price_fils: number | null
+          player_count: number | null
+          player_names: string | null
+          start_date: string | null
+          status: string | null
+          total_fils: number | null
+          transport_total_fils: number | null
+          tshirt_total_fils: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       assign_players: {
@@ -587,6 +625,25 @@ export type Database = {
       can_view_subscription: {
         Args: { p_subscription_id: string }
         Returns: boolean
+      }
+      cancel_subscription: {
+        Args: { p_reason: string; p_subscription_id: string }
+        Returns: undefined
+      }
+      create_subscription: {
+        Args: {
+          p_discount_code?: string
+          p_end_date: string
+          p_initial_payment_fils?: number
+          p_manual_discount_reason?: string
+          p_manual_discount_type?: Database['public']['Enums']['discount_type']
+          p_manual_discount_value?: number
+          p_payment_method?: Database['public']['Enums']['payment_method']
+          p_payment_note?: string
+          p_players: Json
+          p_start_date: string
+        }
+        Returns: string
       }
       current_user_role: {
         Args: never
@@ -604,6 +661,16 @@ export type Database = {
         Returns: undefined
       }
       owns_player: { Args: { p_player_id: string }; Returns: boolean }
+      record_payment: {
+        Args: {
+          p_amount_fils: number
+          p_method?: Database['public']['Enums']['payment_method']
+          p_note?: string
+          p_paid_at?: string
+          p_subscription_id: string
+        }
+        Returns: string
+      }
       remove_player: { Args: { p_player_id: string }; Returns: undefined }
     }
     Enums: {

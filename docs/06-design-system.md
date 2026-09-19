@@ -89,6 +89,7 @@ Source of truth for what exists in `src/components/ui` (import from `@/component
 - **Display:** `Card`/`CardTitle`, `StatCard` (icon above text on phones), `Badge` (tones `neutral | info | accent | success | warning | danger`, always text + dot), `Avatar` (shield with initials), `Shield`, `HeroCard`, `EmptyState`, `Skeleton`, `PageHeader`, `BrandLogo`, `Tabs`.
 - **Data:** `DataList<T>` — table from `md`, cards below; `columns` with one `primary` (card title) and optional `mobileHidden`; `onRowClick` makes rows keyboard-activatable; `loading` and `empty` states; `caption` is required (accessible name).
 - **Overlays:** `Dialog` — bottom sheet on phones, centred from `md`; `fullOnMobile` for long forms; title required, description optional. `ToastProvider` + `useToast()` (from `toast-context.ts`): `toast({ title, description?, tone })`, always pass translated strings.
+- **Money:** `Money` (`fils`) — an amount in BD / د.ب inside `<bdi>`; use it instead of calling `formatBHD` in JSX.
 - **Language:** `LanguageToggle` (`tone="dark"` on navy).
 - **Layouts:** `AppShell` (via `AdminShell`/`CoachShell`) — navy sidebar from `md`, navy app bar + bottom tab bar on phones, "More" bottom sheet for overflow items; `AuthLayout` for login. Navigation is data: `src/app/nav.ts`.
 - **Shield motif** is the `Shield` SVG component (not a CSS clip-path). Pitch lines are the `pitch-lines` utility (use on an absolutely positioned child, because it sets `background-image`).

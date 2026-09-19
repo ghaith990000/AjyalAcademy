@@ -93,3 +93,10 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - **Routes:** the same page components under `/admin/players[/:id]` and `/coach/players[/:id]`.
 - **Query keys:** `['players', 'list', filters]`, `['players', 'detail', id]`; every player mutation invalidates the `['players']` prefix. Coach names for filters/assignment come from `['coaches']` (admin only).
 - **Age** is computed from the date of birth (`ageInYears` in `lib/dates.ts`), never stored.
+
+## As built (Phase 4)
+
+- **`src/lib`:** `pricing.ts` (`calcSubscriptionTotal`, `discountFils`, `planCodeForCount` — integer fils, half-up rounding), `subscription-status.ts`, `discounts.ts` (percent ⇄ basis points, display), `money.ts` `parseBD`, `dates.ts` `defaultEndDate`. `components/ui/Money.tsx` renders an amount in `<bdi>`.
+- **`features/subscriptions`:** `api.ts` (views + the three RPCs), `hooks.ts`, `draft.ts` (the wizard's state, pricing context, discount preview, per-step validation, RPC payload — React-free and tested against the worked examples), `wizard/*` (six steps), `NewSubscriptionPage`, `SubscriptionsPage`, `SubscriptionDetailPage`, `AddPaymentDialog`, `CancelSubscriptionDialog`, `PlayerSubscriptionsCard`, `useSubscriptionError` (business-rule errors → translated messages; an overlap names the players).
+- **`features/settings`** (plan prices, fees, reminder window; also the shared `usePlans`/`useSettings`) and **`features/discounts`** (list + dialog, usage count via an embedded `subscriptions(count)`).
+- **Routes:** `/admin|coach/subscriptions`, `…/new[?player=<id>]`, `…/:id`; `/admin/discounts`; `/admin/settings`. The players list shows the real subscription status (a second request for the visible players); the player page shows their subscription history and a "New subscription" shortcut.

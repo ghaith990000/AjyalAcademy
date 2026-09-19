@@ -1,0 +1,40 @@
+{
+  "description": "Plan prices, fees and reminders. Changes apply to new subscriptions only — existing ones keep the price they were sold at.",
+  "plans": {
+    "title": "Plan prices",
+    "hint": "Price of one subscription period, in BD.",
+    "solo": "Solo (1 player)",
+    "duo": "Duo (2 players)",
+    "trio": "Trio (3 players)",
+    "quad": "Quad (4 players)"
+  },
+  "fees": {
+    "title": "Fees",
+    "tshirt": {
+      "label": "T-shirt fee (BD)",
+      "hint": "Charged once, on a player's first subscription."
+    },
+    "transport": {
+      "label": "Transport fee (BD)",
+      "hint": "Per player, per subscription, when transport is chosen."
+    }
+  },
+  "reminders": {
+    "title": "Reminders",
+    "expiring": {
+      "label": "\"Expiring soon\" window (days)",
+      "hint": "A subscription shows as expiring soon when this many days or fewer are left."
+    }
+  },
+  "invalidAmount": "Enter an amount such as 20 or 12.500",
+  "tooHigh": "The amount is too high",
+  "invalidDays": "Enter a whole number of days (0–99)",
+  "save": "Save changes",
+  "toast": {
+    "saved": "Settings saved"
+  },
+  "loadError": {
+    "title": "Couldn't load the settings",
+    "description": "Check your connection and try again."
+  }
+}

@@ -1,10 +1,15 @@
-import { CalendarDays, ChartColumn, CreditCard, Percent, Receipt, Settings } from 'lucide-react'
+import { CalendarDays, ChartColumn, Receipt } from 'lucide-react'
 import type { RouteObject } from 'react-router-dom'
 import { RedirectIfSignedIn, RequireRole, RootRedirect } from '@/features/auth/guards'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import CoachesPage from '@/features/coaches/CoachesPage'
+import DiscountsPage from '@/features/discounts/DiscountsPage'
 import PlayerDetailPage from '@/features/players/PlayerDetailPage'
 import PlayersPage from '@/features/players/PlayersPage'
+import SettingsPage from '@/features/settings/SettingsPage'
+import NewSubscriptionPage from '@/features/subscriptions/NewSubscriptionPage'
+import SubscriptionDetailPage from '@/features/subscriptions/SubscriptionDetailPage'
+import SubscriptionsPage from '@/features/subscriptions/SubscriptionsPage'
 import HomePage from '@/features/home/HomePage'
 import { AdminShell } from './layouts/AdminShell'
 import { AuthLayout } from './layouts/AuthLayout'
@@ -30,19 +35,15 @@ export const routes: RouteObject[] = [
           { index: true, element: <HomePage role="admin" /> },
           { path: 'players', element: <PlayersPage /> },
           { path: 'players/:id', element: <PlayerDetailPage /> },
-          {
-            path: 'subscriptions',
-            element: <PlaceholderPage title="subscriptions" phase={4} icon={CreditCard} />,
-          },
+          { path: 'subscriptions', element: <SubscriptionsPage /> },
+          { path: 'subscriptions/new', element: <NewSubscriptionPage /> },
+          { path: 'subscriptions/:id', element: <SubscriptionDetailPage /> },
           {
             path: 'sessions',
             element: <PlaceholderPage title="sessions" phase={5} icon={CalendarDays} />,
           },
           { path: 'coaches', element: <CoachesPage /> },
-          {
-            path: 'discounts',
-            element: <PlaceholderPage title="discounts" phase={4} icon={Percent} />,
-          },
+          { path: 'discounts', element: <DiscountsPage /> },
           {
             path: 'expenses',
             element: <PlaceholderPage title="expenses" phase={6} icon={Receipt} />,
@@ -51,10 +52,7 @@ export const routes: RouteObject[] = [
             path: 'reports',
             element: <PlaceholderPage title="reports" phase={6} icon={ChartColumn} />,
           },
-          {
-            path: 'settings',
-            element: <PlaceholderPage title="settings" phase={4} icon={Settings} />,
-          },
+          { path: 'settings', element: <SettingsPage /> },
         ],
       },
     ],
@@ -73,10 +71,9 @@ export const routes: RouteObject[] = [
             path: 'sessions',
             element: <PlaceholderPage title="sessions" phase={5} icon={CalendarDays} />,
           },
-          {
-            path: 'subscriptions',
-            element: <PlaceholderPage title="subscriptions" phase={4} icon={CreditCard} />,
-          },
+          { path: 'subscriptions', element: <SubscriptionsPage /> },
+          { path: 'subscriptions/new', element: <NewSubscriptionPage /> },
+          { path: 'subscriptions/:id', element: <SubscriptionDetailPage /> },
         ],
       },
     ],

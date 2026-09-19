@@ -15,6 +15,8 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/features/auth/useAuth'
 import { useCoaches } from '@/features/coaches/hooks'
+import { usePlayerStatuses } from '@/features/subscriptions/hooks'
+import { SubscriptionStatusBadge } from '@/features/subscriptions/SubscriptionStatusBadge'
 import { ageInYears } from '@/lib/dates'
 import { DEFAULT_FILTERS, type PlayerFilters, type PlayerRow } from './api'
 import { AssignPlayersDialog } from './AssignPlayersDialog'
@@ -40,7 +42,7 @@ const isolate = {
 }
 
 export default function PlayersPage() {
-  const { t } = useTranslation(['players', 'nav', 'common'])
+  const { t } = useTranslation(['players', 'nav', 'common', 'subscriptions'])
   const { profile } = useAuth()
   const isAdmin = profile?.role === 'admin'
   const base = usePlayersBasePath()
@@ -63,6 +65,7 @@ export default function PlayersPage() {
     refetch,
   } = usePlayersList(activeFilters)
   const coaches = useCoaches({ enabled: isAdmin })
+  const statuses = usePlayerStatuses(rows.map((row) => row.id))
 
   const [adding, setAdding] = useState(false)
   const [assigning, setAssigning] = useState(false)
@@ -173,6 +176,18 @@ export default function PlayersPage() {
           } satisfies Column<PlayerRow>,
         ]
       : []),
+    {
+      key: 'subscription',
+      header: t('subscriptions:playerBadge.header'),
+      cell: (player) => {
+        const status = statuses.data?.[player.id]
+        return status ? (
+          <SubscriptionStatusBadge status={status} />
+        ) : (
+          <span className="text-ink-muted">{t('subscriptions:playerBadge.none')}</span>
+        )
+      },
+    },
     {
       key: 'medical',
       header: t('players:columns.medical'),

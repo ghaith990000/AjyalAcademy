@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { errorKeyOf } from './errors'
+import { ajyalCodeOf, errorDetailOf, errorKeyOf } from './errors'
 
 describe('errorKeyOf', () => {
   it('recognises connection problems', () => {
@@ -23,5 +23,27 @@ describe('errorKeyOf', () => {
     expect(errorKeyOf(new Error('duplicate key value violates unique constraint'))).toBe('generic')
     expect(errorKeyOf(null)).toBe('generic')
     expect(errorKeyOf('boom')).toBe('generic')
+  })
+})
+
+describe('ajyalCodeOf / errorDetailOf', () => {
+  it('extracts the code of our own SQL errors', () => {
+    expect(ajyalCodeOf({ message: 'ajyal:overlap', code: '23P01' })).toBe('overlap')
+    expect(ajyalCodeOf({ message: 'ajyal:manual_discount_reason_required' })).toBe(
+      'manual_discount_reason_required',
+    )
+  })
+
+  it('returns null for anything else', () => {
+    expect(ajyalCodeOf({ message: 'duplicate key value' })).toBeNull()
+    expect(ajyalCodeOf(new Error('boom'))).toBeNull()
+    expect(ajyalCodeOf(null)).toBeNull()
+    expect(ajyalCodeOf({ message: 42 })).toBeNull()
+  })
+
+  it('reads the DETAIL text when there is one', () => {
+    expect(errorDetailOf({ details: 'id-1,id-2' })).toBe('id-1,id-2')
+    expect(errorDetailOf({ details: '' })).toBeNull()
+    expect(errorDetailOf({})).toBeNull()
   })
 })

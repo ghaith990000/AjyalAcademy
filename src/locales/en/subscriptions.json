@@ -1,0 +1,250 @@
+{
+  "adminDescription": "Subscriptions, payments and balances.",
+  "coachDescription": "Subscriptions that include your players.",
+  "add": "New subscription",
+  "search": {
+    "label": "Search by player",
+    "placeholder": "Player name"
+  },
+  "filters": {
+    "status": {
+      "label": "Status",
+      "all": "All statuses"
+    },
+    "clear": "Clear filters"
+  },
+  "list": {
+    "caption": "Subscriptions",
+    "showing": "Showing {{shown}} of {{total}}",
+    "showMore": "Show more"
+  },
+  "columns": {
+    "players": "Players",
+    "period": "Period",
+    "total": "Total",
+    "paid": "Paid",
+    "balance": "Balance",
+    "status": "Status"
+  },
+  "status": {
+    "upcoming": "Upcoming",
+    "active": "Active",
+    "expiring_soon": "Expiring soon",
+    "expired": "Expired",
+    "cancelled": "Cancelled"
+  },
+  "plan": {
+    "solo": "Solo",
+    "duo": "Duo",
+    "trio": "Trio",
+    "quad": "Quad"
+  },
+  "methods": {
+    "cash": "Cash",
+    "benefit": "Benefit",
+    "bank_transfer": "Bank transfer",
+    "other": "Other"
+  },
+  "empty": {
+    "title": "No subscriptions yet",
+    "description": "Create the first subscription to start tracking payments."
+  },
+  "noResults": {
+    "title": "No subscriptions match",
+    "description": "Try a different search or clear the filters."
+  },
+  "loadError": {
+    "title": "Couldn't load subscriptions",
+    "description": "Check your connection and try again."
+  },
+  "hiddenPlayer": "Another coach's player",
+  "playerBadge": {
+    "header": "Subscription",
+    "none": "None"
+  },
+  "player": {
+    "title": "Subscriptions",
+    "none": "No subscriptions yet.",
+    "new": "New subscription"
+  },
+  "detail": {
+    "back": "Back to subscriptions",
+    "notFound": {
+      "title": "Subscription not found",
+      "description": "It does not exist, or none of your players are in it."
+    },
+    "loadError": {
+      "title": "Couldn't load this subscription",
+      "description": "Check your connection and try again."
+    },
+    "title": "{{plan}} subscription",
+    "period": "Period",
+    "players": "Players",
+    "tshirt": "T-shirt",
+    "transport": "Transport",
+    "breakdown": {
+      "title": "Breakdown",
+      "plan": "Plan price",
+      "tshirt": "T-shirt fees",
+      "transport": "Transport fees",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "total": "Total",
+      "paid": "Paid",
+      "balance": "Balance"
+    },
+    "discountCode": "Code {{code}}",
+    "discountManual": "Manual — {{reason}}",
+    "payments": {
+      "title": "Payments",
+      "empty": "No payments recorded yet.",
+      "receivedBy": "Received by {{name}}"
+    },
+    "settled": "Fully paid",
+    "addPayment": "Add payment",
+    "cancel": "Cancel subscription",
+    "cancelledOn": "Cancelled on {{date}}",
+    "cancelReason": "Reason: {{reason}}"
+  },
+  "payment": {
+    "title": "Add payment",
+    "description": "Record money received for this subscription.",
+    "amount": {
+      "label": "Amount (BD)",
+      "invalid": "Enter an amount such as 10 or 12.500",
+      "tooHigh": "The amount is more than the balance"
+    },
+    "method": "Payment method",
+    "date": {
+      "label": "Date received",
+      "future": "Enter a valid date, not in the future."
+    },
+    "note": "Note (optional)",
+    "submit": "Record payment",
+    "toast": {
+      "recorded": "Payment recorded"
+    }
+  },
+  "cancelDialog": {
+    "title": "Cancel this subscription?",
+    "description": "Payments already recorded are kept. The players become free to subscribe again for these dates.",
+    "reason": {
+      "label": "Reason",
+      "required": "Enter a reason"
+    },
+    "confirm": "Cancel subscription",
+    "keep": "Keep it",
+    "toast": {
+      "cancelled": "Subscription cancelled"
+    }
+  },
+  "wizard": {
+    "title": "New subscription",
+    "stepOf": "Step {{n}} of {{total}}",
+    "back": "Back",
+    "next": "Next",
+    "create": "Create subscription",
+    "total": "Total",
+    "steps": {
+      "players": "Players",
+      "dates": "Period",
+      "options": "Options",
+      "discount": "Discount",
+      "summary": "Summary",
+      "payment": "Payment"
+    },
+    "players": {
+      "heading": "Who is it for?",
+      "hint": "Choose 1 to 4 players — the plan follows the number you choose.",
+      "search": "Search players",
+      "selected": "Selected",
+      "noResults": "No players match your search.",
+      "maxReached": "You can choose up to 4 players.",
+      "planCard": "{{plan}} plan",
+      "planPrice": "{{price}} per period",
+      "remove": "Remove {{name}}"
+    },
+    "dates": {
+      "heading": "Subscription period",
+      "start": "Start date",
+      "end": "End date",
+      "hint": "The end date defaults to one month after the start (inclusive). You can change it."
+    },
+    "options": {
+      "heading": "Fees per player",
+      "firstTime": "First subscription",
+      "returning": "Returning player",
+      "tshirt": "T-shirt ({{fee}})",
+      "tshirtAuto": "Charged on a player's first subscription.",
+      "transport": "Transport ({{fee}})"
+    },
+    "discount": {
+      "heading": "Discount",
+      "none": "No discount",
+      "code": "Discount code",
+      "manual": "Manual discount",
+      "codeLabel": "Code",
+      "codePlaceholder": "e.g. SIBLING10",
+      "codeApplied": "{{name}} — {{value}} off",
+      "manualType": "Type",
+      "percent": "Percentage (%)",
+      "fixed": "Fixed amount (BD)",
+      "percentValue": "Percentage",
+      "fixedValue": "Amount (BD)",
+      "reason": "Reason",
+      "reasonHint": "Required. It is shown in the activity feed."
+    },
+    "summary": {
+      "heading": "Review",
+      "players": "Players",
+      "period": "Period"
+    },
+    "payment": {
+      "heading": "Payment",
+      "full": "Paid in full today",
+      "partial": "Part payment now",
+      "unpaid": "Not paid yet",
+      "amount": "Amount received (BD)",
+      "method": "Payment method",
+      "zero": "Nothing to pay — the total is zero."
+    },
+    "toast": {
+      "created": "Subscription created"
+    }
+  },
+  "error": {
+    "no_players": "Choose at least one player.",
+    "plan_unavailable": "This plan is not available right now.",
+    "start_invalid": "Enter a valid start date.",
+    "end_invalid": "Enter a valid end date.",
+    "end_before_start": "The end date cannot be before the start date.",
+    "code_required": "Enter a discount code.",
+    "code_not_found": "This code does not exist or is not active.",
+    "code_expired": "This code has expired.",
+    "code_not_started": "This code is not valid yet.",
+    "reason_required": "Enter a reason.",
+    "value_invalid": "Enter a valid discount value.",
+    "amount_invalid": "Enter an amount between 0.001 and the total.",
+    "overlap": "{{names}} already has a subscription that overlaps these dates.",
+    "overlapUnknown": "A player already has a subscription that overlaps these dates.",
+    "player_not_found": "One of the players is not available to you.",
+    "invalid_players": "Choose between 1 and 4 different players.",
+    "invalid_dates": "The dates are not valid.",
+    "discount_not_found": "This code does not exist.",
+    "discount_inactive": "This code is not active.",
+    "discount_expired": "This code has expired.",
+    "discount_not_started": "This code is not valid yet.",
+    "discount_exhausted": "This code has been used the maximum number of times.",
+    "discount_conflict": "Use either a code or a manual discount, not both.",
+    "manual_discount_reason_required": "A manual discount needs a reason.",
+    "manual_discount_invalid": "The manual discount value is not valid.",
+    "overpayment": "The payment is more than the amount due.",
+    "subscription_not_found": "This subscription is not available to you.",
+    "subscription_cancelled": "This subscription is cancelled.",
+    "already_cancelled": "This subscription is already cancelled.",
+    "invalid_amount": "Enter an amount above zero.",
+    "invalid_date": "Enter a valid date, not in the future.",
+    "forbidden": "You don't have permission to do that."
+  },
+  "hiddenPlayers": "+{{n}} with another coach"
+}

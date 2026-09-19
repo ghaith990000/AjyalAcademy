@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Providers } from '@/app/providers'
 import { AuthContext } from '@/features/auth/auth-context'
 import * as coachesApi from '@/features/coaches/api'
+import * as subscriptionsApi from '@/features/subscriptions/api'
 import i18n from '@/lib/i18n'
 import { fakeAuth, fakeProfile } from '@/test/auth'
 import { fakePlayer } from '@/test/players'
@@ -17,6 +18,10 @@ vi.mock('./api', async (importOriginal) => ({
   removePlayer: vi.fn(),
   assignPlayers: vi.fn(),
   updatePlayer: vi.fn(),
+}))
+vi.mock('@/features/subscriptions/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof subscriptionsApi>()),
+  listPlayerSubscriptions: vi.fn(),
 }))
 vi.mock('@/features/coaches/api', async (importOriginal) => ({
   ...(await importOriginal<typeof coachesApi>()),
@@ -63,6 +68,7 @@ describe('PlayerDetailPage', () => {
     vi.mocked(api.getPlayer).mockImplementation(async (id) =>
       id === 'p1' ? healthy : id === 'p2' ? withCondition : null,
     )
+    vi.mocked(subscriptionsApi.listPlayerSubscriptions).mockResolvedValue([])
     vi.mocked(coachesApi.listCoaches).mockResolvedValue([
       fakeProfile('coach', { id: 'c1', full_name: 'Khalid Al Dosari' }),
       fakeProfile('coach', { id: 'c2', full_name: 'Sara Al Khalifa' }),
@@ -97,9 +103,46 @@ describe('PlayerDetailPage', () => {
     expect(screen.getAllByText('Not provided')).toHaveLength(2)
   })
 
-  it('keeps room for the subscriptions and attendance built in later phases', async () => {
+  it("lists the player's subscriptions with status, and offers a new one for this player", async () => {
+    vi.mocked(subscriptionsApi.listPlayerSubscriptions).mockResolvedValue([
+      {
+        id: 's1',
+        plan_id: 'p',
+        plan_code: 'solo',
+        start_date: '2026-10-01',
+        end_date: '2026-10-31',
+        plan_price_fils: 20000,
+        tshirt_total_fils: 5000,
+        transport_total_fils: 0,
+        discount_id: null,
+        discount_type: null,
+        discount_value: null,
+        discount_reason: null,
+        discount_fils: 0,
+        total_fils: 25000,
+        cancelled_at: null,
+        cancel_reason: null,
+        created_at: '2026-10-01T00:00:00Z',
+        paid_fils: 25000,
+        balance_fils: 0,
+        status: 'active',
+        player_names: 'Yousef',
+        player_count: 1,
+      },
+    ])
     renderDetail('p1')
-    expect(await screen.findByText('Subscriptions')).toBeInTheDocument()
+    const row = await screen.findByRole('link', { name: /Solo · 25\.000 BD/ })
+    expect(row).toHaveAttribute('href', '/admin/subscriptions/s1')
+    expect(within(row).getByText('Active')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'New subscription' })).toHaveAttribute(
+      'href',
+      '/admin/subscriptions/new?player=p1',
+    )
+  })
+
+  it('says so when the player has no subscriptions yet, and still keeps attendance for phase 5', async () => {
+    renderDetail('p1')
+    expect(await screen.findByText('No subscriptions yet.')).toBeInTheDocument()
     expect(screen.getByText('Attendance')).toBeInTheDocument()
   })
 

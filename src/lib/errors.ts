@@ -29,3 +29,17 @@ export function errorKeyOf(error: unknown): ErrorKey {
   if (e.code === 'PGRST301' || e.status === 401 || e.code === 'bad_jwt') return 'session'
   return 'generic'
 }
+
+/** The `<code>` of an `ajyal:<code>` error raised by one of our SQL functions, or null for anything else. */
+export function ajyalCodeOf(error: unknown): string | null {
+  const message =
+    typeof error === 'object' && error !== null && 'message' in error ? error.message : ''
+  return typeof message === 'string' ? (/^ajyal:([a-z_]+)/.exec(message)?.[1] ?? null) : null
+}
+
+/** PostgREST puts a function's RAISE ... DETAIL in `details` (e.g. the ids of overlapping players). */
+export function errorDetailOf(error: unknown): string | null {
+  const details =
+    typeof error === 'object' && error !== null && 'details' in error ? error.details : null
+  return typeof details === 'string' && details !== '' ? details : null
+}

@@ -22,7 +22,7 @@ All amounts are **integer fils** (1 BD = 1000 fils). Examples show BD for readab
 - Status is computed from today's date `D`:
   - `cancelled` if `cancelled_at` is set; else `upcoming` if `D < start`; `expired` if `D > end`; else `active`.
   - `expiring_soon` = `active` and `end − D ≤ settings.expiring_soon_days` (default 7).
-- A player cannot be in two non-cancelled subscriptions whose date ranges overlap (rejected with a translated error).
+- A player cannot be in two non-cancelled subscriptions whose date ranges overlap (rejected with a translated error naming the players). Dates are inclusive: a subscription ending on the 31st and one starting on the 31st overlap; starting on the 1st does not.
 
 ## Fees
 
@@ -33,11 +33,13 @@ For each player in the subscription:
 
 Fee amounts are snapshotted on `subscription_players`.
 
+_As built:_ the server decides the T-shirt fee. For a **coach** it is always automatic (first subscription ⇒ charged); an **admin** may explicitly waive or add it per player. The wizard reads whether a player is a first-timer from `subscription_players` (RLS-scoped, which is complete for the players a user may subscribe).
+
 ## Discounts
 
-Two sources (one per subscription, not stackable):
+Two sources (one per subscription, not stackable — sending both is refused):
 
-1. **Discount code** — an admin-defined row in `discounts` (`percent` or `fixed`, optional validity dates, optional `max_uses`, `active`). Entered by code; must be active, within dates and under `max_uses`.
+1. **Discount code** — an admin-defined row in `discounts` (`percent` or `fixed`, optional validity dates, optional `max_uses`, `active`). Entered by code (case-insensitive, trimmed); must be active, within its dates **today (academy date)** and under `max_uses` (cancelled subscriptions do not count as uses).
 2. **Manual discount** — the user types a percent or fixed BD amount **and a reason** (reason required). Logged in the activity feed.
 
 Calculation:
@@ -72,6 +74,7 @@ _Fee values above assume the **placeholder** settings: T-shirt 5000 fils, transp
 - `create_subscription` accepts an optional initial payment; the UI defaults to **"paid in full today"** (creates a payment for `total_fils`, method cash by default). It can be unticked to leave the subscription unpaid, and further payments added later.
 - **Collected fees** for a period = `Σ payments.amount_fils` where `paid_at` is in that period (not subscription totals, not start dates).
 - A fully discounted (total 0) subscription creates no payment.
+- A payment cannot be dated in the future, must be above zero, and cannot take `paid` above `total`. A cancelled subscription accepts no payments.
 - Cancelling a subscription does **not** delete or refund payments; refunds are out of scope (record a negative adjustment as an `other` expense if needed).
 
 ## Expenses and reports

@@ -1,0 +1,250 @@
+{
+  "adminDescription": "الاشتراكات والدفعات والأرصدة.",
+  "coachDescription": "الاشتراكات التي تضم لاعبيك.",
+  "add": "اشتراك جديد",
+  "search": {
+    "label": "البحث باسم اللاعب",
+    "placeholder": "اسم اللاعب"
+  },
+  "filters": {
+    "status": {
+      "label": "الحالة",
+      "all": "جميع الحالات"
+    },
+    "clear": "مسح التصفية"
+  },
+  "list": {
+    "caption": "الاشتراكات",
+    "showing": "عرض {{shown}} من {{total}}",
+    "showMore": "عرض المزيد"
+  },
+  "columns": {
+    "players": "اللاعبون",
+    "period": "الفترة",
+    "total": "الإجمالي",
+    "paid": "المدفوع",
+    "balance": "المتبقي",
+    "status": "الحالة"
+  },
+  "status": {
+    "upcoming": "قادم",
+    "active": "نشط",
+    "expiring_soon": "ينتهي قريباً",
+    "expired": "منتهٍ",
+    "cancelled": "ملغى"
+  },
+  "plan": {
+    "solo": "فردية",
+    "duo": "ثنائية",
+    "trio": "ثلاثية",
+    "quad": "رباعية"
+  },
+  "methods": {
+    "cash": "نقداً",
+    "benefit": "بينفت",
+    "bank_transfer": "تحويل بنكي",
+    "other": "أخرى"
+  },
+  "empty": {
+    "title": "لا توجد اشتراكات بعد",
+    "description": "أنشئ أول اشتراك لتبدأ بتتبّع الدفعات."
+  },
+  "noResults": {
+    "title": "لا توجد اشتراكات مطابقة",
+    "description": "جرّب بحثاً مختلفاً أو امسح التصفية."
+  },
+  "loadError": {
+    "title": "تعذّر تحميل الاشتراكات",
+    "description": "تحقّق من اتصالك وأعد المحاولة."
+  },
+  "hiddenPlayer": "لاعب لدى مدرب آخر",
+  "playerBadge": {
+    "header": "الاشتراك",
+    "none": "لا يوجد"
+  },
+  "player": {
+    "title": "الاشتراكات",
+    "none": "لا توجد اشتراكات بعد.",
+    "new": "اشتراك جديد"
+  },
+  "detail": {
+    "back": "العودة إلى الاشتراكات",
+    "notFound": {
+      "title": "الاشتراك غير موجود",
+      "description": "الاشتراك غير موجود، أو لا يضم أياً من لاعبيك."
+    },
+    "loadError": {
+      "title": "تعذّر تحميل هذا الاشتراك",
+      "description": "تحقّق من اتصالك وأعد المحاولة."
+    },
+    "title": "اشتراك {{plan}}",
+    "period": "الفترة",
+    "players": "اللاعبون",
+    "tshirt": "القميص",
+    "transport": "المواصلات",
+    "breakdown": {
+      "title": "التفاصيل",
+      "plan": "سعر الباقة",
+      "tshirt": "رسوم القميص",
+      "transport": "رسوم المواصلات",
+      "subtotal": "المجموع الفرعي",
+      "discount": "الخصم",
+      "total": "الإجمالي",
+      "paid": "المدفوع",
+      "balance": "المتبقي"
+    },
+    "discountCode": "الرمز {{code}}",
+    "discountManual": "يدوي — {{reason}}",
+    "payments": {
+      "title": "الدفعات",
+      "empty": "لم تُسجَّل دفعات بعد.",
+      "receivedBy": "استلمها {{name}}"
+    },
+    "settled": "مدفوع بالكامل",
+    "addPayment": "إضافة دفعة",
+    "cancel": "إلغاء الاشتراك",
+    "cancelledOn": "أُلغي بتاريخ {{date}}",
+    "cancelReason": "السبب: {{reason}}"
+  },
+  "payment": {
+    "title": "إضافة دفعة",
+    "description": "سجّل المبلغ المستلم لهذا الاشتراك.",
+    "amount": {
+      "label": "المبلغ (د.ب)",
+      "invalid": "أدخل مبلغاً مثل 10 أو 12.500",
+      "tooHigh": "المبلغ أكبر من المتبقي"
+    },
+    "method": "طريقة الدفع",
+    "date": {
+      "label": "تاريخ الاستلام",
+      "future": "أدخل تاريخاً صحيحاً غير مستقبلي."
+    },
+    "note": "ملاحظة (اختيارية)",
+    "submit": "تسجيل الدفعة",
+    "toast": {
+      "recorded": "تم تسجيل الدفعة"
+    }
+  },
+  "cancelDialog": {
+    "title": "إلغاء هذا الاشتراك؟",
+    "description": "تبقى الدفعات المسجّلة. يصبح اللاعبون أحراراً في الاشتراك مجدداً في هذه التواريخ.",
+    "reason": {
+      "label": "السبب",
+      "required": "أدخل السبب"
+    },
+    "confirm": "إلغاء الاشتراك",
+    "keep": "إبقاؤه",
+    "toast": {
+      "cancelled": "تم إلغاء الاشتراك"
+    }
+  },
+  "wizard": {
+    "title": "اشتراك جديد",
+    "stepOf": "الخطوة {{n}} من {{total}}",
+    "back": "السابق",
+    "next": "التالي",
+    "create": "إنشاء الاشتراك",
+    "total": "الإجمالي",
+    "steps": {
+      "players": "اللاعبون",
+      "dates": "الفترة",
+      "options": "الخيارات",
+      "discount": "الخصم",
+      "summary": "الملخص",
+      "payment": "الدفع"
+    },
+    "players": {
+      "heading": "لمن هذا الاشتراك؟",
+      "hint": "اختر من 1 إلى 4 لاعبين — تتحدد الباقة حسب العدد الذي تختاره.",
+      "search": "بحث عن لاعبين",
+      "selected": "المحدّدون",
+      "noResults": "لا يوجد لاعبون مطابقون لبحثك.",
+      "maxReached": "يمكنك اختيار 4 لاعبين كحد أقصى.",
+      "planCard": "باقة {{plan}}",
+      "planPrice": "{{price}} للفترة",
+      "remove": "إزالة {{name}}"
+    },
+    "dates": {
+      "heading": "فترة الاشتراك",
+      "start": "تاريخ البدء",
+      "end": "تاريخ الانتهاء",
+      "hint": "ينتهي الاشتراك افتراضياً بعد شهر من البدء (شاملاً). يمكنك تغيير ذلك."
+    },
+    "options": {
+      "heading": "الرسوم لكل لاعب",
+      "firstTime": "أول اشتراك",
+      "returning": "لاعب عائد",
+      "tshirt": "القميص ({{fee}})",
+      "tshirtAuto": "تُحتسب عند أول اشتراك للاعب.",
+      "transport": "المواصلات ({{fee}})"
+    },
+    "discount": {
+      "heading": "الخصم",
+      "none": "بدون خصم",
+      "code": "رمز خصم",
+      "manual": "خصم يدوي",
+      "codeLabel": "الرمز",
+      "codePlaceholder": "مثال: SIBLING10",
+      "codeApplied": "{{name}} — خصم {{value}}",
+      "manualType": "النوع",
+      "percent": "نسبة مئوية (%)",
+      "fixed": "مبلغ ثابت (د.ب)",
+      "percentValue": "النسبة",
+      "fixedValue": "المبلغ (د.ب)",
+      "reason": "السبب",
+      "reasonHint": "إلزامي، ويظهر في سجل النشاط."
+    },
+    "summary": {
+      "heading": "مراجعة",
+      "players": "اللاعبون",
+      "period": "الفترة"
+    },
+    "payment": {
+      "heading": "الدفع",
+      "full": "مدفوع بالكامل اليوم",
+      "partial": "دفعة جزئية الآن",
+      "unpaid": "غير مدفوع بعد",
+      "amount": "المبلغ المستلم (د.ب)",
+      "method": "طريقة الدفع",
+      "zero": "لا شيء للدفع — الإجمالي صفر."
+    },
+    "toast": {
+      "created": "تم إنشاء الاشتراك"
+    }
+  },
+  "error": {
+    "no_players": "اختر لاعباً واحداً على الأقل.",
+    "plan_unavailable": "هذه الباقة غير متاحة حالياً.",
+    "start_invalid": "أدخل تاريخ بدء صحيحاً.",
+    "end_invalid": "أدخل تاريخ انتهاء صحيحاً.",
+    "end_before_start": "لا يمكن أن يسبق تاريخ الانتهاء تاريخ البدء.",
+    "code_required": "أدخل رمز الخصم.",
+    "code_not_found": "هذا الرمز غير موجود أو غير نشط.",
+    "code_expired": "انتهت صلاحية هذا الرمز.",
+    "code_not_started": "هذا الرمز غير صالح بعد.",
+    "reason_required": "أدخل السبب.",
+    "value_invalid": "أدخل قيمة خصم صحيحة.",
+    "amount_invalid": "أدخل مبلغاً بين 0.001 والإجمالي.",
+    "overlap": "لدى {{names}} اشتراك يتداخل مع هذه التواريخ.",
+    "overlapUnknown": "لدى أحد اللاعبين اشتراك يتداخل مع هذه التواريخ.",
+    "player_not_found": "أحد اللاعبين غير متاح لك.",
+    "invalid_players": "اختر من 1 إلى 4 لاعبين مختلفين.",
+    "invalid_dates": "التواريخ غير صحيحة.",
+    "discount_not_found": "هذا الرمز غير موجود.",
+    "discount_inactive": "هذا الرمز غير نشط.",
+    "discount_expired": "انتهت صلاحية هذا الرمز.",
+    "discount_not_started": "هذا الرمز غير صالح بعد.",
+    "discount_exhausted": "تم استخدام هذا الرمز الحد الأقصى من المرات.",
+    "discount_conflict": "استخدم رمزاً أو خصماً يدوياً، وليس الاثنين معاً.",
+    "manual_discount_reason_required": "الخصم اليدوي يحتاج إلى سبب.",
+    "manual_discount_invalid": "قيمة الخصم اليدوي غير صحيحة.",
+    "overpayment": "الدفعة أكبر من المبلغ المستحق.",
+    "subscription_not_found": "هذا الاشتراك غير متاح لك.",
+    "subscription_cancelled": "هذا الاشتراك ملغى.",
+    "already_cancelled": "هذا الاشتراك ملغى مسبقاً.",
+    "invalid_amount": "أدخل مبلغاً أكبر من صفر.",
+    "invalid_date": "أدخل تاريخاً صحيحاً غير مستقبلي.",
+    "forbidden": "ليست لديك صلاحية للقيام بذلك."
+  },
+  "hiddenPlayers": "+{{n}} لدى مدرب آخر"
+}

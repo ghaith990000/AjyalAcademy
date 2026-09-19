@@ -1,4 +1,4 @@
-import { differenceInYears, format, isValid, parseISO } from 'date-fns'
+import { addMonths, differenceInYears, format, isValid, parseISO, subDays } from 'date-fns'
 import type { Language } from './i18n'
 
 const DATE_LOCALE: Record<Language, string> = { ar: 'ar-BH-u-nu-latn', en: 'en-GB' }
@@ -56,4 +56,9 @@ export function isValidISODate(value: string): boolean {
 /** Whole years between a date of birth and `on` (default: today). */
 export function ageInYears(dateOfBirth: Date | string, on: Date = new Date()): number {
   return differenceInYears(on, toDate(dateOfBirth))
+}
+
+/** Default subscription end: start + 1 month − 1 day, inclusive (2026-10-01 → 2026-10-31, 10-15 → 11-14). */
+export function defaultEndDate(startISO: string): string {
+  return format(subDays(addMonths(parseISO(startISO), 1), 1), 'yyyy-MM-dd')
 }

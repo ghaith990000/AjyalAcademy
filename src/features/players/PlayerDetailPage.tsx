@@ -2,7 +2,6 @@ import {
   CalendarCheck,
   ChevronLeft,
   CloudOff,
-  CreditCard,
   HeartPulse,
   Pencil,
   TriangleAlert,
@@ -27,6 +26,7 @@ import { ageInYears, formatDate } from '@/lib/dates'
 import { cn } from '@/lib/utils'
 import type { PlayerRow } from './api'
 import { useAssignPlayers, usePlayer, usePlayersBasePath } from './hooks'
+import { PlayerSubscriptionsCard } from '@/features/subscriptions/PlayerSubscriptionsCard'
 import { PlayerFormDialog } from './PlayerFormDialog'
 import { RemovePlayerDialog } from './RemovePlayerDialog'
 
@@ -245,13 +245,7 @@ export default function PlayerDetailPage() {
         {isAdmin && <CoachAssignment key={player.coach_id ?? 'none'} player={player} />}
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <div className="flex items-center gap-2">
-              <CreditCard className="size-5 text-brand-blue" aria-hidden />
-              <CardTitle>{t('players:detail.subscriptions.title')}</CardTitle>
-            </div>
-            <p className="mt-2 text-ink-muted">{t('players:detail.subscriptions.soon')}</p>
-          </Card>
+          <PlayerSubscriptionsCard playerId={player.id} />
           <Card>
             <div className="flex items-center gap-2">
               <CalendarCheck className="size-5 text-brand-blue" aria-hidden />

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Providers } from '@/app/providers'
 import { AuthContext } from '@/features/auth/auth-context'
 import * as coachesApi from '@/features/coaches/api'
+import * as subscriptionsApi from '@/features/subscriptions/api'
 import { ageInYears } from '@/lib/dates'
 import i18n from '@/lib/i18n'
 import { fakeAuth, fakeProfile } from '@/test/auth'
@@ -17,6 +18,10 @@ vi.mock('./api', async (importOriginal) => ({
   listPlayers: vi.fn(),
   assignPlayers: vi.fn(),
   createPlayer: vi.fn(),
+}))
+vi.mock('@/features/subscriptions/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof subscriptionsApi>()),
+  listPlayerStatuses: vi.fn(),
 }))
 vi.mock('@/features/coaches/api', async (importOriginal) => ({
   ...(await importOriginal<typeof coachesApi>()),
@@ -66,6 +71,10 @@ describe('PlayersPage', () => {
     await i18n.changeLanguage('en')
     vi.mocked(api.listPlayers).mockResolvedValue({ rows: [yousef, ali], total: 2 })
     vi.mocked(coachesApi.listCoaches).mockResolvedValue([coachKhalid, coachSara])
+    vi.mocked(subscriptionsApi.listPlayerStatuses).mockResolvedValue({
+      y: 'active',
+      a: 'expiring_soon',
+    })
   })
 
   describe('as an admin', () => {
@@ -79,6 +88,15 @@ describe('PlayersPage', () => {
       expect(screen.getAllByText('Unassigned').length).toBeGreaterThan(0)
       expect(screen.getAllByText('Condition').length).toBeGreaterThan(0)
       expect(screen.getByText('Showing 2 of 2')).toBeInTheDocument()
+    })
+
+    it('shows each player\'s real subscription status, or "None"', async () => {
+      vi.mocked(subscriptionsApi.listPlayerStatuses).mockResolvedValue({ y: 'active' })
+      renderPage()
+      await screen.findAllByText('Yousef Al Mahmood')
+      expect((await screen.findAllByText('Active')).length).toBeGreaterThan(0)
+      expect(screen.getAllByText('None').length).toBeGreaterThan(0) // Ali has no subscription
+      expect(subscriptionsApi.listPlayerStatuses).toHaveBeenCalledWith(['a', 'y'])
     })
 
     it('searches after a pause in typing, not on every keystroke', async () => {

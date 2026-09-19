@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   ageInYears,
+  defaultEndDate,
   formatDate,
   formatLongDate,
   formatTime,
@@ -51,5 +52,19 @@ describe('age and calendar helpers', () => {
     for (const bad of ['', '2015-02-31', '2015-13-01', '15-1-1', '2015/01/01', 'abc']) {
       expect(isValidISODate(bad), bad).toBe(false)
     }
+  })
+})
+
+describe('defaultEndDate', () => {
+  it('is one month minus one day, inclusive', () => {
+    expect(defaultEndDate('2026-10-01')).toBe('2026-10-31')
+    expect(defaultEndDate('2026-10-15')).toBe('2026-11-14')
+    expect(defaultEndDate('2026-12-15')).toBe('2027-01-14')
+  })
+
+  it('clamps at the end of a shorter month, matching Postgres (start + 1 month − 1 day)', () => {
+    expect(defaultEndDate('2026-01-31')).toBe('2026-02-27')
+    expect(defaultEndDate('2026-02-01')).toBe('2026-02-28')
+    expect(defaultEndDate('2028-02-01')).toBe('2028-02-29')
   })
 })
