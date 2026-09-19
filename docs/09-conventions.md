@@ -44,6 +44,12 @@ Remote: `origin` = `git@github-personal:ghaith990000/AjyalAcademy.git` (branch `
 
 Only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` reach the browser. The **service role key** is used only inside the `create-coach` Edge Function (Supabase-managed secret) and never in `src/`.
 
+## Tooling in the repo
+
+- `.mcp.json` connects Claude Code to the hosted Supabase project (OAuth on first use; it holds the project reference only, no key). Migrations, SQL, types, Edge Function deploys and advisors go through it (D-030).
+- `.agents/skills/` and `skills-lock.json` are the Supabase agent skills (`npx skills add supabase/agent-skills`), pinned by hash. Load `supabase` / `supabase-postgres-best-practices` before writing SQL.
+- `.claude/settings.local.json` is personal and git-ignored.
+
 ## Definition of Done (every phase)
 
 1. `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` pass; DB tests pass (Phase 2+).
