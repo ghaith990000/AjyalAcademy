@@ -86,3 +86,10 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - **Coaches** (`src/features/coaches`): `api.ts` (list/update via table access; create via the `create-coach` Edge Function), `hooks.ts`, `schema.ts` (zod; messages are i18n keys), `CoachDialogs.tsx`, `CoachesPage.tsx`. The salary is typed in BD and stored as integer fils (`fromBD`).
 - **Edge Function** `supabase/functions/create-coach`: deployed with `verify_jwt = true`; re-checks that the caller is an active admin; rolls back the auth user if the profile insert fails.
 - **Env:** `.env.local` holds `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (publishable key). Tests set dummy values in `vite.config.ts`.
+
+## As built (Phase 3)
+
+- **`src/features/players`:** `api.ts` (list with filters + paging, detail, create/update, `remove_player` and `assign_players` RPCs, `DuplicateCprError`), `hooks.ts` (`usePlayersList` infinite query, `usePlayer`, mutations, `usePlayersBasePath`), `schema.ts` (zod; `toPlayerInput` maps the form to the row: blank → null, description cleared without a condition), `PlayersPage`, `PlayerDetailPage`, `PlayerFormDialog`, `AssignPlayersDialog`, `RemovePlayerDialog`.
+- **Routes:** the same page components under `/admin/players[/:id]` and `/coach/players[/:id]`.
+- **Query keys:** `['players', 'list', filters]`, `['players', 'detail', id]`; every player mutation invalidates the `['players']` prefix. Coach names for filters/assignment come from `['coaches']` (admin only).
+- **Age** is computed from the date of birth (`ageInYears` in `lib/dates.ts`), never stored.

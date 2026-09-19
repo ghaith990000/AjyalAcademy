@@ -3,10 +3,12 @@ import { createCoach, listCoaches, updateCoach, type CoachChanges, type NewCoach
 
 const COACHES_KEY = ['coaches'] as const
 
-export function useCoaches() {
+/** Admin-only data (RLS shows coaches nothing but themselves); pass `enabled: false` for others. */
+export function useCoaches({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: COACHES_KEY,
     queryFn: listCoaches,
+    enabled,
     meta: { silent: true }, // CoachesPage renders its own load-error state
   })
 }

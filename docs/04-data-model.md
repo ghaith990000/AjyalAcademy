@@ -191,7 +191,7 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 
 Player create/update use plain table access + triggers (RLS-scoped); **removal is the `remove_player(id)` RPC** (D-033). The activity trigger records the actor via `auth.uid()`.
 
-**Implementation status:** `remove_player` ✅ (Phase 2) · `assign_players` → Phase 3 · `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` → Phase 4 · `save_attendance` → Phase 5 · `generate_monthly_salaries`, `report_summary`, `revenue_by_month`, `expenses_by_category` → Phase 6 (D-032).
+**Implementation status:** `remove_player` ✅ (Phase 2) · `assign_players(p_player_ids uuid[], p_coach_id uuid default null) → integer` ✅ (Phase 3: admin only; `null` unassigns; skips removed players and rows already on that coach; max 500; the players trigger logs one `player.reassigned` per changed player; D-042) · `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` → Phase 4 · `save_attendance` → Phase 5 · `generate_monthly_salaries`, `report_summary`, `revenue_by_month`, `expenses_by_category` → Phase 6 (D-032).
 
 ## Triggers
 

@@ -1,4 +1,4 @@
-import { format, parseISO } from 'date-fns'
+import { differenceInYears, format, isValid, parseISO } from 'date-fns'
 import type { Language } from './i18n'
 
 const DATE_LOCALE: Record<Language, string> = { ar: 'ar-BH-u-nu-latn', en: 'en-GB' }
@@ -41,4 +41,19 @@ export function formatTime(value: string | Date, language: Language): string {
   })
     .format(date)
     .replace(SPACE_LIKE, ' ')
+}
+
+/** Today (or `on`) as "yyyy-MM-dd" in local time — for comparing with date-only strings. */
+export function todayISO(on: Date = new Date()): string {
+  return format(on, 'yyyy-MM-dd')
+}
+
+/** True for a real calendar date written exactly as "yyyy-MM-dd" (rejects "2015-02-31", "15-1-1"). */
+export function isValidISODate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && isValid(parseISO(value))
+}
+
+/** Whole years between a date of birth and `on` (default: today). */
+export function ageInYears(dateOfBirth: Date | string, on: Date = new Date()): number {
+  return differenceInYears(on, toDate(dateOfBirth))
 }

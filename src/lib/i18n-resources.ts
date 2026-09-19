@@ -5,6 +5,7 @@ import arDev from '@/locales/ar/dev.json'
 import arErrors from '@/locales/ar/errors.json'
 import arHome from '@/locales/ar/home.json'
 import arNav from '@/locales/ar/nav.json'
+import arPlayers from '@/locales/ar/players.json'
 import arUi from '@/locales/ar/ui.json'
 import enAuth from '@/locales/en/auth.json'
 import enCommon from '@/locales/en/common.json'
@@ -13,6 +14,7 @@ import enDev from '@/locales/en/dev.json'
 import enErrors from '@/locales/en/errors.json'
 import enHome from '@/locales/en/home.json'
 import enNav from '@/locales/en/nav.json'
+import enPlayers from '@/locales/en/players.json'
 import enUi from '@/locales/en/ui.json'
 
 /** One namespace per feature. `en` is the typing source for `t()` keys (see i18next.d.ts). */
@@ -26,6 +28,7 @@ export const resources = {
     dev: enDev,
     errors: enErrors,
     coaches: enCoaches,
+    players: enPlayers,
   },
   ar: {
     common: arCommon,
@@ -36,6 +39,7 @@ export const resources = {
     dev: arDev,
     errors: arErrors,
     coaches: arCoaches,
+    players: arPlayers,
   },
 } as const
 

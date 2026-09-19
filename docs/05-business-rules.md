@@ -95,7 +95,7 @@ Reports also show: collected per month (12 bars for a year), expenses by categor
 
 ## Player rules
 
-- **CPR:** exactly 9 digits, unique among non-removed players; a duplicate is blocked with a link to the existing player.
+- **CPR:** exactly 9 digits, unique among non-removed players; a duplicate is blocked, with a link to the existing player when the user is allowed to see it (D-043).
 - **Disease:** `has_disease = true` ⇒ description required; `false` ⇒ description cleared.
 - **Removal is soft:** the player disappears from lists and rosters; subscriptions/payments/attendance history are kept; the removal is logged with who did it.
 - **Ownership:** a coach who creates a player is automatically their coach. Only an admin can reassign (single or bulk). A player can have **one** coach.

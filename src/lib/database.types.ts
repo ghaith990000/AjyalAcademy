@@ -579,6 +579,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_players: {
+        Args: { p_coach_id?: string; p_player_ids: string[] }
+        Returns: number
+      }
       can_view_session: { Args: { p_session_id: string }; Returns: boolean }
       can_view_subscription: {
         Args: { p_subscription_id: string }

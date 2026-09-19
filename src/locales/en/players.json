@@ -1,0 +1,182 @@
+{
+  "adminDescription": "Everyone registered with the academy.",
+  "coachDescription": "The players you coach.",
+  "add": "Add player",
+  "search": {
+    "label": "Search",
+    "placeholder": "Name, CPR or phone"
+  },
+  "filters": {
+    "coach": {
+      "label": "Coach",
+      "all": "All coaches",
+      "unassigned": "Unassigned"
+    },
+    "condition": "Has a medical condition",
+    "sort": {
+      "label": "Sort by",
+      "name": "Name (A–Z)",
+      "newest": "Newest first"
+    },
+    "clear": "Clear filters"
+  },
+  "list": {
+    "caption": "Players",
+    "showing": "Showing {{shown}} of {{total}}",
+    "showMore": "Show more",
+    "selectAll": "Select all shown players",
+    "selectPlayer": "Select {{name}}",
+    "selected": "{{n}} selected",
+    "clearSelection": "Clear selection",
+    "assignSelected": "Assign to coach"
+  },
+  "columns": {
+    "name": "Player",
+    "age": "Age",
+    "school": "School",
+    "phone": "Phone",
+    "coach": "Coach",
+    "medical": "Medical"
+  },
+  "age": "{{age}} yrs",
+  "unassigned": "Unassigned",
+  "medical": {
+    "condition": "Condition",
+    "none": "None"
+  },
+  "empty": {
+    "title": "No players yet",
+    "description": "Add your first player to start managing the academy."
+  },
+  "coachEmpty": {
+    "title": "No players assigned to you yet",
+    "description": "Add a player, or ask the academy admin to assign some to you."
+  },
+  "noResults": {
+    "title": "No players match",
+    "description": "Try a different search or clear the filters."
+  },
+  "loadError": {
+    "title": "Couldn't load players",
+    "description": "Check your connection and try again."
+  },
+  "form": {
+    "createTitle": "Add player",
+    "createDescription": "Fill in the player's details. Fields marked * are required.",
+    "editTitle": "Edit player",
+    "fullName": {
+      "label": "Full name",
+      "required": "Enter the player's name",
+      "tooLong": "The name is too long"
+    },
+    "cpr": {
+      "label": "CPR",
+      "hint": "9 digits, no spaces",
+      "invalid": "The CPR must be exactly 9 digits"
+    },
+    "dob": {
+      "label": "Date of birth",
+      "required": "Enter the date of birth",
+      "invalid": "Enter a valid date",
+      "future": "The date of birth must be in the past"
+    },
+    "address": {
+      "label": "Address",
+      "tooLong": "The address is too long"
+    },
+    "school": {
+      "label": "School",
+      "tooLong": "The school name is too long"
+    },
+    "phone": {
+      "label": "Phone",
+      "placeholder": "3xxxxxxx",
+      "hint": "Guardian or contact number",
+      "required": "Enter a phone number",
+      "invalid": "Enter a valid phone number"
+    },
+    "disease": {
+      "label": "Has a medical condition",
+      "hint": "Allergies, asthma, injuries or anything a coach should know."
+    },
+    "diseaseDescription": {
+      "label": "Describe the condition",
+      "placeholder": "e.g. Asthma — carries an inhaler",
+      "required": "Describe the condition",
+      "tooLong": "The description is too long"
+    },
+    "coach": {
+      "label": "Coach",
+      "hint": "You can change this later."
+    },
+    "duplicate": {
+      "taken": "A player with this CPR already exists.",
+      "open": "Open {{name}}",
+      "hidden": "A player with this CPR is already registered with another coach."
+    },
+    "submitCreate": "Add player",
+    "submitEdit": "Save changes"
+  },
+  "detail": {
+    "back": "Back to players",
+    "edit": "Edit",
+    "remove": "Remove",
+    "notFound": {
+      "title": "Player not found",
+      "description": "This player does not exist, was removed, or is not assigned to you."
+    },
+    "loadError": {
+      "title": "Couldn't load this player",
+      "description": "Check your connection and try again."
+    },
+    "info": "Details",
+    "cpr": "CPR",
+    "dob": "Date of birth",
+    "age": "Age",
+    "phone": "Phone",
+    "address": "Address",
+    "school": "School",
+    "coach": "Coach",
+    "notProvided": "Not provided",
+    "medicalTitle": "Medical information",
+    "medicalNone": "No known medical conditions.",
+    "medicalAlert": "Medical condition",
+    "subscriptions": {
+      "title": "Subscriptions",
+      "soon": "Subscriptions and payments will appear here."
+    },
+    "attendance": {
+      "title": "Attendance",
+      "soon": "Training attendance will appear here."
+    }
+  },
+  "assign": {
+    "title": "Assign to coach",
+    "single": {
+      "title": "Coach assignment",
+      "hint": "Only admins can change a player's coach.",
+      "save": "Save"
+    },
+    "bulkDescription": "Move the {{n}} selected players to one coach.",
+    "coach": {
+      "label": "Coach",
+      "choose": "Choose a coach…",
+      "unassign": "Unassign (no coach)"
+    },
+    "submit": "Assign"
+  },
+  "remove": {
+    "title": "Remove {{name}}?",
+    "description": "The player disappears from lists and rosters. Their subscription, payment and attendance history is kept.",
+    "confirm": "Remove player"
+  },
+  "toast": {
+    "created": "Player added",
+    "updated": "Player updated",
+    "removed": "Player removed",
+    "assigned": "Coach updated",
+    "assignedDescription": "{{n}} player(s) moved.",
+    "nothingToAssign": "No changes",
+    "nothingToAssignDescription": "The selected players were already assigned that way."
+  }
+}
