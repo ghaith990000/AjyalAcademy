@@ -7,7 +7,7 @@
 | Build / UI   | Vite + React 19 + TypeScript (`strict`, `noUncheckedIndexedAccess`) | SPA. Path alias `@/` → `src/`.                                    |
 | Routing      | React Router (data-router, lazy routes per feature)                 | Role-guarded route groups: `/admin/*`, `/coach/*` (see below).    |
 | Server state | TanStack Query                                                      | All Supabase calls live in `features/*/api`, wrapped by hooks.    |
-| Backend      | Supabase: Postgres, Auth, RLS, Realtime, one Edge Function          | Local dev via Docker (`npx supabase start`).                      |
+| Backend      | Supabase: Postgres, Auth, RLS, Realtime, one Edge Function          | Hosted project for dev (D-030); local Docker optional.            |
 | Styling      | Tailwind CSS v4 (`@theme` tokens in `src/styles/index.css`)         | Logical properties only (RTL). Radix primitives for a11y widgets. |
 | Forms        | react-hook-form + zod (`@hookform/resolvers`)                       | One zod schema per form in `features/*/schemas.ts`.               |
 | i18n         | i18next + react-i18next                                             | `ar` (default, RTL) and `en`. See [07-i18n.md](07-i18n.md).       |
@@ -52,7 +52,7 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - **RLS is the security boundary.** The UI hides what a role cannot do, but never relies on hiding.
 - **Composite writes use RPCs** (`create_subscription`, `save_attendance`, `generate_monthly_salaries`, …) so they are atomic and can write the activity log.
 - **Reports use SQL RPCs** (`report_summary`, `revenue_by_month`, `expenses_by_category`) — sums are computed in Postgres in integer fils.
-- **Types:** generate DB types with `npx supabase gen types typescript --local > src/lib/database.types.ts` after each migration; feature `types.ts` derive from it.
+- **Types:** regenerate DB types after each migration — `npx supabase gen types typescript --local > src/lib/database.types.ts`, or the Supabase MCP `generate_typescript_types` for the hosted project — and run Prettier on the result; feature `types.ts` derive from it.
 
 ## Routing and roles
 
@@ -60,7 +60,7 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - `/` — redirects by role: admin → `/admin`, coach → `/coach`.
 - `/admin/*` — admin only: home, players, coaches, subscriptions, discounts, sessions, expenses, reports, settings.
 - `/coach/*` — coach (admin may also visit): home, my players, subscriptions, sessions/attendance.
-- Guards read the role from `profiles` via the Auth provider; unauthorized → redirect to the role's home.
+- Guards read the role from `profiles` via the Auth provider; unauthorized → redirect to the role's home. _Built: an admin is also redirected out of `/coach`._
 - Shared feature pages (players, subscriptions, sessions) are the same components mounted under both prefixes; RLS scopes the data.
 
 ## Patterns to follow
@@ -77,3 +77,12 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - Routes are declared in `src/app/routes.tsx` (an array of `RouteObject`s, so tests can use `createMemoryRouter(routes)`); `src/app/App.tsx` creates the browser router. Until Phase 2 the `/admin` and `/coach` areas are open; Phase 2 adds role guards. `/dev/ui` exists only when `import.meta.env.DEV`.
 - Providers live in `src/app/providers.tsx` (Radix `Direction.Provider` + `ToastProvider`). TanStack Query and Auth providers arrive in Phase 2.
 - Placeholder pages (`src/app/PlaceholderPage.tsx`) show "arrives in phase N" for sections built later; replace each route element as its phase lands.
+
+## As built (Phase 2)
+
+- **Providers** (`src/app/providers.tsx`): Radix direction → `ToastProvider` → `QueryProvider` (TanStack Query; a failed request that is not `meta.silent` shows a translated toast, only network errors are retried). `App.tsx` adds `AuthProvider` around the router.
+- **Client and types:** `src/lib/supabase.ts` (fails fast if env vars are missing), `src/lib/database.types.ts` (generated), `src/lib/errors.ts` (`errorKeyOf` → `errors` i18n key; raw messages are never shown).
+- **Auth** (`src/features/auth`): `AuthProvider` exposes `useAuth()` → `{ status: loading | signedOut | signedIn | error, session, profile, signIn, signOut, retry }`. Guards in `guards.tsx`: `RequireRole`, `RedirectIfSignedIn`, `RootRedirect`. Behaviour: D-037. Tests fake it with `AuthContext.Provider` and `src/test/auth.ts`.
+- **Coaches** (`src/features/coaches`): `api.ts` (list/update via table access; create via the `create-coach` Edge Function), `hooks.ts`, `schema.ts` (zod; messages are i18n keys), `CoachDialogs.tsx`, `CoachesPage.tsx`. The salary is typed in BD and stored as integer fils (`fromBD`).
+- **Edge Function** `supabase/functions/create-coach`: deployed with `verify_jwt = true`; re-checks that the caller is an active admin; rolls back the auth user if the profile insert fails.
+- **Env:** `.env.local` holds `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (publishable key). Tests set dummy values in `vite.config.ts`.

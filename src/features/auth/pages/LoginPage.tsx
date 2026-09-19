@@ -1,20 +1,53 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import type { ParseKeys } from 'i18next'
 import { Eye, EyeOff } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Field } from '@/components/ui/Field'
 import { IconButton } from '@/components/ui/IconButton'
 import { Input } from '@/components/ui/Input'
+import type { SignInError } from '../auth-context'
+import { useAuth } from '../useAuth'
 
-/** Static login screen (Phase 1). Real authentication is wired in Phase 2. */
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Messages are `auth` namespace keys, translated where they are rendered.
+const schema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, 'validation.email.required')
+    .regex(EMAIL, 'validation.email.invalid'),
+  password: z.string().min(1, 'validation.password.required'),
+})
+type LoginValues = z.infer<typeof schema>
+
 export default function LoginPage() {
   const { t } = useTranslation(['auth', 'ui', 'dev'])
+  const { signIn } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [failure, setFailure] = useState<SignInError | null>(null)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: '', password: '' },
+  })
 
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault()
+  const message = (key?: string) => (key ? t(`auth:${key}` as ParseKeys<'auth'>) : undefined)
+
+  async function onSubmit(values: LoginValues) {
+    setFailure(null)
+    const result = await signIn(values.email, values.password)
+    // On success the route guard moves us to the role's home; nothing to do here.
+    if (!result.ok) setFailure(result.error)
   }
 
   return (
@@ -24,11 +57,20 @@ export default function LoginPage() {
         <p className="mt-1 text-ink-muted">{t('auth:subtitle')}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        <Field label={t('auth:email.label')} required>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {failure && (
+          <p
+            role="alert"
+            className="rounded-control bg-danger-50 px-3.5 py-3 text-[15px] font-medium text-danger"
+          >
+            {t(`auth:error.${failure}`)}
+          </p>
+        )}
+        <Field label={t('auth:email.label')} required error={message(errors.email?.message)}>
           {(control) => (
             <Input
               {...control}
+              {...register('email')}
               type="email"
               inputMode="email"
               autoComplete="username"
@@ -37,10 +79,11 @@ export default function LoginPage() {
             />
           )}
         </Field>
-        <Field label={t('auth:password.label')} required>
+        <Field label={t('auth:password.label')} required error={message(errors.password?.message)}>
           {(control) => (
             <Input
               {...control}
+              {...register('password')}
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               ltr
@@ -55,19 +98,13 @@ export default function LoginPage() {
             />
           )}
         </Field>
-        <Button type="submit" size="lg" fullWidth>
+        <Button type="submit" size="lg" fullWidth loading={isSubmitting}>
           {t('auth:submit')}
         </Button>
       </form>
 
       {import.meta.env.DEV && (
-        <div className="space-y-2 border-t border-dashed border-line pt-4">
-          <Button asChild variant="secondary" fullWidth>
-            <Link to="/admin">{t('dev:previewAdmin')}</Link>
-          </Button>
-          <Button asChild variant="secondary" fullWidth>
-            <Link to="/coach">{t('dev:previewCoach')}</Link>
-          </Button>
+        <div className="border-t border-dashed border-line pt-4">
           <Button asChild variant="ghost" fullWidth>
             <Link to="/dev/ui">{t('dev:previewGallery')}</Link>
           </Button>

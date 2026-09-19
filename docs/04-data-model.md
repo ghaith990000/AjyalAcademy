@@ -1,6 +1,6 @@
 # Data model (Postgres / Supabase)
 
-Status: **designed, not yet migrated** (migrations are created in Phase 2). This doc is the contract; migrations must match it. Update both together.
+Status: **migrated in Phase 2** — tables, constraints, RLS, guard/activity triggers and `remove_player` exist (`supabase/migrations/`). Other RPCs are implemented in the phase that uses them (see the RPC table). This doc is the contract; migrations must match it. Update both together.
 
 ## Conventions
 
@@ -10,7 +10,7 @@ Status: **designed, not yet migrated** (migrations are created in Phase 2). This
 - Soft delete: `players.deleted_at`, `subscriptions.cancelled_at`. Queries exclude soft-deleted rows by default; financial reports still include their payments.
 - Dates are `date`; times are `time`; timestamps are `timestamptz`.
 - Enums are Postgres enums (listed below). Translate labels in the UI, never store Arabic/English text in enum values.
-- `auth.uid()` is the acting user everywhere. Helper SQL functions: `is_admin()`, `current_role()`, `owns_player(player_id)`.
+- `auth.uid()` is the acting user everywhere. Helper SQL functions (SECURITY DEFINER, `search_path = ''`): `is_active_user()`, `is_admin()`, `current_user_role()` (D-035), `owns_player(player_id)`, `can_view_subscription(id)`, `can_view_session(id)`. `anon`, `authenticated` and `PUBLIC` have **no default privileges** — every migration grants explicitly (D-036).
 
 ## Enums
 
@@ -30,6 +30,7 @@ Status: **designed, not yet migrated** (migrations are created in Phase 2). This
 | --------------------- | ------------- | --------------------------------------------------- |
 | `id`                  | uuid PK       | = `auth.users.id`                                   |
 | `full_name`           | text not null |                                                     |
+| `email`               | text not null | copy of the login email; read-only in the UI        |
 | `role`                | user_role     | not null                                            |
 | `phone`               | text          |                                                     |
 | `monthly_salary_fils` | int           | default 0; used by "generate monthly salaries"      |
@@ -188,32 +189,34 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 | `revenue_by_month(year)`                 | admin                      | 12 rows: month, collected, expenses, profit.                                                                   |
 | `expenses_by_category(from, to)`         | admin                      | category, total.                                                                                               |
 
-Player create/update/soft-delete use plain table access + triggers (RLS-scoped); the activity trigger records the actor via `auth.uid()`.
+Player create/update use plain table access + triggers (RLS-scoped); **removal is the `remove_player(id)` RPC** (D-033). The activity trigger records the actor via `auth.uid()`.
+
+**Implementation status:** `remove_player` ✅ (Phase 2) · `assign_players` → Phase 3 · `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` → Phase 4 · `save_attendance` → Phase 5 · `generate_monthly_salaries`, `report_summary`, `revenue_by_month`, `expenses_by_category` → Phase 6 (D-032).
 
 ## Triggers
 
 - `on_auth_user_created` → nothing (profiles are inserted by the `create-coach` Edge Function / seed, never self-signup).
 - `players` AFTER INSERT → `player.created`; AFTER UPDATE of `deleted_at` (null → not null) → `player.removed`; AFTER UPDATE of `coach_id` → `player.reassigned`.
 - `discounts` AFTER INSERT → `discount.created`; `training_sessions` AFTER INSERT/cancel → `session.*`; `expenses` AFTER INSERT → `expense.created`.
-- All activity inserts are `SECURITY DEFINER` functions; the table itself has **no insert policy** for clients.
+- All activity inserts are `SECURITY DEFINER` functions (`log_activity`, not callable through the API); the table itself has **no insert policy** for clients. `coach.created` is written by the `create-coach` Edge Function (D-038).
 
 ## RLS matrix
 
 `A` = admin, `C` = coach. "own" = `players.coach_id = auth.uid()` (or a record tied to such a player / created by that coach).
 
-| Table                  | Select                                                | Insert                            | Update                                     | Delete                        |
-| ---------------------- | ----------------------------------------------------- | --------------------------------- | ------------------------------------------ | ----------------------------- |
-| `profiles`             | A: all · C: self + names of all coaches (for display) | Edge Function only (service role) | A: all · C: self (language only)           | none                          |
-| `players`              | A: all · C: own                                       | A · C (forced `coach_id = uid`)   | A: all · C: own (cannot change `coach_id`) | none (soft delete via update) |
-| `plans`, `settings`    | A, C read                                             | A                                 | A                                          | none                          |
-| `discounts`            | A: all · C: active only (to apply code)               | A                                 | A                                          | none                          |
-| `subscriptions`        | A: all · C: those containing an own player            | via RPC only                      | via RPC only                               | none                          |
-| `subscription_players` | as subscriptions                                      | via RPC only                      | none                                       | none                          |
-| `payments`             | as subscriptions                                      | via RPC only                      | none                                       | none                          |
-| `training_sessions`    | A: all · C: own (`coach_id = uid`)                    | A · C (forced own)                | A · C own                                  | none (cancel)                 |
-| `attendance`           | A: all · C: sessions they run                         | via RPC only                      | via RPC only                               | none                          |
-| `expenses`             | A                                                     | A                                 | A                                          | A                             |
-| `activity_log`         | A: all · C: `actor_id = uid`                          | none (definer functions only)     | none                                       | none                          |
+| Table                  | Select                                     | Insert                            | Update                                     | Delete                        |
+| ---------------------- | ------------------------------------------ | --------------------------------- | ------------------------------------------ | ----------------------------- |
+| `profiles`             | A: all · C: self only (D-034)              | Edge Function only (service role) | A: all · C: self (language only)           | none                          |
+| `players`              | A: all · C: own                            | A · C (forced `coach_id = uid`)   | A: all · C: own (cannot change `coach_id`) | none (soft delete via update) |
+| `plans`, `settings`    | A, C read                                  | A                                 | A                                          | none                          |
+| `discounts`            | A: all · C: active only (to apply code)    | A                                 | A                                          | none                          |
+| `subscriptions`        | A: all · C: those containing an own player | via RPC only                      | via RPC only                               | none                          |
+| `subscription_players` | as subscriptions                           | via RPC only                      | none                                       | none                          |
+| `payments`             | as subscriptions                           | via RPC only                      | none                                       | none                          |
+| `training_sessions`    | A: all · C: own (`coach_id = uid`)         | A · C (forced own)                | A · C own                                  | none (cancel)                 |
+| `attendance`           | A: all · C: sessions they run              | via RPC only                      | via RPC only                               | none                          |
+| `expenses`             | A                                          | A                                 | A                                          | A                             |
+| `activity_log`         | A: all · C: `actor_id = uid`               | none (definer functions only)     | none                                       | none                          |
 
 RLS tests live in `supabase/tests/` and must cover: coach A cannot read/update coach B's players, subscriptions, sessions, attendance; a coach cannot read `expenses`, `report_*`; nobody can write `activity_log` directly.
 

@@ -18,8 +18,9 @@ npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
 npm test             # vitest run
 npm run build        # typecheck + production build
-npx supabase start   # local Supabase (Docker) — from Phase 2
-npx supabase db reset  # re-apply migrations + seed — from Phase 2
+npx supabase start   # local Supabase (Docker, optional — dev uses the hosted project, D-030)
+npx supabase db reset  # re-apply migrations + seed (local only)
+npx supabase test db   # pgTAP DB tests; hosted: see docs/09-conventions.md
 ```
 
 A phase is only done when `typecheck`, `lint`, `test` (and `build`) pass.

@@ -2,6 +2,7 @@ import { ChevronRight, Ellipsis, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useAuth } from '@/features/auth/useAuth'
 import { Avatar } from '@/components/ui/Avatar'
 import { BrandLogo } from '@/components/ui/BrandLogo'
 import { Dialog } from '@/components/ui/Dialog'
@@ -81,6 +82,7 @@ function TabLink({ item }: { item: NavItem }) {
 export function AppShell({ nav, role }: AppShellProps) {
   const { t } = useTranslation(['nav', 'common', 'ui'])
   const { pathname } = useLocation()
+  const { profile, signOut } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
 
   const allItems = [...nav.primary, ...nav.more]
@@ -89,6 +91,7 @@ export function AppShell({ nav, role }: AppShellProps) {
     .sort((a, b) => b.to.length - a.to.length)[0]
   const moreActive = nav.more.some((item) => pathname.startsWith(item.to))
   const roleLabel = t(`common:roles.${role}`)
+  const displayName = profile?.full_name ?? roleLabel
 
   return (
     <div className="min-h-dvh md:flex">
@@ -111,17 +114,21 @@ export function AppShell({ nav, role }: AppShellProps) {
         </nav>
         <div className="space-y-3 border-t border-white/10 p-4">
           <div className="flex items-center gap-3">
-            <Avatar name={roleLabel} size="sm" />
-            <span className="font-semibold">{roleLabel}</span>
+            <Avatar name={displayName} size="sm" />
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{displayName}</p>
+              <p className="text-[13px] text-white/70">{roleLabel}</p>
+            </div>
           </div>
           <LanguageToggle tone="dark" className="w-full justify-center" />
-          <Link
-            to="/login"
-            className="flex min-h-11 items-center gap-3 rounded-control px-3 font-medium text-white/75 transition-colors hover:bg-white/8 hover:text-white"
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="flex min-h-11 w-full items-center gap-3 rounded-control px-3 font-medium text-white/75 transition-colors hover:bg-white/8 hover:text-white"
           >
             <LogOut className="size-5 rtl:-scale-x-100" aria-hidden />
             {t('nav:signOut')}
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -197,16 +204,16 @@ export function AppShell({ nav, role }: AppShellProps) {
               )
             })}
           </ul>
-          <Link
-            to="/login"
-            onClick={() => setMoreOpen(false)}
-            className="-mx-2 mt-2 flex min-h-14 items-center gap-3 rounded-control px-3 font-semibold text-ink-muted transition-colors hover:bg-page"
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="-mx-2 mt-2 flex min-h-14 w-[calc(100%+1rem)] items-center gap-3 rounded-control px-3 text-start font-semibold text-ink-muted transition-colors hover:bg-page"
           >
             <span className="flex size-10 items-center justify-center rounded-control bg-page">
               <LogOut className="size-5 rtl:-scale-x-100" aria-hidden />
             </span>
             {t('nav:signOut')}
-          </Link>
+          </button>
         </Dialog>
       )}
     </div>

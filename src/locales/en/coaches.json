@@ -1,0 +1,70 @@
+{
+  "description": "Coach accounts, salaries and access.",
+  "add": "Add coach",
+  "caption": "Coaches",
+  "columns": {
+    "name": "Name",
+    "phone": "Phone",
+    "salary": "Monthly salary",
+    "status": "Status"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "empty": {
+    "title": "No coaches yet",
+    "description": "Add your first coach so players can be assigned to them."
+  },
+  "loadError": {
+    "title": "Couldn't load coaches",
+    "description": "Check your connection and try again."
+  },
+  "form": {
+    "createTitle": "Add coach",
+    "editTitle": "Edit coach",
+    "createDescription": "The coach signs in with this email and password.",
+    "fullName": {
+      "label": "Full name",
+      "required": "Enter the coach's name",
+      "tooLong": "The name is too long"
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "coach@example.com",
+      "required": "Enter an email address",
+      "invalid": "Enter a valid email address",
+      "taken": "This email is already registered"
+    },
+    "phone": {
+      "label": "Phone",
+      "placeholder": "3xxxxxxx",
+      "tooLong": "The phone number is too long"
+    },
+    "salary": {
+      "label": "Monthly salary (BD)",
+      "hint": "Used when generating monthly salary expenses.",
+      "invalid": "Enter an amount such as 250 or 250.500",
+      "tooHigh": "The amount is too high"
+    },
+    "password": {
+      "label": "Temporary password",
+      "hint": "At least 8 characters. Share it with the coach privately.",
+      "required": "Enter a temporary password",
+      "tooShort": "Use at least 8 characters",
+      "tooLong": "Use at most 72 characters",
+      "weak": "This password is too weak. Try a longer one."
+    },
+    "active": {
+      "label": "Active",
+      "hint": "Inactive coaches cannot sign in."
+    },
+    "submitCreate": "Create coach",
+    "submitEdit": "Save changes"
+  },
+  "toast": {
+    "created": "Coach added",
+    "createdDescription": "{{name}} can now sign in.",
+    "updated": "Coach updated"
+  }
+}

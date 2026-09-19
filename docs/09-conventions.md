@@ -18,15 +18,23 @@
 
 ## Testing
 
-| Layer          | Tool                           | Must cover                                                                                            |
-| -------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Pure logic     | Vitest                         | `money.ts`, `pricing.ts` (all worked examples in 05-business-rules), date/period helpers, report math |
-| Components     | Vitest + Testing Library       | Forms' validation & conditional fields (e.g. disease description), plan picker, attendance toggling   |
-| Database / RLS | SQL tests (`supabase test db`) | Coach isolation, no direct `activity_log` writes, `create_subscription` rules, report RPC results     |
-| End to end     | Playwright (Phase 8)           | Login, add player, subscribe, attendance, at 390px in `ar` and `en`                                   |
-| i18n           | Vitest                         | `ar` and `en` key sets are identical                                                                  |
+| Layer          | Tool                              | Must cover                                                                                            |
+| -------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Pure logic     | Vitest                            | `money.ts`, `pricing.ts` (all worked examples in 05-business-rules), date/period helpers, report math |
+| Components     | Vitest + Testing Library          | Forms' validation & conditional fields (e.g. disease description), plan picker, attendance toggling   |
+| Database / RLS | pgTAP (`supabase/tests/database`) | Coach isolation, no direct `activity_log` writes, `create_subscription` rules, report RPC results     |
+| End to end     | Playwright (Phase 8)              | Login, add player, subscribe, attendance, at 390px in `ar` and `en`                                   |
+| i18n           | Vitest                            | `ar` and `en` key sets are identical                                                                  |
 
 Write the test for a business rule **before or with** the code; use the worked examples as fixtures.
+
+### Running the database tests
+
+Each file in `supabase/tests/database/*.test.sql` is standalone: `begin; … rollback;` with its own fixtures (ids `f0000000-…`, distinct from `seed.sql`), so it is safe against any database.
+
+- **Local stack (Docker):** `npx supabase test db`.
+- **Hosted project (no Docker):** send the file's SQL through the Supabase MCP `execute_sql` tool. pgTAP's per-test output is not returned by that tool, so for the run prefix each assertion (`select is(…)`, `throws_ok(…)`, …) with `insert into _tap ` after `create temp table _tap (line text); grant all on _tap to public;`, and end with `select count(*) filter (where line like 'ok %') passed, count(*) filter (where line like 'not ok%') failed, string_agg(line, E'\n') filter (where line like 'not ok%') failures from _tap; rollback;`. Expected: 0 failures (Phase 2: 80 + 51 assertions).
+- A new table or function needs a test here in the same change; the privilege-audit assertions in `01_access_control.test.sql` fail if `anon` gains access or RLS is missing.
 
 ## Git
 

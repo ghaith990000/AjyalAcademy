@@ -1,0 +1,7 @@
+{
+  "title": "Something went wrong",
+  "network": "Can't reach the server. Check your connection and try again.",
+  "forbidden": "You don't have permission to do that.",
+  "session": "Your session has expired. Please sign in again.",
+  "generic": "An unexpected error occurred. Please try again."
+}
