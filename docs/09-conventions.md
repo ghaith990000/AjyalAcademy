@@ -30,7 +30,7 @@ Write the test for a business rule **before or with** the code; use the worked e
 
 ## Git
 
-Remote: `git@github.com:ghaith990000/AjyalAcademy.git` (branch `main`). One commit per meaningful step, imperative message, phase prefix (`phase-3: add player form`). Commit at the end of each phase at minimum. Never commit `.env*` files or Supabase service keys.
+Remote: `origin` = `git@github-personal:ghaith990000/AjyalAcademy.git` (branch `main`). `github-personal` is an SSH host alias in `~/.ssh/config` that selects the personal `ghaith990000` key — do **not** use `git@github.com:` here, it would authenticate with the default work key. Commit identity is set repo-locally (`user.email` = the personal address); leave the global config alone. One commit per meaningful step, imperative message, phase prefix (`phase-3: add player form`). Commit at the end of each phase at minimum. Never commit `.env*` files or Supabase service keys.
 
 ## Secrets
 

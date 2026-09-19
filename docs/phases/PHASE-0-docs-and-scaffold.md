@@ -37,5 +37,5 @@ Create the documentation set that governs the project and a minimal, green, bran
 - Stack versions are the latest at scaffold time (see D-025). Tailwind v4 uses `@theme` in CSS — there is **no** `tailwind.config.js`.
 - `App.tsx` is a placeholder; Phase 1 replaces it with the router + shells.
 - Only the `common` i18n namespace exists; add namespaces per feature and register them in `src/lib/i18n.ts`.
-- Git repo initialized on `main` with remote `origin` = `git@github.com:ghaith990000/AjyalAcademy.git`. Radix, `vite-plugin-pwa`, and Playwright are **not installed yet** — install them in the phase that first needs them (Radix: Phase 1, PWA/Playwright: Phase 8).
+- Git repo initialized on `main` with remote `origin` = `git@github-personal:ghaith990000/AjyalAcademy.git` (SSH alias for the personal account; see [09-conventions.md](../09-conventions.md#git)). Radix, `vite-plugin-pwa`, and Playwright are **not installed yet** — install them in the phase that first needs them (Radix: Phase 1, PWA/Playwright: Phase 8).
 - Open questions Q-001…Q-007 in [08-decisions.md](../08-decisions.md) are unanswered; placeholders are documented.
