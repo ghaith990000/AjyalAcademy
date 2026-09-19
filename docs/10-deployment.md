@@ -154,6 +154,8 @@ If any step fails, see §10.
 
 **Database change:** add a new file to `supabase/migrations/` (never edit one that has been applied), test it, then `npx supabase db push`. Deploy the website **after** the migration when the new app needs the new database, and the website **before** the migration when the migration removes something the old app still uses (expand → deploy → contract). Migrations are applied in file-name order; keep the timestamp prefix.
 
+**A project whose migrations were applied through the dashboard or an MCP tool** (the Ajyal development project was) records them under the _time they were applied_, not the file-name timestamps, so `npx supabase db push` would think none of the files has run and try to apply them again. On such a project either keep applying new migrations the same way, or first reconcile the history once: `npx supabase migration list` shows the two columns; for each pair `npx supabase migration repair --status applied <file-timestamp>` after `--status reverted <recorded-timestamp>`. On a project you created for production and filled with `db push` (§2) this never comes up.
+
 **Edge Function change:** `npx supabase functions deploy create-coach`.
 
 **Rolling back the website:** promote the previous deployment in Vercel / Netlify (one click). The database has no automatic rollback: write a new migration that undoes the change.
