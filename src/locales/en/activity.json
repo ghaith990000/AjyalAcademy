@@ -1,0 +1,79 @@
+{
+  "title": {
+    "admin": "Recent activity",
+    "coach": "My recent activity"
+  },
+  "description": {
+    "admin": "What everyone on the team has just done — new entries appear here live.",
+    "coach": "What you have done recently."
+  },
+  "live": "Live",
+  "filters": {
+    "label": "Show",
+    "all": "All",
+    "player": "Players",
+    "subscription": "Subscriptions",
+    "payment": "Payments",
+    "session": "Sessions",
+    "expense": "Expenses",
+    "other": "Other"
+  },
+  "empty": {
+    "title": "Activity will appear here",
+    "description": "Who added players, created subscriptions and more shows up on this screen.",
+    "filteredTitle": "Nothing of this kind yet",
+    "filteredDescription": "Try another filter, or show everything."
+  },
+  "loadError": {
+    "title": "Couldn't load the activity",
+    "description": "Check your connection and try again."
+  },
+  "showMore": "Show more",
+  "fallback": {
+    "someone": "Someone",
+    "player": "a player",
+    "coach": "a coach",
+    "noCoach": "no coach"
+  },
+  "action": {
+    "player": {
+      "created": "<b>{{actor}}</b> added the player <b>{{player}}</b> to the team of <b>{{coach}}</b>",
+      "createdNoCoach": "<b>{{actor}}</b> added the player <b>{{player}}</b>",
+      "updated": "<b>{{actor}}</b> updated the player <b>{{player}}</b>",
+      "removed": "<b>{{actor}}</b> removed the player <b>{{player}}</b>",
+      "reassigned": "<b>{{actor}}</b> moved <b>{{player}}</b> from <b>{{from}}</b> to <b>{{to}}</b>"
+    },
+    "subscription": {
+      "created": "<b>{{actor}}</b> created a {{plan}} subscription for <b>{{players}}</b> (<m>{{total}}</m>)",
+      "cancelled": "<b>{{actor}}</b> cancelled the subscription of <b>{{players}}</b>"
+    },
+    "payment": {
+      "recorded": "<b>{{actor}}</b> recorded a payment of <m>{{amount}}</m> for <b>{{players}}</b>"
+    },
+    "discount": {
+      "created": "<b>{{actor}}</b> added the discount <b>{{name}}</b> (<m>{{value}}</m>)"
+    },
+    "session": {
+      "created": "<b>{{actor}}</b> scheduled a session for <b>{{coach}}</b> on <d>{{date}}</d> at <m>{{time}}</m>",
+      "cancelled": "<b>{{actor}}</b> cancelled the session of <b>{{coach}}</b> on <d>{{date}}</d>"
+    },
+    "attendance": {
+      "saved": "<b>{{actor}}</b> took attendance for the session of <b>{{coach}}</b> on <d>{{date}}</d>: {{present}} of {{total}} present"
+    },
+    "expense": {
+      "created": "<b>{{actor}}</b> added an expense: {{category}}, <m>{{amount}}</m>",
+      "updated": "<b>{{actor}}</b> edited an expense: {{category}}, <m>{{amount}}</m>",
+      "deleted": "<b>{{actor}}</b> deleted an expense: {{category}}, <m>{{amount}}</m>",
+      "salaries_generated": "<b>{{actor}}</b> generated the salaries for {{month}}: {{n}} created, <m>{{total}}</m> in total"
+    },
+    "coach": {
+      "created": "<b>{{actor}}</b> added the coach <b>{{coach}}</b>"
+    },
+    "unknown": "<b>{{actor}}</b> made a change"
+  },
+  "detail": {
+    "paidInFull": "Paid in full",
+    "balance": "Balance left: <m>{{amount}}</m>",
+    "reason": "Reason: {{reason}}"
+  }
+}

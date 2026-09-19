@@ -217,6 +217,10 @@ Player create/update use plain table access + triggers (RLS-scoped); **removal i
 - **Error codes** (`ajyal:<code>`): `forbidden`, `invalid_period` (a from after to, a missing date, a year outside 2000–2100, or a future month for salaries), `future_date`, `invalid_coach`.
 - pgTAP: `supabase/tests/database/06_finance_reports.test.sql` (77 assertions): the worked example, month/year/leap-day edges, zero-filled months, year = Σ of its 12 months, rounding half away from zero, admin-only access (coach, inactive admin, signed-out), salary generation idempotency, the guard trigger and the activity trail.
 
+### As built (Phase 7)
+
+No schema change. The home feed reads `activity_log` as the caller — row-level security decides whose entries these are (an admin all, a coach only `actor_id = auth.uid()`) — newest first, paged by **cursor** (`created_at`, `id`) rather than by offset, so an entry arriving live at the top never shifts the next page; entries written in one transaction share a timestamp, hence the `id` tie-break. The table is in the `supabase_realtime` publication (Phase 2); the app subscribes to `INSERT`s, which Realtime filters by the same policy. The chips filter on `entity_type`: players `player` · subscriptions `subscription` · payments `payment` · sessions `session`, `attendance` · expenses `expense` · other `discount`, `coach`. Every action listed above has a translated sentence (`activity` namespace).
+
 ## Triggers
 
 - `on_auth_user_created` → nothing (profiles are inserted by the `create-coach` Edge Function / seed, never self-signup).

@@ -60,6 +60,19 @@ export async function listSessions(
   return { rows: data as unknown as SessionRow[], total: count ?? 0 }
 }
 
+/** Today's sessions that have not been cancelled, earliest first (a coach's RLS limits them to their own). */
+export async function listTodaySessions(): Promise<SessionRow[]> {
+  const { data, error } = await supabase
+    .from('training_sessions')
+    .select(SESSION_COLUMNS)
+    .eq('session_date', todayISO())
+    .is('cancelled_at', null)
+    .order('start_time')
+    .order('id')
+  if (error) throw error
+  return data as unknown as SessionRow[]
+}
+
 export async function getSession(id: string): Promise<SessionRow | null> {
   const { data, error } = await supabase
     .from('training_sessions')

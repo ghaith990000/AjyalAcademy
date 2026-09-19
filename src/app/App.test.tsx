@@ -1,12 +1,18 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthState } from '@/features/auth/auth-context'
 import i18n from '@/lib/i18n'
 import { fakeAuth } from '@/test/auth'
 import { Providers } from './providers'
 import { routes } from './routes'
+
+// These tests are about routing and the shells; the home screen (which reads from the database and listens for
+// live updates) has its own tests, and tests never reach the network.
+vi.mock('@/features/home/HomePage', () => ({
+  default: ({ role }: { role: string }) => <h1>Home ({role})</h1>,
+}))
 
 function renderAt(path: string, auth: AuthState = fakeAuth('admin')) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })

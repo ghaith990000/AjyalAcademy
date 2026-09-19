@@ -6,11 +6,13 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/useAuth'
+import { todayISO } from '@/lib/dates'
 import {
   cancelSession,
   createSessions,
   getSession,
   listCoachSessionsBetween,
+  listTodaySessions,
   listSessions,
   updateSession,
   type SessionFilters,
@@ -42,6 +44,15 @@ export function useSessionsList(filters: SessionFilters) {
     rows: query.data?.pages.flatMap((page) => page.rows) ?? [],
     total: query.data?.pages[0]?.total ?? 0,
   }
+}
+
+/** Today's sessions for the home screen; the key includes the date so a page left open overnight moves on. */
+export function useTodaySessions() {
+  return useQuery({
+    queryKey: [...KEY, 'today', todayISO()],
+    queryFn: listTodaySessions,
+    meta: { silent: true }, // the home card renders its own load-error state
+  })
 }
 
 export function useSession(id: string) {

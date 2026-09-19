@@ -1,14 +1,17 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Users } from 'lucide-react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/lib/i18n'
 import { Button } from './Button'
 import { DataList, type Column } from './DataList'
 import { Dialog } from './Dialog'
 import { Field } from './Field'
+import { FilterChips } from './FilterChips'
 import { Input } from './Input'
 import { LanguageToggle } from './LanguageToggle'
 import { Money } from './Money'
+import { StatCard } from './StatCard'
 import { Avatar } from './Avatar'
 
 describe('Button', () => {
@@ -147,6 +150,77 @@ describe('DataList', () => {
       />,
     )
     expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
+  })
+})
+
+describe('StatCard', () => {
+  it('shows the label, the value and a hint', () => {
+    render(<StatCard label="Active players" value="42" icon={Users} hint="This month" />)
+    expect(screen.getByText('Active players')).toBeInTheDocument()
+    expect(screen.getByText('42')).toBeInTheDocument()
+    expect(screen.getByText('This month')).toBeInTheDocument()
+  })
+
+  it('has a compact form with the icon beside the label', () => {
+    render(<StatCard compact label="Collected" value={<span>540.000 BD</span>} icon={Users} />)
+    const label = screen.getByText('Collected').closest('p')!
+    expect(label.querySelector('svg')).not.toBeNull() // the icon sits in the label row
+    expect(screen.getByText('540.000 BD')).toBeInTheDocument()
+  })
+
+  it('accepts a block-level value (a loading skeleton) without invalid nesting', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<StatCard compact label="Players" value={<div data-testid="skeleton" />} icon={Users} />)
+    render(<StatCard label="Players" value={<div data-testid="skeleton2" />} icon={Users} />)
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
+  })
+})
+
+describe('FilterChips', () => {
+  const options = [
+    { value: 'all', label: 'All' },
+    { value: 'players', label: 'Players' },
+    { value: 'sessions', label: 'Sessions' },
+  ] as const
+
+  it('is a labelled group of pressed / not-pressed buttons', () => {
+    render(<FilterChips label="Show" options={options} value="players" onChange={vi.fn()} />)
+    const group = screen.getByRole('group', { name: 'Show' })
+    expect(within(group).getByRole('button', { name: 'Players' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(within(group).getByRole('button', { name: 'All' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
+  it('reports the chosen value', async () => {
+    const onChange = vi.fn()
+    render(<FilterChips label="Show" options={options} value="all" onChange={onChange} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Sessions' }))
+    expect(onChange).toHaveBeenCalledWith('sessions')
+  })
+
+  it('wraps by default and can keep to one scrolling line instead', () => {
+    const { rerender } = render(
+      <FilterChips label="Show" options={options} value="all" onChange={vi.fn()} />,
+    )
+    expect(screen.getByRole('group', { name: 'Show' }).className).toContain('flex-wrap')
+    rerender(
+      <FilterChips label="Show" options={options} value="all" onChange={vi.fn()} layout="scroll" />,
+    )
+    const group = screen.getByRole('group', { name: 'Show' })
+    expect(group.className).toContain('overflow-x-auto')
+    expect(group.className).not.toContain('flex-wrap')
+    for (const chip of screen.getAllByRole('button')) expect(chip.className).toContain('shrink-0')
+  })
+
+  it('keeps every chip at least 44px tall (a phone tap target)', () => {
+    render(<FilterChips label="Show" options={options} value="all" onChange={vi.fn()} />)
+    for (const chip of screen.getAllByRole('button')) expect(chip.className).toContain('min-h-11')
   })
 })
 

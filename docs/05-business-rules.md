@@ -122,3 +122,9 @@ Reports also show: collected vs expenses per month for the selected year (12 bar
 ## Activity feed rules
 
 Logged actions and who can see them are listed in [04-data-model.md](04-data-model.md#activity_log). Admin sees all; a coach sees only their own actions. Entries are immutable and store a snapshot so deleted entities still render meaningfully.
+
+## Home screen
+
+- **Admin:** active players (not removed), active subscriptions (running today: _active_ or _expiring soon_), **collected this month** and **net profit this month** with its margin — the very same figures and query as the Reports page for the current month. **Coach:** their player count and today's session count; no money.
+- **Today's sessions:** today's not-cancelled sessions, earliest first, each with a one-tap link to its attendance screen (an admin also sees the coach). **Expiring soon:** subscriptions whose status is _expiring soon_ (within the "expiring soon" window in Settings), soonest first, up to 5 with "showing N of M"; one with an unpaid balance carries an "Unpaid" flag. A coach sees only their own players' subscriptions.
+- **Activity feed:** an admin sees everyone's activity, a coach only their own ("My recent activity"). Each entry is a sentence naming who did what (and to whom) with how long ago, newest first, 15 at a time; chips narrow it by kind. New entries appear live; while the live connection is down the feed refreshes itself every minute. An entry's wording comes from its snapshot, so it still reads correctly after the player, coach or expense is gone.

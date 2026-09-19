@@ -1,3 +1,4 @@
+import arActivity from '@/locales/ar/activity.json'
 import arAttendance from '@/locales/ar/attendance.json'
 import arAuth from '@/locales/ar/auth.json'
 import arCommon from '@/locales/ar/common.json'
@@ -14,6 +15,7 @@ import arSessions from '@/locales/ar/sessions.json'
 import arSettings from '@/locales/ar/settings.json'
 import arSubscriptions from '@/locales/ar/subscriptions.json'
 import arUi from '@/locales/ar/ui.json'
+import enActivity from '@/locales/en/activity.json'
 import enAttendance from '@/locales/en/attendance.json'
 import enAuth from '@/locales/en/auth.json'
 import enCommon from '@/locales/en/common.json'
@@ -50,6 +52,7 @@ export const resources = {
     attendance: enAttendance,
     expenses: enExpenses,
     reports: enReports,
+    activity: enActivity,
   },
   ar: {
     common: arCommon,
@@ -68,6 +71,7 @@ export const resources = {
     attendance: arAttendance,
     expenses: arExpenses,
     reports: arReports,
+    activity: arActivity,
   },
 } as const
 

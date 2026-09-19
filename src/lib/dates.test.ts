@@ -4,9 +4,11 @@ import {
   defaultEndDate,
   formatDate,
   formatLongDate,
+  formatRelative,
   formatMonthName,
   formatMonthYear,
   formatTime,
+  formatTimeAgo,
   formatTimeRange,
   isValidISODate,
   todayISO,
@@ -90,5 +92,53 @@ describe('formatTimeRange', () => {
     expect(formatTimeRange('16:00:00', '17:30:00', 'en')).toBe('4:00 PM – 5:30 PM')
     expect(formatTimeRange('09:05', '10:00', 'en')).toBe('9:05 AM – 10:00 AM')
     expect(formatTimeRange('16:00', '17:30', 'ar')).toMatch(/^4:00 [^\d\s]+ – 5:30 [^\d\s]+$/)
+  })
+})
+
+describe('relative time', () => {
+  const now = new Date(2026, 9, 19, 12, 0, 0) // 19 Oct 2026, 12:00 local
+
+  it('reads "now" for the last moments, and a slightly future time (clock skew) too', () => {
+    expect(formatTimeAgo(new Date(2026, 9, 19, 11, 59, 30), now, 'en')).toBe('now')
+    expect(formatTimeAgo(new Date(2026, 9, 19, 12, 0, 20), now, 'en')).toBe('now')
+  })
+
+  it('counts minutes, hours and days in English', () => {
+    expect(formatTimeAgo(new Date(2026, 9, 19, 11, 55), now, 'en')).toBe('5 minutes ago')
+    expect(formatTimeAgo(new Date(2026, 9, 19, 11, 59), now, 'en')).toBe('1 minute ago')
+    expect(formatTimeAgo(new Date(2026, 9, 19, 9, 0), now, 'en')).toBe('3 hours ago')
+    expect(formatTimeAgo(new Date(2026, 9, 18, 8, 0), now, 'en')).toBe('yesterday')
+    expect(formatTimeAgo(new Date(2026, 9, 15, 8, 0), now, 'en')).toBe('4 days ago')
+  })
+
+  it('calls last night "yesterday" even when it was under 24 hours ago', () => {
+    expect(formatTimeAgo(new Date(2026, 9, 18, 23, 30), new Date(2026, 9, 19, 8, 0), 'en')).toBe(
+      'yesterday',
+    )
+  })
+
+  it('switches to the date from a week on', () => {
+    expect(formatTimeAgo(new Date(2026, 9, 12, 8, 0), now, 'en')).toBe('12/10/2026')
+    expect(formatTimeAgo(new Date(2026, 8, 1, 8, 0), now, 'ar')).toBe('01/09/2026')
+  })
+
+  it('reads an ISO timestamp', () => {
+    expect(
+      formatTimeAgo('2026-10-19T09:55:00+00:00', new Date('2026-10-19T10:00:00+00:00'), 'en'),
+    ).toBe('5 minutes ago')
+  })
+
+  it('gives Arabic words with Latin digits', () => {
+    const five = formatTimeAgo(new Date(2026, 9, 19, 11, 55), now, 'ar')
+    expect(five).toMatch(/5/)
+    expect(five).not.toMatch(/[٠-٩]/)
+    expect(five).toMatch(/[؀-ۿ]/)
+  })
+
+  it('says "today", "tomorrow" and "in N days" for counting forward', () => {
+    expect(formatRelative(0, 'day', 'en')).toBe('today')
+    expect(formatRelative(1, 'day', 'en')).toBe('tomorrow')
+    expect(formatRelative(5, 'day', 'en')).toBe('in 5 days')
+    expect(formatRelative(5, 'day', 'ar')).toMatch(/5/)
   })
 })

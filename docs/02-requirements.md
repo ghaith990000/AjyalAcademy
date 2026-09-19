@@ -14,7 +14,7 @@ Original requests from the product owner, each with an ID, the phase that delive
 | R-08 | Calculate total fees collected from players per month and per year                                                            | 6                                          | [x]    |
 | R-09 | Profit margin report: total revenue vs total expenses (coach salaries, football field rent, transportation, …)                | 6                                          | [x]    |
 | R-10 | Plan prices: Solo 20 BD, Duo 35 BD, 3 players 50 BD, 4 players 60 BD                                                          | 2 (seed), 4                                | [x]    |
-| R-11 | Track user activity: who added/removed a player, who added a subscription — visible on the home screen                        | 2 (triggers), 7 (UI)                       | [ ]    |
+| R-11 | Track user activity: who added/removed a player, who added a subscription — visible on the home screen                        | 2 (triggers), 7 (UI)                       | [x]    |
 | R-12 | Discount feature on subscriptions                                                                                             | 4                                          | [x]    |
 | R-13 | Built with React + TypeScript                                                                                                 | 0                                          | [x]    |
 | R-14 | Support Arabic and English                                                                                                    | 0 (i18n base), 1 (RTL/switch), every phase | [ ]    |

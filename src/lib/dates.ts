@@ -1,4 +1,12 @@
-import { addMonths, differenceInYears, format, isValid, parseISO, subDays } from 'date-fns'
+import {
+  addMonths,
+  differenceInCalendarDays,
+  differenceInYears,
+  format,
+  isValid,
+  parseISO,
+  subDays,
+} from 'date-fns'
 import type { Language } from './i18n'
 
 const DATE_LOCALE: Record<Language, string> = { ar: 'ar-BH-u-nu-latn', en: 'en-GB' }
@@ -67,6 +75,35 @@ export function formatTime(value: string | Date, language: Language): string {
  */
 export function formatTimeRange(start: string, end: string, language: Language): string {
   return `${formatTime(start, language)} – ${formatTime(end, language)}`
+}
+
+/** "in 3 days" / "tomorrow" / "خلال 3 أيام" / "غداً" — words from the platform, digits always Latin. */
+export function formatRelative(
+  value: number,
+  unit: Intl.RelativeTimeFormatUnit,
+  language: Language,
+): string {
+  return new Intl.RelativeTimeFormat(DATE_LOCALE[language], { numeric: 'auto' }).format(value, unit)
+}
+
+/**
+ * How long ago something happened: "now", "5 minutes ago", "3 hours ago", "yesterday", "4 days ago"
+ * (`منذ 5 دقائق` …), and from a week on the plain date. `then` is an ISO timestamp; a moment slightly in the
+ * future (clock skew between phone and server) reads as "now".
+ */
+export function formatTimeAgo(then: Date | string, now: Date, language: Language): string {
+  const moment = typeof then === 'string' ? new Date(then) : then
+  const seconds = Math.max(0, Math.round((now.getTime() - moment.getTime()) / 1000))
+  if (seconds < 45) return formatRelative(0, 'second', language)
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return formatRelative(-minutes, 'minute', language)
+  const hours = Math.round(minutes / 60)
+  if (hours < 24 && differenceInCalendarDays(now, moment) === 0) {
+    return formatRelative(-hours, 'hour', language)
+  }
+  const days = differenceInCalendarDays(now, moment)
+  if (days < 7) return formatRelative(-days, 'day', language)
+  return formatDate(moment)
 }
 
 /** Today (or `on`) as "yyyy-MM-dd" in local time — for comparing with date-only strings. */

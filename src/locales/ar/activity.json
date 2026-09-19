@@ -1,0 +1,79 @@
+{
+  "title": {
+    "admin": "آخر النشاطات",
+    "coach": "آخر نشاطاتي"
+  },
+  "description": {
+    "admin": "ما فعله فريق العمل للتو — تظهر الإدخالات الجديدة هنا مباشرةً.",
+    "coach": "ما قمت به مؤخراً."
+  },
+  "live": "مباشر",
+  "filters": {
+    "label": "عرض",
+    "all": "الكل",
+    "player": "اللاعبون",
+    "subscription": "الاشتراكات",
+    "payment": "المدفوعات",
+    "session": "الحصص",
+    "expense": "المصروفات",
+    "other": "أخرى"
+  },
+  "empty": {
+    "title": "ستظهر النشاطات هنا",
+    "description": "من أضاف لاعبين وأنشأ اشتراكات وغير ذلك يظهر في هذه الشاشة.",
+    "filteredTitle": "لا شيء من هذا النوع بعد",
+    "filteredDescription": "جرّب تصفية أخرى، أو اعرض كل شيء."
+  },
+  "loadError": {
+    "title": "تعذّر تحميل النشاطات",
+    "description": "تحقّق من اتصالك ثم حاول مجدداً."
+  },
+  "showMore": "عرض المزيد",
+  "fallback": {
+    "someone": "شخص ما",
+    "player": "لاعب",
+    "coach": "مدرب",
+    "noCoach": "بلا مدرب"
+  },
+  "action": {
+    "player": {
+      "created": "أُضيف اللاعب <b>{{player}}</b> إلى فريق المدرب <b>{{coach}}</b> بواسطة <b>{{actor}}</b>",
+      "createdNoCoach": "أُضيف اللاعب <b>{{player}}</b> بواسطة <b>{{actor}}</b>",
+      "updated": "عُدّلت بيانات اللاعب <b>{{player}}</b> بواسطة <b>{{actor}}</b>",
+      "removed": "أُزيل اللاعب <b>{{player}}</b> بواسطة <b>{{actor}}</b>",
+      "reassigned": "نُقل اللاعب <b>{{player}}</b> من <b>{{from}}</b> إلى <b>{{to}}</b> بواسطة <b>{{actor}}</b>"
+    },
+    "subscription": {
+      "created": "أُنشئ اشتراك {{plan}} لـ <b>{{players}}</b> (<m>{{total}}</m>) بواسطة <b>{{actor}}</b>",
+      "cancelled": "أُلغي اشتراك <b>{{players}}</b> بواسطة <b>{{actor}}</b>"
+    },
+    "payment": {
+      "recorded": "سُجّلت دفعة بقيمة <m>{{amount}}</m> عن <b>{{players}}</b> بواسطة <b>{{actor}}</b>"
+    },
+    "discount": {
+      "created": "أُضيف الخصم <b>{{name}}</b> (<m>{{value}}</m>) بواسطة <b>{{actor}}</b>"
+    },
+    "session": {
+      "created": "جُدولت حصة للمدرب <b>{{coach}}</b> بتاريخ <d>{{date}}</d> الساعة <m>{{time}}</m> بواسطة <b>{{actor}}</b>",
+      "cancelled": "أُلغيت حصة المدرب <b>{{coach}}</b> بتاريخ <d>{{date}}</d> بواسطة <b>{{actor}}</b>"
+    },
+    "attendance": {
+      "saved": "سُجّل حضور حصة المدرب <b>{{coach}}</b> بتاريخ <d>{{date}}</d>: حضر {{present}} من {{total}} — بواسطة <b>{{actor}}</b>"
+    },
+    "expense": {
+      "created": "أُضيف مصروف: {{category}}، <m>{{amount}}</m> بواسطة <b>{{actor}}</b>",
+      "updated": "عُدّل مصروف: {{category}}، <m>{{amount}}</m> بواسطة <b>{{actor}}</b>",
+      "deleted": "حُذف مصروف: {{category}}، <m>{{amount}}</m> بواسطة <b>{{actor}}</b>",
+      "salaries_generated": "أُنشئت رواتب {{month}}: {{n}} — الإجمالي <m>{{total}}</m> بواسطة <b>{{actor}}</b>"
+    },
+    "coach": {
+      "created": "أُضيف المدرب <b>{{coach}}</b> بواسطة <b>{{actor}}</b>"
+    },
+    "unknown": "أُجري تغيير بواسطة <b>{{actor}}</b>"
+  },
+  "detail": {
+    "paidInFull": "مسدّد بالكامل",
+    "balance": "المتبقي: <m>{{amount}}</m>",
+    "reason": "السبب: {{reason}}"
+  }
+}

@@ -1,16 +1,40 @@
 {
-  "welcome": "Welcome back",
+  "welcome": "Welcome back, {{name}}",
   "stats": {
     "activePlayers": "Active players",
     "activeSubscriptions": "Active subscriptions",
     "collectedThisMonth": "Collected this month",
-    "netProfit": "Net profit",
+    "netProfit": "Net profit this month",
+    "margin": "Margin {{margin}}",
     "myPlayers": "My players",
     "todaySessions": "Today's sessions"
   },
-  "feed": {
-    "title": "Recent activity",
-    "emptyTitle": "Activity will appear here",
-    "emptyDescription": "Who added players, created subscriptions and more shows up live on this screen."
+  "quick": {
+    "label": "Quick actions",
+    "addPlayer": "Add player",
+    "newSubscription": "New subscription",
+    "scheduleSession": "Schedule session"
+  },
+  "sessions": {
+    "title": "Today's sessions",
+    "takeAttendance": "Take attendance",
+    "viewAll": "All sessions",
+    "empty": {
+      "title": "No sessions today",
+      "description": "Schedule a training session to see it here."
+    },
+    "loadError": "Couldn't load today's sessions."
+  },
+  "expiring": {
+    "title": "Expiring soon",
+    "ends": "Ends {{when}}",
+    "unpaid": "Unpaid",
+    "showing": "Showing {{shown}} of {{total}}",
+    "viewAll": "All subscriptions",
+    "empty": {
+      "title": "Nothing expiring soon",
+      "description": "Subscriptions close to their end date will be listed here."
+    },
+    "loadError": "Couldn't load the subscriptions."
   }
 }

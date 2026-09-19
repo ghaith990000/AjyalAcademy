@@ -11,7 +11,7 @@ Single source of progress. Work **one phase at a time, in order**. Status values
 | 4   | Subscriptions, fees, discounts, payments | **Done**    | R-02, R-10, R-12                                 | [PHASE-4](phases/PHASE-4-subscriptions.md)           |
 | 5   | Sessions & attendance                    | **Done**    | R-03, R-04                                       | [PHASE-5](phases/PHASE-5-sessions-attendance.md)     |
 | 6   | Finance & reports                        | **Done**    | R-08, R-09                                       | [PHASE-6](phases/PHASE-6-finance-reports.md)         |
-| 7   | Home dashboards & activity feed          | Not started | R-11                                             | [PHASE-7](phases/PHASE-7-home-and-activity.md)       |
+| 7   | Home dashboards & activity feed          | **Done**    | R-11                                             | [PHASE-7](phases/PHASE-7-home-and-activity.md)       |
 | 8   | Polish & release                         | Not started | R-05 (verify), R-14, R-15                        | [PHASE-8](phases/PHASE-8-polish-release.md)          |
 
 ## Dependency notes
@@ -31,3 +31,4 @@ Single source of progress. Work **one phase at a time, in order**. Status values
 | 2026-09-19 | Phase 4 completed: pricing (TS + SQL, pinned to the worked examples), create/record/cancel subscription RPCs, subscription wizard/list/detail, settings and discounts pages.            |
 | 2026-09-19 | Phase 5 completed: sessions (schedule, weekly repeat, edit, cancel, agenda), attendance screen + `save_attendance` RPC, attendance history and rate on the player page.                 |
 | 2026-09-19 | Phase 6 completed: expenses (CRUD, month filter, category chips, monthly salary generation), report functions (summary, by month, by category), Reports page with chart and CSV export. |
+| 2026-09-19 | Phase 7 completed: home dashboards for admins and coaches (KPIs, today's sessions, expiring subscriptions, quick actions) and the live activity feed.                                   |

@@ -1,16 +1,40 @@
 {
-  "welcome": "أهلاً بعودتك",
+  "welcome": "أهلاً بعودتك، {{name}}",
   "stats": {
     "activePlayers": "اللاعبون النشطون",
-    "activeSubscriptions": "الاشتراكات النشطة",
-    "collectedThisMonth": "المحصَّل هذا الشهر",
-    "netProfit": "صافي الربح",
+    "activeSubscriptions": "الاشتراكات السارية",
+    "collectedThisMonth": "المحصّل هذا الشهر",
+    "netProfit": "صافي الربح هذا الشهر",
+    "margin": "الهامش {{margin}}",
     "myPlayers": "لاعبيّ",
     "todaySessions": "حصص اليوم"
   },
-  "feed": {
-    "title": "آخر الأنشطة",
-    "emptyTitle": "ستظهر الأنشطة هنا",
-    "emptyDescription": "من أضاف لاعباً أو أنشأ اشتراكاً وغير ذلك يظهر مباشرةً في هذه الشاشة."
+  "quick": {
+    "label": "إجراءات سريعة",
+    "addPlayer": "إضافة لاعب",
+    "newSubscription": "اشتراك جديد",
+    "scheduleSession": "جدولة حصة"
+  },
+  "sessions": {
+    "title": "حصص اليوم",
+    "takeAttendance": "تسجيل الحضور",
+    "viewAll": "كل الحصص",
+    "empty": {
+      "title": "لا توجد حصص اليوم",
+      "description": "جدول حصة تدريبية لتظهر هنا."
+    },
+    "loadError": "تعذّر تحميل حصص اليوم."
+  },
+  "expiring": {
+    "title": "تنتهي قريباً",
+    "ends": "تنتهي {{when}}",
+    "unpaid": "غير مسدّد",
+    "showing": "عرض {{shown}} من {{total}}",
+    "viewAll": "كل الاشتراكات",
+    "empty": {
+      "title": "لا شيء ينتهي قريباً",
+      "description": "ستُعرض هنا الاشتراكات القريبة من تاريخ انتهائها."
+    },
+    "loadError": "تعذّر تحميل الاشتراكات."
   }
 }
