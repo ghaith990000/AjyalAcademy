@@ -62,7 +62,7 @@ Contrast: body text on `page`/`surface` ≥ 4.5:1; white on `brand-blue`, `brand
 
 ## Components (`src/components/ui`)
 
-Built on Radix primitives where a11y matters (Dialog/Sheet, Select, Tabs, Popover, Toast).
+Built on Radix primitives where a11y matters (Dialog/Sheet, Tabs, Switch, Checkbox, Toast). **`Select` is a native `<select>`** — the OS picker is the best phone UX and is RTL-safe for free.
 
 `Button` (primary/secondary/ghost/danger, sizes, loading) · `IconButton` · `Input`, `Textarea`, `Select`, `DatePicker`/`TimePicker` (native inputs styled, `inputMode` set), `Switch`, `Checkbox`, `RadioCard` (plan picker) · `Field` (label + hint + error, wired to react-hook-form) · `Card`, `StatCard` · `Badge` (status colors) · `Avatar` (shield fallback) · `DataList` · `Dialog`/`Sheet` · `Toast` · `EmptyState` · `Skeleton` · `Tabs` · `LanguageToggle` · `PageHeader`.
 
@@ -80,3 +80,20 @@ Palette order: `brand-blue`, `brand-pink`, `brand-navy`, then tints. Revenue = b
 - [ ] Tap targets ≥ 44×44px, spacing ≥ 8px
 - [ ] Loading, empty, error states present
 - [ ] Verified in Arabic (RTL) **and** English
+
+## As built (Phase 1)
+
+Source of truth for what exists in `src/components/ui` (import from `@/components/ui/<Name>`; a barrel `index.ts` also exists).
+
+- **Form:** `Button` (`primary | accent | secondary | ghost | danger`, sizes `md | lg | icon`, `loading`, `asChild`; variants live in `button-variants.ts`), `IconButton` (requires a translated `label`), `Input` (`ltr` prop forces LTR for emails/phones/CPR/codes, `endAdornment`), `Textarea` (`dir="auto"`), `Select`, `Switch`/`SwitchField`, `Checkbox`/`CheckboxField`, `Field` (render-prop; wires label, hint, error, `aria-invalid`, `aria-describedby`, `aria-required` to the control — **always wrap controls in `Field`**).
+- **Display:** `Card`/`CardTitle`, `StatCard` (icon above text on phones), `Badge` (tones `neutral | info | accent | success | warning | danger`, always text + dot), `Avatar` (shield with initials), `Shield`, `HeroCard`, `EmptyState`, `Skeleton`, `PageHeader`, `BrandLogo`, `Tabs`.
+- **Data:** `DataList<T>` — table from `md`, cards below; `columns` with one `primary` (card title) and optional `mobileHidden`; `onRowClick` makes rows keyboard-activatable; `loading` and `empty` states; `caption` is required (accessible name).
+- **Overlays:** `Dialog` — bottom sheet on phones, centred from `md`; `fullOnMobile` for long forms; title required, description optional. `ToastProvider` + `useToast()` (from `toast-context.ts`): `toast({ title, description?, tone })`, always pass translated strings.
+- **Language:** `LanguageToggle` (`tone="dark"` on navy).
+- **Layouts:** `AppShell` (via `AdminShell`/`CoachShell`) — navy sidebar from `md`, navy app bar + bottom tab bar on phones, "More" bottom sheet for overflow items; `AuthLayout` for login. Navigation is data: `src/app/nav.ts`.
+- **Shield motif** is the `Shield` SVG component (not a CSS clip-path). Pitch lines are the `pitch-lines` utility (use on an absolutely positioned child, because it sets `background-image`).
+- **Tokens added beyond the table above:** `brand-navy-700`, `success-50`, `warning-50`, `danger-50`, `shadow-float`, animations `animate-fade-in | sheet-up | pop-in | toast-in`, utilities `pt-safe`, `pb-safe`. Focus ring is global (`:focus-visible`, brand-blue). `prefers-reduced-motion` is honoured globally.
+- **Phone tab bar labels** may use a shorter key (`tabLabel`) because 13px text must fit ~78px: English "Billing" stands in for "Subscriptions" (Arabic keeps "الاشتراكات").
+- **Radix direction:** `Providers` wraps the app in Radix `Direction.Provider` so keyboard navigation (tabs, etc.) follows RTL.
+- **Dev gallery:** `/dev/ui` (development builds only) renders every component in the current language — use it to review any change to `components/ui` in both languages.
+- Verified at 390px and 1280px in Arabic and English with real Chrome: no horizontal overflow on any screen.

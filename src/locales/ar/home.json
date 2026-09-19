@@ -1,0 +1,16 @@
+{
+  "welcome": "أهلاً بعودتك",
+  "stats": {
+    "activePlayers": "اللاعبون النشطون",
+    "activeSubscriptions": "الاشتراكات النشطة",
+    "collectedThisMonth": "المحصَّل هذا الشهر",
+    "netProfit": "صافي الربح",
+    "myPlayers": "لاعبيّ",
+    "todaySessions": "حصص اليوم"
+  },
+  "feed": {
+    "title": "آخر الأنشطة",
+    "emptyTitle": "ستظهر الأنشطة هنا",
+    "emptyDescription": "من أضاف لاعباً أو أنشأ اشتراكاً وغير ذلك يظهر مباشرةً في هذه الشاشة."
+  }
+}

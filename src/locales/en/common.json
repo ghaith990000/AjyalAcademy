@@ -1,10 +1,21 @@
 {
   "app": {
     "name": "Ajyal Academy",
-    "tagline": "Symbol of trust in teaching the fundamentals of football",
-    "status": "Foundation ready — features arrive phase by phase."
+    "tagline": "Symbol of trust in teaching the fundamentals of football"
   },
   "language": {
     "switchTo": "العربية"
+  },
+  "roles": {
+    "admin": "Admin",
+    "coach": "Coach"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "confirm": "Confirm",
+    "back": "Back",
+    "search": "Search",
+    "retry": "Try again"
   }
 }

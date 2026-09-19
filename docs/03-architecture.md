@@ -71,3 +71,9 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - **Loading/empty/error states** are required for every list and page (use `EmptyState`, skeletons).
 - **Responsive lists:** `DataList` renders a table ≥ `md` and cards below.
 - **No business logic in components** — extract to `lib/` or `features/*/` pure functions with unit tests.
+
+## As built (Phase 1)
+
+- Routes are declared in `src/app/routes.tsx` (an array of `RouteObject`s, so tests can use `createMemoryRouter(routes)`); `src/app/App.tsx` creates the browser router. Until Phase 2 the `/admin` and `/coach` areas are open; Phase 2 adds role guards. `/dev/ui` exists only when `import.meta.env.DEV`.
+- Providers live in `src/app/providers.tsx` (Radix `Direction.Provider` + `ToastProvider`). TanStack Query and Auth providers arrive in Phase 2.
+- Placeholder pages (`src/app/PlaceholderPage.tsx`) show "arrives in phase N" for sections built later; replace each route element as its phase lands.

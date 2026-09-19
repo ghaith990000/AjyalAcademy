@@ -1,0 +1,16 @@
+{
+  "welcome": "Welcome back",
+  "stats": {
+    "activePlayers": "Active players",
+    "activeSubscriptions": "Active subscriptions",
+    "collectedThisMonth": "Collected this month",
+    "netProfit": "Net profit",
+    "myPlayers": "My players",
+    "todaySessions": "Today's sessions"
+  },
+  "feed": {
+    "title": "Recent activity",
+    "emptyTitle": "Activity will appear here",
+    "emptyDescription": "Who added players, created subscriptions and more shows up live on this screen."
+  }
+}

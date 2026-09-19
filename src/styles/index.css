@@ -6,6 +6,7 @@
   --color-brand-blue-600: #144fa5;
   --color-brand-blue-50: #eaf1fc;
   --color-brand-navy: #0e2f6b;
+  --color-brand-navy-700: #0a2452;
   --color-brand-pink: #e02068;
   --color-brand-pink-50: #fdebf2;
   --color-surface: #ffffff;
@@ -14,8 +15,11 @@
   --color-ink-muted: #5b6b8a;
   --color-line: #dde5f3;
   --color-success: #12805c;
+  --color-success-50: #e5f5ef;
   --color-warning: #b7791f;
+  --color-warning-50: #fdf3e0;
   --color-danger: #c62828;
+  --color-danger-50: #fdeaea;
 
   --font-sans: 'Poppins', 'Cairo', system-ui, sans-serif;
   --font-arabic: 'Cairo', 'Poppins', system-ui, sans-serif;
@@ -23,22 +27,105 @@
   --radius-card: 16px;
   --radius-control: 12px;
   --shadow-card: 0 4px 20px -6px rgb(24 96 200 / 0.18);
+  --shadow-float: 0 12px 32px -8px rgb(14 47 107 / 0.35);
+
+  --animate-fade-in: fade-in 150ms ease-out;
+  --animate-sheet-up: sheet-up 200ms ease-out;
+  --animate-pop-in: pop-in 150ms ease-out;
+  --animate-toast-in: toast-in 200ms ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }
 
-html[dir='rtl'] body {
-  font-family: var(--font-arabic);
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-page);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  html[dir='rtl'] body {
+    font-family: var(--font-arabic);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-blue);
+    outline-offset: 2px;
+  }
+
+  button,
+  a,
+  [role='button'] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
-html,
-body,
-#root {
-  min-height: 100%;
+/* Safe-area helpers for notched phones (viewport-fit=cover). */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-body {
-  margin: 0;
-  background: var(--color-page);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  -webkit-text-size-adjust: 100%;
+/* Faint football-pitch line art (halfway line, centre circle, boxes) for hero surfaces. */
+@utility pitch-lines {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' fill='none' stroke='white' stroke-opacity='0.14' stroke-width='2'%3E%3Crect x='8' y='8' width='384' height='224' rx='6'/%3E%3Cpath d='M200 8v224'/%3E%3Ccircle cx='200' cy='120' r='40'/%3E%3Ccircle cx='200' cy='120' r='3' fill='white' fill-opacity='0.14'/%3E%3Crect x='8' y='70' width='60' height='100'/%3E%3Crect x='332' y='70' width='60' height='100'/%3E%3Crect x='8' y='96' width='24' height='48'/%3E%3Crect x='368' y='96' width='24' height='48'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }

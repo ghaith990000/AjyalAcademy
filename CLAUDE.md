@@ -28,14 +28,14 @@ A phase is only done when `typecheck`, `lint`, `test` (and `build`) pass.
 
 - **Money is integer fils** (1 BD = 1000 fils). Never floats. Use `src/lib/money.ts`. Subscription totals come from `calcSubscriptionTotal` (TS preview) and the SQL function (authoritative) — see [docs/05-business-rules.md](docs/05-business-rules.md).
 - **RTL-safe CSS only**: logical utilities (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`, `text-start`). Never `left/right/ml/mr/pl/pr/text-left/text-right`. Icons that imply direction must flip in RTL.
-- **No hard-coded UI strings.** Every string is an i18n key present in both `src/locales/ar` and `src/locales/en`.
+- **No hard-coded UI strings.** Every string is an i18n key present in both `src/locales/ar` and `src/locales/en`. Keys are type-checked from the English files; new namespaces go in `src/lib/i18n-resources.ts`. `npm test` fails on ar/en key drift and on physical-direction classes.
 - **Mobile first.** Design at 390px, then scale up. No horizontal page scroll. Tap targets ≥ 44px.
 - **Brand tokens only** (Tailwind theme in `src/styles/index.css`). No ad-hoc hex colors in components.
 - **Every table has RLS.** New table ⇒ policies + an RLS test. Coaches must never read other coaches' data.
 - **`activity_log` is written server-side only** (triggers/RPCs), never by the client.
 - **Soft delete** players and subscriptions (`deleted_at` / `cancelled_at`); financial history must survive.
 - Composite writes (subscription + players + payment, attendance) go through a single **Postgres RPC** (one transaction).
-- Prefer editing existing files and reusing `src/components/ui/*` over adding new abstractions.
+- Prefer editing existing files and reusing `src/components/ui/*` (see "As built" in [docs/06-design-system.md](docs/06-design-system.md)) over adding new abstractions. Wrap every form control in `Field`. Review UI changes in the dev gallery at `/dev/ui`.
 
 ## Definition of Done (each phase)
 
