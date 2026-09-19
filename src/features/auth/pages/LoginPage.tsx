@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { ParseKeys } from 'i18next'
 import { Eye, EyeOff } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -12,6 +12,7 @@ import { Field } from '@/components/ui/Field'
 import { IconButton } from '@/components/ui/IconButton'
 import { Input } from '@/components/ui/Input'
 import type { SignInError } from '../auth-context'
+import { clearSessionEndedNotice, sessionEndedNotice } from '../sessionNotice'
 import { useAuth } from '../useAuth'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -32,6 +33,9 @@ export default function LoginPage() {
   const { signIn } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [failure, setFailure] = useState<SignInError | null>(null)
+  // Say once why the person is here again, then forget it.
+  const [sessionEnded] = useState(sessionEndedNotice)
+  useEffect(() => clearSessionEndedNotice(), [])
   const {
     register,
     handleSubmit,
@@ -58,6 +62,14 @@ export default function LoginPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {sessionEnded && !failure && (
+          <p
+            role="status"
+            className="rounded-control bg-brand-blue-50 px-3.5 py-3 text-[15px] font-medium text-brand-navy"
+          >
+            {t('auth:sessionEnded')}
+          </p>
+        )}
         {failure && (
           <p
             role="alert"

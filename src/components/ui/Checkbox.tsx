@@ -5,16 +5,20 @@ import { cn } from '@/lib/utils'
 
 export function Checkbox({ className, ...props }: ComponentProps<typeof CheckboxPrimitive.Root>) {
   return (
+    // The button is 44px (a phone tap target) and the 24px box is drawn inside it; the negative margin keeps the
+    // surrounding layout as if it were 24px.
     <CheckboxPrimitive.Root
       className={cn(
-        'flex size-6 shrink-0 items-center justify-center rounded-md border-2 border-ink-muted/60 bg-surface text-white transition-colors data-[state=checked]:border-brand-blue data-[state=checked]:bg-brand-blue disabled:opacity-50',
+        'group -m-2.5 flex size-11 shrink-0 items-center justify-center rounded-full disabled:opacity-50',
         className,
       )}
       {...props}
     >
-      <CheckboxPrimitive.Indicator>
-        <Check className="size-4" strokeWidth={3} aria-hidden />
-      </CheckboxPrimitive.Indicator>
+      <span className="flex size-6 items-center justify-center rounded-md border-2 border-ink-muted/60 bg-surface text-white transition-colors group-data-[state=checked]:border-brand-blue group-data-[state=checked]:bg-brand-blue">
+        <CheckboxPrimitive.Indicator>
+          <Check className="size-4" strokeWidth={3} aria-hidden />
+        </CheckboxPrimitive.Indicator>
+      </span>
     </CheckboxPrimitive.Root>
   )
 }

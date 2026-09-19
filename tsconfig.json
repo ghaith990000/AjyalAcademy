@@ -15,8 +15,18 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
-    "paths": { "@/*": ["./src/*"] }
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "node"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src", "tests", "supabase/functions/create-coach/validate.ts", "vite.config.ts"]
+  "include": [
+    "src",
+    "tests",
+    "e2e",
+    "playwright.config.ts",
+    "pwa-assets.config.ts",
+    "supabase/functions/create-coach/validate.ts",
+    "vite.config.ts"
+  ]
 }

@@ -198,7 +198,7 @@ export default function PlayerDetailPage() {
             <InfoRow label={t('players:detail.phone')}>
               <a
                 href={`tel:${player.phone.replace(/\s+/g, '')}`}
-                className="text-brand-blue underline"
+                className="inline-flex min-h-11 items-center text-brand-blue underline"
               >
                 <bdi dir="ltr">{player.phone}</bdi>
               </a>

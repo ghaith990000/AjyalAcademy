@@ -20,17 +20,18 @@ Defined once in `src/styles/index.css` (`@theme`) and used via Tailwind utilitie
 | `brand-navy`                     | `#0E2F6B`                         | Sidebar, top headers, hero panels, dark surfaces                                                                         |
 | `brand-pink`                     | `#E02068`                         | **Accent**: highlights, active tab indicator, key CTA on hero, notification dot, chart secondary series                  |
 | `brand-pink-50`                  | `#FDEBF2`                         | Accent tinted backgrounds                                                                                                |
+| `brand-pink-700`                 | `#C4185A`                         | Pink **text** on light backgrounds (`brand-pink` itself is 4.0:1 on its tint; this is 5.1:1)                             |
 | `surface`                        | `#FFFFFF`                         | Cards, inputs                                                                                                            |
 | `page`                           | `#F3F6FC`                         | App background (cool blue-tinted grey)                                                                                   |
 | `ink` / `ink-muted`              | `#10203F` / `#5B6B8A`             | Text                                                                                                                     |
 | `line`                           | `#DDE5F3`                         | Borders, dividers                                                                                                        |
-| `success` / `warning` / `danger` | `#12805C` / `#B7791F` / `#C62828` | Status only. **Pink is never used for errors/destructive** (too close to red) — danger always pairs color + icon + text. |
+| `success` / `warning` / `danger` | `#0F6E50` / `#946200` / `#C62828` | Status only. **Pink is never used for errors/destructive** (too close to red) — danger always pairs color + icon + text. |
 
-Contrast: body text on `page`/`surface` ≥ 4.5:1; white on `brand-blue`, `brand-navy`, `brand-pink` ≥ 4.5:1 (verify pink at small sizes; use ≥ 16px semibold or navy instead).
+Contrast (checked in Phase 8, WCAG AA = 4.5:1 for text): `ink` 16:1 and `ink-muted` 5.4:1 on `surface` (5.0 on `page`, 4.7 on `brand-blue-50`); `brand-blue` 5.9:1 on `surface`; `success` 6.2:1 on `surface`, `warning` 5.2:1, `danger` 5.6:1, each ≥ 4.5:1 on its own `-50` tint; `brand-pink-700` 5.1:1 on `brand-pink-50`; white on `brand-blue` 5.9:1, on `brand-navy` 12.8:1, on `brand-pink` 4.6:1, on `danger` 5.6:1. Use `brand-pink` for fills, bars and indicators and `brand-pink-700` for pink text.
 
 ## Typography
 
-- **Arabic:** Cairo. **English:** Poppins. Both loaded from Google Fonts in `index.html`; `html[dir=rtl]` uses Cairo first.
+- **Arabic:** Cairo. **English:** Poppins. Both are served with the app (`@fontsource`, imported in `main.tsx` — no third-party request, and they work offline); `html[dir=rtl]` uses Cairo first.
 - Scale: page title 24–28/extrabold, section title 18/bold, body 15–16/regular, caption 13/medium. Never below 13px.
 - Numbers (money, CPR, phone, dates) use **Latin digits** in both languages, `tabular-nums`, and are wrapped in `<bdi>` inside RTL text so they don't reorder.
 
@@ -115,3 +116,10 @@ No new `components/ui` component. The **attendance screen** (`features/attendanc
 - **`StatCard compact`:** the icon sits in the label row and the value goes underneath — about half the height of the default card, and a value such as `540.000 BD` fits a half-width card on a phone. Use it when several cards share a row (the home KPIs). The value area is a `div`, so a loading `Skeleton` can be passed without invalid nesting.
 - **`FilterChips`** (`components/ui`): a labelled group of `aria-pressed` pills, `min-h-11`. `layout="wrap"` (default) flows onto more lines; `layout="scroll"` keeps one line that scrolls inside itself, with the next chip peeking in as the cue — used by the feed, where seven wrapped chips would take three rows of a phone screen. A scrolling child of a grid needs a `minmax(0, 1fr)` track (`grid-cols-1`) or it stretches the page sideways.
 - **Home:** quick actions are three ≥ 80px tiles in one row (icon + short label, no tap target under 44px); today's sessions are cards with a full-width primary "Take attendance" button; the expiring list shows plan, "Ends tomorrow / in 5 days" and a warning badge for an unpaid balance. **Feed item:** a shield avatar with initials and a small round icon (colour by kind, never colour alone — the sentence says it too), the sentence with names in semibold, an optional muted detail line, the time. Verified at 390px and 1280px in Arabic and English (long Arabic and English names, mixed-script sentences, the live entry arriving, dialogs inside the viewport).
+
+## As built (Phase 8)
+
+- **Tap targets:** `Checkbox` is a 44px button drawing a 24px box (a `-m-2.5` margin keeps the layout of a 24px box). `FilterChips` are `min-h-11`; a `DataList` phone card that holds its own controls is not announced as one big button (`nestedControls`), because a button may not contain another control. The phone menu ("More", last tab, for coaches too) always exists — it holds Sign out and shows who is signed in.
+- **Semantics the audit (axe, WCAG 2.1 A/AA) enforces:** one `h1` per screen (`EmptyState titleAs="h1"` for the not-found and crash screens), a `main` landmark on the login screen, `dl` rows as direct `div`s of `dt`/`dd`, a keyboard-focusable and named region around anything that scrolls sideways (the months table), and single-choice filters as `aria-pressed` buttons (`FilterChips`), not orphaned `tab`s.
+- **Feedback strips:** `OfflineBanner` (warning tint, at the top of the shells and the login screen), `UpdatePrompt` (a card above the phone tab bar), `InstallHint` (a card on the home screen, phones only, dismissible).
+- **Reduced motion** was already honoured globally (`prefers-reduced-motion` in `index.css`). **Dark mode** was not requested and is not built; the tokens are all in one place if it is wanted later.

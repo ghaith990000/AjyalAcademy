@@ -76,9 +76,23 @@ describe('app routes and shells', () => {
     expect(within(nav).queryByRole('link', { name: 'Coaches' })).not.toBeInTheDocument()
   })
 
+  it('lets a coach sign out on a phone, where the menu is the only place for it', async () => {
+    await i18n.changeLanguage('en')
+    const auth = fakeAuth('coach')
+    renderAt('/coach', auth)
+    await userEvent.click(await screen.findByRole('button', { name: 'More' }))
+    const menu = await screen.findByRole('dialog', { name: 'More' })
+    expect(within(menu).getByText('Khalid Al Dosari')).toBeInTheDocument()
+    expect(within(menu).getByText('Coach')).toBeInTheDocument()
+    await userEvent.click(within(menu).getByRole('button', { name: 'Sign out' }))
+    expect(auth.signOut).toHaveBeenCalledOnce()
+  })
+
   it('renders a translated not-found page', async () => {
     renderAt('/nope')
-    expect(await screen.findByRole('heading', { name: 'الصفحة غير موجودة' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'الصفحة غير موجودة' }),
+    ).toBeInTheDocument()
   })
 
   it('shows the signed-in user and signs out from the shell', async () => {
@@ -146,7 +160,8 @@ describe('route guards', () => {
 
   it('shows a loading state, not the login screen, while the session is being restored', async () => {
     renderAt('/admin', fakeAuth(null, { status: 'loading' }))
-    expect(await screen.findByRole('status')).toHaveTextContent('Loading your account')
+    // (a page loaded on demand may show its own "Loading…" first; the account message follows or replaces it)
+    expect(await screen.findByText('Loading your account…')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Welcome back' })).not.toBeInTheDocument()
   })
 

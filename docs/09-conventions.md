@@ -5,28 +5,38 @@
 - TypeScript `strict` + `noUncheckedIndexedAccess`; no `any` (use `unknown` + narrowing). `import type` for types (enforced by lint).
 - Prettier (no semicolons, single quotes, trailing commas, 100 cols) and ESLint flat config; run `npm run format` before finishing.
 - Files: components `PascalCase.tsx`, hooks `useThing.ts`, utilities `camelCase.ts`, tests `*.test.ts(x)` next to the code.
-- One exported component per file; feature pages under `features/<x>/pages`. Path alias `@/`.
+- One exported component per file; feature pages are `features/<x>/<Thing>Page.tsx`. Path alias `@/`.
 - Prefer small pure functions in `lib/` or `features/<x>/` for logic; components stay declarative.
 - Comments explain **why**, not what. No dead code, no TODOs without an ID in the phase file.
 
 ## Data and API
 
-- All Supabase access in `features/<x>/api/*.ts`, typed with generated DB types. Components never call `supabase` directly.
+- All Supabase access in `features/<x>/api.ts`, typed with generated DB types. Components never call `supabase` directly.
 - Reads → `useQuery` with feature-prefixed keys; writes → `useMutation` that invalidates by prefix and shows a translated toast.
 - Money in fils everywhere in code; convert only at the input/display boundary.
 - Migrations: one file per change in `supabase/migrations/` (`YYYYMMDDHHMMSS_name.sql`), never edit an applied migration — add a new one. Regenerate DB types after each.
 
 ## Testing
 
-| Layer          | Tool                              | Must cover                                                                                            |
-| -------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Pure logic     | Vitest                            | `money.ts`, `pricing.ts` (all worked examples in 05-business-rules), date/period helpers, report math |
-| Components     | Vitest + Testing Library          | Forms' validation & conditional fields (e.g. disease description), plan picker, attendance toggling   |
-| Database / RLS | pgTAP (`supabase/tests/database`) | Coach isolation, no direct `activity_log` writes, `create_subscription` rules, report RPC results     |
-| End to end     | Playwright (Phase 8)              | Login, add player, subscribe, attendance, at 390px in `ar` and `en`                                   |
-| i18n           | Vitest                            | `ar` and `en` key sets are identical                                                                  |
+| Layer          | Tool                              | Must cover                                                                                                                                |
+| -------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Pure logic     | Vitest                            | `money.ts`, `pricing.ts` (all worked examples in 05-business-rules), date/period helpers, report math                                     |
+| Components     | Vitest + Testing Library          | Forms' validation & conditional fields (e.g. disease description), plan picker, attendance toggling                                       |
+| Database / RLS | pgTAP (`supabase/tests/database`) | Coach isolation, no direct `activity_log` writes, `create_subscription` rules, report RPC results                                         |
+| End to end     | Playwright + axe (`e2e/`)         | Login and guards, add player, subscribe, attendance, reports, live feed, PWA, CSP, and an audit of every screen at 390px in `ar` and `en` |
+| i18n           | Vitest                            | `ar` and `en` key sets are identical                                                                                                      |
 
 Write the test for a business rule **before or with** the code; use the worked examples as fixtures.
+
+### End-to-end tests
+
+`npm run e2e` (Playwright, config in `playwright.config.ts`) builds the app, serves it with `vite preview` and drives a real browser at phone width (390px). It uses your installed Chrome; in CI run `npx playwright install --with-deps chromium` first and set `CI=1`.
+
+- **The API is always a mock** (`e2e/support/mock-api.ts`) at the fake URL `https://e2e.supabase.test` — the auth endpoint, the PostgREST tables and functions the app uses, and the Realtime socket (phoenix v2 frames). No real Supabase project is ever contacted, so the suite needs no credentials and can never change real data. The mock is stateful within a test (a created player or subscription shows up afterwards).
+- **A request the mock does not recognise is recorded, and the audit fails on it.** So a new query in the app must be taught to the mock — that keeps the mock honest. What the mock cannot prove (real RLS, real Realtime) is covered by the pgTAP tests, the `anon` request-shape checks and the owner's live check.
+- **Specs:** `auth` (sign-in, guards, sign-out, language, expired session), `flows` (add player, subscribe, take attendance, reports, live activity, future sessions), `pwa` (manifest, icons, installability, offline shell, nothing of the API cached — the one spec that allows the service worker), `csp` (the app runs under its Content-Security-Policy), `audit` (every route for both roles in both languages, the main dialogs, the phone menu: no sideways scroll, no tap target under 44px, no WCAG 2.1 A/AA violation from axe, the right reading direction).
+- Labels come from the locale files (`t(lang, 'ns:key')` in `e2e/support/app.ts`), never typed by hand, so a wording change does not break a spec.
+- `npm test` (Vitest) ignores `e2e/`.
 
 ### Running the database tests
 
@@ -52,7 +62,7 @@ Only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` reach the browser. The **s
 
 ## Definition of Done (every phase)
 
-1. `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` pass; DB tests pass (Phase 2+).
+1. `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` pass; DB tests pass (Phase 2+); `npm run e2e` passes (Phase 8+).
 2. Phase file: all tasks ticked, acceptance criteria met, **Handoff notes** written (what exists, gotchas, what's next).
 3. [ROADMAP.md](ROADMAP.md) status and [02-requirements.md](02-requirements.md) statuses updated.
 4. Any new decision → [08-decisions.md](08-decisions.md); schema/rule/design/i18n changes → the matching doc.

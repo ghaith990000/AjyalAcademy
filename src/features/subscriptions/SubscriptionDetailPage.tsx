@@ -172,7 +172,7 @@ export default function SubscriptionDetailPage() {
               >
                 <Link
                   to={`${playersBase}/${row.player_id}`}
-                  className="min-w-0 break-words font-semibold text-brand-blue hover:underline"
+                  className="inline-flex min-h-11 min-w-0 items-center break-words font-semibold text-brand-blue hover:underline"
                 >
                   {row.player?.full_name}
                 </Link>

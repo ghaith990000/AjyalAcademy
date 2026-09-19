@@ -18,12 +18,14 @@ npm run typecheck    # tsc --noEmit
 npm run lint         # eslint
 npm test             # vitest run
 npm run build        # typecheck + production build
+npm run e2e          # Playwright: builds, serves the app and runs the browser tests (mock API, ar + en, 390px)
+npm run icons        # regenerate the PWA icons from public/brand/logo.jpg
 npx supabase start   # local Supabase (Docker, optional — dev uses the hosted project, D-030)
 npx supabase db reset  # re-apply migrations + seed (local only)
 npx supabase test db   # pgTAP DB tests; hosted: see docs/09-conventions.md
 ```
 
-A phase is only done when `typecheck`, `lint`, `test` (and `build`) pass.
+A phase is only done when `typecheck`, `lint`, `test` (and `build`, and from Phase 8 `e2e`) pass. Deploying: [docs/10-deployment.md](docs/10-deployment.md); what users are told: [docs/11-user-guide.md](docs/11-user-guide.md).
 
 ## Hard rules
 

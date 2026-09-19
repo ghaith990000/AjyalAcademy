@@ -23,6 +23,8 @@ Ajyal Academy Management System. This folder is the **source of truth** for what
 | [07-i18n.md](07-i18n.md)                     | Arabic/English rules, key naming, formatting of numbers/dates/currency.      |
 | [08-decisions.md](08-decisions.md)           | Decision log (ADR style), assumptions, open questions.                       |
 | [09-conventions.md](09-conventions.md)       | Code style, testing, Definition of Done.                                     |
+| [10-deployment.md](10-deployment.md)         | Deploying: Supabase project, Edge Function, hosting, first admin, backups.   |
+| [11-user-guide.md](11-user-guide.md)         | Short guide for coaches and admins, in English and Arabic.                   |
 | [ROADMAP.md](ROADMAP.md)                     | Phase status table — single source of progress.                              |
 | [phases/](phases/)                           | One file per build phase (PHASE-0 … PHASE-8).                                |
 

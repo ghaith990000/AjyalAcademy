@@ -1,0 +1,17 @@
+{
+  "offline": {
+    "title": "You're offline",
+    "description": "You can look at what's already loaded, but changes can't be saved until you're back online."
+  },
+  "update": {
+    "message": "A new version of the app is ready.",
+    "action": "Update"
+  },
+  "install": {
+    "title": "Install the app",
+    "description": "Add Ajyal Academy to your home screen to open it like any other app.",
+    "action": "Install",
+    "dismiss": "Not now",
+    "iosSteps": "In Safari, tap the Share button, then choose “Add to Home Screen”."
+  }
+}

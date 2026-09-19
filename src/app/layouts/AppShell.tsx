@@ -8,6 +8,7 @@ import { BrandLogo } from '@/components/ui/BrandLogo'
 import { Dialog } from '@/components/ui/Dialog'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { cn } from '@/lib/utils'
+import { OfflineBanner } from '@/app/pwa/OfflineBanner'
 import type { NavConfig, NavItem } from '@/app/nav'
 
 interface AppShellProps {
@@ -133,6 +134,8 @@ export function AppShell({ nav, role }: AppShellProps) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
+        <OfflineBanner />
+
         {/* Phone app bar */}
         <header className="pt-safe sticky top-0 z-30 bg-brand-navy text-white md:hidden">
           <div className="flex min-h-14 items-center justify-between gap-3 px-4">
@@ -160,62 +163,66 @@ export function AppShell({ nav, role }: AppShellProps) {
         {nav.primary.map((item) => (
           <TabLink key={item.to} item={item} />
         ))}
-        {nav.more.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setMoreOpen(true)}
-            className={cn(
-              tabClass,
-              'text-[13px] font-medium',
-              moreActive ? 'text-brand-blue' : 'text-ink-muted',
-            )}
-          >
-            {moreActive && (
-              <span
-                aria-hidden
-                className="absolute inset-x-3 top-0 h-[3px] rounded-b-full bg-brand-pink"
-              />
-            )}
-            <Ellipsis className="size-6" aria-hidden />
-            <span className="max-w-full truncate">{t('nav:more')}</span>
-          </button>
-        )}
+        {/* Always there: it holds "Sign out", which a phone has no other place for (a coach has no extra pages). */}
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          className={cn(
+            tabClass,
+            'text-[13px] font-medium',
+            moreActive ? 'text-brand-blue' : 'text-ink-muted',
+          )}
+        >
+          {moreActive && (
+            <span
+              aria-hidden
+              className="absolute inset-x-3 top-0 h-[3px] rounded-b-full bg-brand-pink"
+            />
+          )}
+          <Ellipsis className="size-6" aria-hidden />
+          <span className="max-w-full truncate">{t('nav:more')}</span>
+        </button>
       </nav>
 
-      {nav.more.length > 0 && (
-        <Dialog open={moreOpen} onOpenChange={setMoreOpen} title={t('nav:more')}>
-          <ul className="-mx-2 space-y-1">
-            {nav.more.map((item) => {
-              const Icon = item.icon
-              return (
-                <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    onClick={() => setMoreOpen(false)}
-                    className="flex min-h-14 items-center gap-3 rounded-control px-3 font-semibold transition-colors hover:bg-brand-blue-50"
-                  >
-                    <span className="flex size-10 items-center justify-center rounded-control bg-brand-blue-50 text-brand-blue">
-                      <Icon className="size-5" aria-hidden />
-                    </span>
-                    <span className="flex-1">{t(item.label)}</span>
-                    <ChevronRight className="size-5 text-ink-muted rtl:-scale-x-100" aria-hidden />
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            className="-mx-2 mt-2 flex min-h-14 w-[calc(100%+1rem)] items-center gap-3 rounded-control px-3 text-start font-semibold text-ink-muted transition-colors hover:bg-page"
-          >
-            <span className="flex size-10 items-center justify-center rounded-control bg-page">
-              <LogOut className="size-5 rtl:-scale-x-100" aria-hidden />
-            </span>
-            {t('nav:signOut')}
-          </button>
-        </Dialog>
-      )}
+      <Dialog open={moreOpen} onOpenChange={setMoreOpen} title={t('nav:more')}>
+        <div className="mb-3 flex items-center gap-3">
+          <Avatar name={displayName} size="sm" />
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-ink">{displayName}</p>
+            <p className="text-[13px] text-ink-muted">{roleLabel}</p>
+          </div>
+        </div>
+        <ul className="-mx-2 space-y-1">
+          {nav.more.map((item) => {
+            const Icon = item.icon
+            return (
+              <li key={item.to}>
+                <Link
+                  to={item.to}
+                  onClick={() => setMoreOpen(false)}
+                  className="flex min-h-14 items-center gap-3 rounded-control px-3 font-semibold transition-colors hover:bg-brand-blue-50"
+                >
+                  <span className="flex size-10 items-center justify-center rounded-control bg-brand-blue-50 text-brand-blue">
+                    <Icon className="size-5" aria-hidden />
+                  </span>
+                  <span className="flex-1">{t(item.label)}</span>
+                  <ChevronRight className="size-5 text-ink-muted rtl:-scale-x-100" aria-hidden />
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+        <button
+          type="button"
+          onClick={() => void signOut()}
+          className="-mx-2 mt-2 flex min-h-14 w-[calc(100%+1rem)] items-center gap-3 rounded-control px-3 text-start font-semibold text-ink-muted transition-colors hover:bg-page"
+        >
+          <span className="flex size-10 items-center justify-center rounded-control bg-page">
+            <LogOut className="size-5 rtl:-scale-x-100" aria-hidden />
+          </span>
+          {t('nav:signOut')}
+        </button>
+      </Dialog>
     </div>
   )
 }

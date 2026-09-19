@@ -5,6 +5,7 @@ import { HeroCard } from '@/components/ui/HeroCard'
 import { Money } from '@/components/ui/Money'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { StatCard } from '@/components/ui/StatCard'
+import { InstallHint } from '@/app/pwa/InstallHint'
 import { ActivityFeed } from '@/features/activity/ActivityFeed'
 import { useActivityRealtime } from '@/features/activity/hooks'
 import { useAuth } from '@/features/auth/useAuth'
@@ -121,6 +122,8 @@ export default function HomePage({ role }: { role: 'admin' | 'coach' }) {
         </h1>
         <p className="mt-1 max-w-md text-white/80">{t('common:app.tagline')}</p>
       </HeroCard>
+
+      <InstallHint />
 
       <QuickActions base={base} />
 

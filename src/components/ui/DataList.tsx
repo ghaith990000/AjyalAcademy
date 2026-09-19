@@ -24,6 +24,12 @@ interface DataListProps<T> {
   empty?: ReactNode
   /** Accessible table name (already translated). */
   caption: string
+  /**
+   * The cells hold their own controls (a checkbox, say). A phone card is then NOT announced as one big button —
+   * a button must not contain another control — and the row's own cell offers the keyboard way in (a real
+   * button around the name), while a tap anywhere on the card still opens the row.
+   */
+  nestedControls?: boolean
 }
 
 function activateOnKey(event: KeyboardEvent, activate: () => void) {
@@ -45,6 +51,7 @@ export function DataList<T>({
   loading = false,
   empty,
   caption,
+  nestedControls = false,
 }: DataListProps<T>) {
   if (loading) {
     return (
@@ -111,10 +118,14 @@ export function DataList<T>({
               className={cn(
                 onRowClick && 'cursor-pointer transition-colors active:bg-brand-blue-50',
               )}
-              role={onRowClick ? 'button' : undefined}
-              tabIndex={onRowClick ? 0 : undefined}
+              role={onRowClick && !nestedControls ? 'button' : undefined}
+              tabIndex={onRowClick && !nestedControls ? 0 : undefined}
               onClick={onRowClick && (() => onRowClick(row))}
-              onKeyDown={onRowClick && ((event) => activateOnKey(event, () => onRowClick(row)))}
+              onKeyDown={
+                onRowClick && !nestedControls
+                  ? (event) => activateOnKey(event, () => onRowClick(row))
+                  : undefined
+              }
             >
               {primary && <div className="font-semibold text-ink">{primary.cell(row)}</div>}
               {secondary.length > 0 && (

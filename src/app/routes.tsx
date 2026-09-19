@@ -1,82 +1,109 @@
+import type { ComponentType } from 'react'
 import type { RouteObject } from 'react-router-dom'
-import AttendancePage from '@/features/attendance/AttendancePage'
 import { RedirectIfSignedIn, RequireRole, RootRedirect } from '@/features/auth/guards'
 import LoginPage from '@/features/auth/pages/LoginPage'
-import CoachesPage from '@/features/coaches/CoachesPage'
-import DiscountsPage from '@/features/discounts/DiscountsPage'
-import ExpensesPage from '@/features/expenses/ExpensesPage'
-import PlayerDetailPage from '@/features/players/PlayerDetailPage'
-import PlayersPage from '@/features/players/PlayersPage'
-import SessionDetailPage from '@/features/sessions/SessionDetailPage'
-import SessionsPage from '@/features/sessions/SessionsPage'
-import SettingsPage from '@/features/settings/SettingsPage'
-import NewSubscriptionPage from '@/features/subscriptions/NewSubscriptionPage'
-import SubscriptionDetailPage from '@/features/subscriptions/SubscriptionDetailPage'
-import SubscriptionsPage from '@/features/subscriptions/SubscriptionsPage'
-import HomePage from '@/features/home/HomePage'
 import { AdminShell } from './layouts/AdminShell'
 import { AuthLayout } from './layouts/AuthLayout'
 import { CoachShell } from './layouts/CoachShell'
 import NotFoundPage from './NotFoundPage'
+import { RouteErrorPage } from './RouteErrorPage'
 import { RouteLoading } from './RouteLoading'
 
-/** `/admin/*` needs an active admin, `/coach/*` an active coach (see features/auth/guards). */
+/**
+ * A page loaded when it is first visited (its own chunk), so the first screen only downloads what it needs.
+ * The router keeps the current page on screen until the next one has arrived.
+ */
+type Lazy = { lazy: NonNullable<RouteObject['lazy']> }
+
+const page = (load: () => Promise<{ default: ComponentType }>): Lazy => ({
+  lazy: async () => ({ Component: (await load()).default }),
+})
+
+// A page that takes a `role` prop (the home screen is the same component for both areas).
+const home = (role: 'admin' | 'coach'): Lazy => ({
+  lazy: async () => {
+    const { default: HomePage } = await import('@/features/home/HomePage')
+    return { Component: () => <HomePage role={role} /> }
+  },
+})
+
+const players = page(() => import('@/features/players/PlayersPage'))
+const playerDetail = page(() => import('@/features/players/PlayerDetailPage'))
+const subscriptions = page(() => import('@/features/subscriptions/SubscriptionsPage'))
+const newSubscription = page(() => import('@/features/subscriptions/NewSubscriptionPage'))
+const subscriptionDetail = page(() => import('@/features/subscriptions/SubscriptionDetailPage'))
+const sessions = page(() => import('@/features/sessions/SessionsPage'))
+const sessionDetail = page(() => import('@/features/sessions/SessionDetailPage'))
+const attendance = page(() => import('@/features/attendance/AttendancePage'))
+
+/**
+ * `/admin/*` needs an active admin, `/coach/*` an active coach (see features/auth/guards). Inside each shell an
+ * error in a page shows in the content area, so the navigation stays usable.
+ */
 export const routes: RouteObject[] = [
-  { path: '/', element: <RootRedirect /> },
+  { path: '/', element: <RootRedirect />, errorElement: <RouteErrorPage /> },
   {
     path: '/login',
     element: <RedirectIfSignedIn />,
+    errorElement: <RouteErrorPage />,
     children: [{ element: <AuthLayout />, children: [{ index: true, element: <LoginPage /> }] }],
   },
   {
     element: <RequireRole role="admin" />,
-    // Only the reports page is lazy; opened directly, it needs something on screen while it loads.
+    // Pages are loaded on demand; opened directly, one needs something on screen while it loads.
     HydrateFallback: RouteLoading,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         path: '/admin',
         element: <AdminShell />,
         children: [
-          { index: true, element: <HomePage role="admin" /> },
-          { path: 'players', element: <PlayersPage /> },
-          { path: 'players/:id', element: <PlayerDetailPage /> },
-          { path: 'subscriptions', element: <SubscriptionsPage /> },
-          { path: 'subscriptions/new', element: <NewSubscriptionPage /> },
-          { path: 'subscriptions/:id', element: <SubscriptionDetailPage /> },
-          { path: 'sessions', element: <SessionsPage /> },
-          { path: 'sessions/:id', element: <SessionDetailPage /> },
-          { path: 'sessions/:id/attendance', element: <AttendancePage /> },
-          { path: 'coaches', element: <CoachesPage /> },
-          { path: 'discounts', element: <DiscountsPage /> },
-          { path: 'expenses', element: <ExpensesPage /> },
           {
-            // Loaded on demand: it is the only screen that needs the charting library.
-            path: 'reports',
-            lazy: async () => ({
-              Component: (await import('@/features/reports/ReportsPage')).default,
-            }),
+            errorElement: <RouteErrorPage inline />,
+            children: [
+              { index: true, ...home('admin') },
+              { path: 'players', ...players },
+              { path: 'players/:id', ...playerDetail },
+              { path: 'subscriptions', ...subscriptions },
+              { path: 'subscriptions/new', ...newSubscription },
+              { path: 'subscriptions/:id', ...subscriptionDetail },
+              { path: 'sessions', ...sessions },
+              { path: 'sessions/:id', ...sessionDetail },
+              { path: 'sessions/:id/attendance', ...attendance },
+              { path: 'coaches', ...page(() => import('@/features/coaches/CoachesPage')) },
+              { path: 'discounts', ...page(() => import('@/features/discounts/DiscountsPage')) },
+              { path: 'expenses', ...page(() => import('@/features/expenses/ExpensesPage')) },
+              { path: 'reports', ...page(() => import('@/features/reports/ReportsPage')) },
+              { path: 'settings', ...page(() => import('@/features/settings/SettingsPage')) },
+            ],
           },
-          { path: 'settings', element: <SettingsPage /> },
         ],
       },
     ],
   },
   {
     element: <RequireRole role="coach" />,
+    HydrateFallback: RouteLoading,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         path: '/coach',
         element: <CoachShell />,
         children: [
-          { index: true, element: <HomePage role="coach" /> },
-          { path: 'players', element: <PlayersPage /> },
-          { path: 'players/:id', element: <PlayerDetailPage /> },
-          { path: 'sessions', element: <SessionsPage /> },
-          { path: 'sessions/:id', element: <SessionDetailPage /> },
-          { path: 'sessions/:id/attendance', element: <AttendancePage /> },
-          { path: 'subscriptions', element: <SubscriptionsPage /> },
-          { path: 'subscriptions/new', element: <NewSubscriptionPage /> },
-          { path: 'subscriptions/:id', element: <SubscriptionDetailPage /> },
+          {
+            errorElement: <RouteErrorPage inline />,
+            children: [
+              { index: true, ...home('coach') },
+              { path: 'players', ...players },
+              { path: 'players/:id', ...playerDetail },
+              { path: 'sessions', ...sessions },
+              { path: 'sessions/:id', ...sessionDetail },
+              { path: 'sessions/:id/attendance', ...attendance },
+              { path: 'subscriptions', ...subscriptions },
+              { path: 'subscriptions/new', ...newSubscription },
+              { path: 'subscriptions/:id', ...subscriptionDetail },
+            ],
+          },
         ],
       },
     ],

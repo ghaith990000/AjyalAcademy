@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import i18n from '@/lib/i18n'
 import { errorKeyOf } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
+import { markSessionEnded } from './sessionNotice'
 import {
   AuthContext,
   type AuthState,
@@ -28,12 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [restored, setRestored] = useState(false)
   const userId = session?.user.id
+  // A session that ends without the person asking (expired, revoked, deactivated) is explained on the login screen.
+  const hadSession = useRef(false)
+  const signingOutOnPurpose = useRef(false)
 
   useEffect(() => {
     // Fires INITIAL_SESSION on subscribe, so no separate getSession() call is needed.
     // Keep this callback synchronous: awaiting supabase calls inside it can deadlock the client.
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
-      if (event === 'SIGNED_OUT') queryClient.clear() // never leak one user's data to the next
+      if (event === 'SIGNED_OUT') {
+        queryClient.clear() // never leak one user's data to the next
+        if (hadSession.current && !signingOutOnPurpose.current) markSessionEnded()
+        signingOutOnPurpose.current = false
+      }
+      hadSession.current = next !== null
       setSession(next)
       setRestored(true)
     })
@@ -88,28 +97,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => i18n.off('languageChanged', persist)
   }, [profile, queryClient])
 
-  const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error || !data.user) {
-      if (error?.code === 'invalid_credentials') return { ok: false, error: 'invalidCredentials' }
-      return { ok: false, error: errorKeyOf(error) === 'network' ? 'network' : 'unknown' }
-    }
-    try {
-      const own = await fetchProfile(data.user.id)
-      if (!own || !own.active) {
-        await supabase.auth.signOut()
-        return { ok: false, error: 'inactive' }
-      }
-    } catch (profileError) {
-      await supabase.auth.signOut()
-      return { ok: false, error: errorKeyOf(profileError) === 'network' ? 'network' : 'unknown' }
-    }
-    return { ok: true }
-  }, [])
-
-  const signOut = useCallback(async () => {
+  const leave = useCallback(async () => {
+    signingOutOnPurpose.current = true
     await supabase.auth.signOut()
   }, [])
+
+  const signIn = useCallback(
+    async (email: string, password: string): Promise<SignInResult> => {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error || !data.user) {
+        if (error?.code === 'invalid_credentials') return { ok: false, error: 'invalidCredentials' }
+        return { ok: false, error: errorKeyOf(error) === 'network' ? 'network' : 'unknown' }
+      }
+      try {
+        const own = await fetchProfile(data.user.id)
+        if (!own || !own.active) {
+          await leave()
+          return { ok: false, error: 'inactive' }
+        }
+      } catch (profileError) {
+        await leave()
+        return { ok: false, error: errorKeyOf(profileError) === 'network' ? 'network' : 'unknown' }
+      }
+      return { ok: true }
+    },
+    [leave],
+  )
+
+  const signOut = leave
 
   const retry = useCallback(() => void profileQuery.refetch(), [profileQuery])
 

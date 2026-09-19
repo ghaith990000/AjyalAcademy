@@ -3,5 +3,13 @@
   "network": "Can't reach the server. Check your connection and try again.",
   "forbidden": "You don't have permission to do that.",
   "session": "Your session has expired. Please sign in again.",
-  "generic": "An unexpected error occurred. Please try again."
+  "generic": "An unexpected error occurred. Please try again.",
+  "crash": {
+    "title": "Something went wrong",
+    "description": "The app ran into an unexpected problem. Reloading usually fixes it.",
+    "chunkTitle": "This page couldn't be loaded",
+    "chunkDescription": "The app may have just been updated, or your connection dropped. Reload to get the latest version.",
+    "reload": "Reload",
+    "home": "Back to home"
+  }
 }

@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/components/ui/toast-context'
+import { endSession } from '@/features/auth/endSession'
 import { errorKeyOf } from '@/lib/errors'
 
 /**
@@ -30,9 +31,18 @@ export function QueryProvider({ children }: { children: ReactNode }) {
     const notify = (error: unknown) =>
       toast({ title: t('title'), description: t(errorKeyOf(error)), tone: 'error' })
 
+    // The server rejecting the login itself is not a screen's own business, even when the screen shows its own
+    // errors (`meta.silent`): go to the login screen, which explains, rather than leave the person retrying.
+    const sessionEnded = (error: unknown) => {
+      if (errorKeyOf(error) !== 'session') return false
+      endSession()
+      return true
+    }
+
     // 'error' actions are dispatched only after retries are exhausted.
     const stopQueries = client.getQueryCache().subscribe((event) => {
       if (event.type !== 'updated' || event.action.type !== 'error') return
+      if (sessionEnded(event.action.error)) return
       // A failed background refetch keeps showing the data we already have.
       if (event.query.state.data === undefined && !event.query.meta?.silent) {
         notify(event.action.error)
@@ -40,6 +50,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
     })
     const stopMutations = client.getMutationCache().subscribe((event) => {
       if (event.type !== 'updated' || event.action.type !== 'error') return
+      if (sessionEnded(event.action.error)) return
       if (!event.mutation.meta?.silent) notify(event.action.error)
     })
     return () => {

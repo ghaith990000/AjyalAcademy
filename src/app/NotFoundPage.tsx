@@ -10,6 +10,7 @@ export default function NotFoundPage() {
     <main className="mx-auto flex min-h-dvh max-w-md items-center justify-center px-4">
       <EmptyState
         icon={SearchX}
+        titleAs="h1"
         title={t('notFound.title')}
         description={t('notFound.description')}
         action={

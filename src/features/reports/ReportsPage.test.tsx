@@ -192,7 +192,7 @@ describe('ReportsPage', () => {
     renderPage()
     await screen.findByText('540.000 BD')
 
-    await userEvent.click(screen.getByRole('tab', { name: 'Year' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Year' }))
 
     expect(await screen.findByText('2026', { selector: 'bdi' })).toBeInTheDocument()
     await waitFor(() =>
@@ -263,7 +263,7 @@ describe('ReportsPage', () => {
       ])
       renderPage()
       await screen.findByText('540.000 BD')
-      await userEvent.click(screen.getByRole('tab', { name: 'Year' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Year' }))
       await userEvent.click(screen.getByRole('button', { name: 'Expenses (CSV)' }))
 
       await waitFor(() => expect(exportCsv.downloadCsv).toHaveBeenCalledOnce())

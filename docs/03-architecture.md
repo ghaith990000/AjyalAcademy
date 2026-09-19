@@ -9,36 +9,35 @@
 | Server state | TanStack Query                                                      | All Supabase calls live in `features/*/api`, wrapped by hooks.    |
 | Backend      | Supabase: Postgres, Auth, RLS, Realtime, one Edge Function          | Hosted project for dev (D-030); local Docker optional.            |
 | Styling      | Tailwind CSS v4 (`@theme` tokens in `src/styles/index.css`)         | Logical properties only (RTL). Radix primitives for a11y widgets. |
-| Forms        | react-hook-form + zod (`@hookform/resolvers`)                       | One zod schema per form in `features/*/schemas.ts`.               |
+| Forms        | react-hook-form + zod (`@hookform/resolvers`)                       | One zod schema per form in `features/*/schema.ts`.                |
 | i18n         | i18next + react-i18next                                             | `ar` (default, RTL) and `en`. See [07-i18n.md](07-i18n.md).       |
 | Charts       | Recharts                                                            | Brand palette only.                                               |
 | Dates        | date-fns                                                            | Gregorian; store `date` columns as ISO `YYYY-MM-DD`.              |
 | Icons        | lucide-react                                                        | Flip directional icons in RTL.                                    |
-| PWA          | vite-plugin-pwa (Phase 8)                                           | Installable on phones.                                            |
-| Tests        | Vitest + Testing Library; SQL RLS tests; Playwright smoke (Phase 8) |                                                                   |
+| PWA          | vite-plugin-pwa                                                     | Installable; offline app shell; update prompt (D-074).            |
+| Tests        | Vitest + Testing Library; pgTAP; Playwright (+ axe)                 | Browser tests run the production build against a mock API.        |
 
 ## Folder layout
 
 ```
 src/
-  app/             router, providers (QueryClient, Auth, i18n), layouts (AdminShell, CoachShell, AuthLayout)
-  components/ui/   design-system components (Button, Input, Select, Card, Dialog, Badge, DataList, Toast, EmptyState…)
-  features/
-    auth/          login, session, role guards
-    players/  coaches/  subscriptions/  discounts/  sessions/  attendance/
-    expenses/  reports/  activity/  settings/
-      api/         supabase queries/mutations (thin, typed)
-      hooks/       useXxx wrappers around TanStack Query
-      components/  feature-specific UI
-      pages/       route components
-      schemas.ts   zod schemas + inferred types
-  lib/             supabase.ts, money.ts, pricing.ts, dates.ts, i18n.ts, utils.ts
+  app/             App, providers, routes (lazy pages), shells (layouts/), error screens, pwa/ (update, offline, install)
+  components/ui/   design-system components (Button, Input, Select, Card, Dialog, Badge, DataList, FilterChips, Toast…)
+  features/<x>/    auth, players, coaches, subscriptions, discounts, sessions, attendance, expenses, reports,
+                   activity, home, settings (+ dev, the component gallery — development only)
+                     api.ts            supabase queries/mutations (thin, typed)
+                     hooks.ts          useXxx wrappers around TanStack Query
+                     schema.ts         zod schema + inferred types (where the feature has forms)
+                     <Thing>Page.tsx   route components; <Thing>Dialog.tsx etc. feature UI
+                     *.test.ts(x)      next to the code
+  lib/             supabase.ts, money.ts, pricing.ts, dates.ts, reports.ts, i18n.ts, errors.ts, utils.ts, …
   locales/{ar,en}/ one JSON namespace per feature (common, players, subscriptions, …)
   styles/          index.css (Tailwind + tokens)
-  test/            vitest setup, factories
-supabase/          config.toml, migrations/, seed.sql, functions/create-coach/, tests/
+  test/            vitest setup, fixtures (players, sessions, finance, activity…)
+e2e/               Playwright specs + support/ (mock API, helpers)
+supabase/          config.toml, migrations/, seed.sql, functions/create-coach/, tests/database/
 docs/              this documentation
-public/brand/      logo assets
+public/brand/      logo and the generated app icons
 ```
 
 ## Data flow
@@ -59,8 +58,9 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - `/login` — public.
 - `/` — redirects by role: admin → `/admin`, coach → `/coach`.
 - `/admin/*` — admin only: home, players, coaches, subscriptions, discounts, sessions, expenses, reports, settings.
-- `/coach/*` — coach (admin may also visit): home, my players, subscriptions, sessions/attendance.
-- Guards read the role from `profiles` via the Auth provider; unauthorized → redirect to the role's home. _Built: an admin is also redirected out of `/coach`._
+- `/coach/*` — coaches only (an admin is sent to `/admin`): home, my players, subscriptions, sessions/attendance.
+- Guards read the role from `profiles` via the Auth provider; unauthorized → redirect to the role's home.
+- `/dev/ui` (component gallery) exists only in development builds.
 - Shared feature pages (players, subscriptions, sessions) are the same components mounted under both prefixes; RLS scopes the data.
 
 ## Patterns to follow
@@ -74,7 +74,7 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 
 ## As built (Phase 1)
 
-- Routes are declared in `src/app/routes.tsx` (an array of `RouteObject`s, so tests can use `createMemoryRouter(routes)`); `src/app/App.tsx` creates the browser router. Until Phase 2 the `/admin` and `/coach` areas are open; Phase 2 adds role guards. `/dev/ui` exists only when `import.meta.env.DEV`.
+- Routes are declared in `src/app/routes.tsx` (an array of `RouteObject`s, so tests can use `createMemoryRouter(routes)`); `src/app/App.tsx` creates the browser router. (Role guards were added in Phase 2.) `/dev/ui` exists only when `import.meta.env.DEV`.
 - Providers live in `src/app/providers.tsx` (Radix `Direction.Provider` + `ToastProvider`). TanStack Query and Auth providers arrive in Phase 2.
 - Placeholder pages showed "arrives in phase N" for sections built later (`PlaceholderPage`, removed in Phase 6 once its last two routes were built).
 
@@ -122,3 +122,11 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - **`src/features/home`:** `api.ts` (player and subscription counts, the expiring list), `hooks.ts` (`['home', …]`), `HomePage` (hero, quick actions, KPI cards, two columns from `lg`: sessions + expiring on one side, the feed on the other), `QuickActions` (add player and schedule session open their forms in place; new subscription links to the wizard), `TodaySessions`, `ExpiringSubscriptions`. Today's sessions come from `listTodaySessions` / `useTodaySessions` in the sessions feature, and the money KPIs from `useReportSummary` (reports feature).
 - The channel is opened while the home screen is mounted; anything that happened while the app was elsewhere is picked up by the queries refetching when the screen returns. `src/lib/useNow.ts` re-renders "5 minutes ago" as time passes; `formatTimeAgo` / `formatRelative` are in `lib/dates.ts`.
 - App-shell tests replace `HomePage` with a stub: tests never reach the network (the real page has its own tests).
+
+## As built (Phase 8)
+
+- **Code splitting:** every page is loaded on demand (`page()` in `routes.tsx`); the shells, login and guards stay in the main bundle (633 kB, 195 kB gzipped, down from 1.13 MB). The charting library sits in the reports page's own chunk. `index.html` shows a small logo splash until the app has drawn.
+- **PWA** (`vite.config.ts` → `VitePWA`, `src/app/pwa`): `registerType: 'prompt'` — `UpdatePrompt` registers the service worker and offers "Update"; `OfflineBanner` (via `useOnline`) and `InstallHint` (Android's install event, or the Share-sheet steps on iPhone) sit on the shells and the home screen. The service worker precaches the app shell only (scripts, styles, fonts, icons); requests to Supabase are never cached. Icons come from `npm run icons` (`pwa-assets.config.ts`) into `public/brand/`. Fonts are self-hosted (`@fontsource`), so nothing third-party is loaded.
+- **Resilience:** `AppErrorBoundary` (rendering errors) and router `errorElement`s (`RouteErrorPage` — inside the shell, so the navigation stays) show `ErrorScreen`; a failed page download gets its own wording (`chunkError.ts`). `QueryProvider` ends the session when the server rejects the login (any query, silent or not, `endSession`) and `AuthProvider` remembers involuntary sign-outs (`sessionNotice.ts`) so the login screen explains.
+- **Security headers:** a strict Content-Security-Policy (`vite.config.ts` for `vite preview`; `vercel.json` / `netlify.toml` for hosting); zod runs without its JIT (`lib/zod-config.ts`) because the policy forbids `eval`.
+- **End-to-end tests** (`e2e/`, `playwright.config.ts`): see [09-conventions.md](09-conventions.md#end-to-end-tests).

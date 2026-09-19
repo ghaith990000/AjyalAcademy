@@ -4,6 +4,8 @@ import { Users } from 'lucide-react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/lib/i18n'
 import { Button } from './Button'
+import { Checkbox } from './Checkbox'
+import { EmptyState } from './EmptyState'
 import { DataList, type Column } from './DataList'
 import { Dialog } from './Dialog'
 import { Field } from './Field'
@@ -125,6 +127,53 @@ describe('DataList', () => {
     expect(onRowClick).toHaveBeenCalledWith(rows[0])
   })
 
+  it('makes each phone card one button when nothing inside it is a control', async () => {
+    const onRowClick = vi.fn()
+    render(
+      <DataList
+        columns={columns}
+        rows={rows}
+        getRowKey={(row) => row.id}
+        onRowClick={onRowClick}
+        caption="Players"
+      />,
+    )
+    const list = screen.getByRole('list', { name: 'Players' })
+    const cards = within(list).getAllByRole('button')
+    expect(cards).toHaveLength(2)
+    await userEvent.click(cards[1]!)
+    expect(onRowClick).toHaveBeenCalledWith(rows[1])
+  })
+
+  it('does not make a card a button when its cells hold their own controls (a button may not contain one)', async () => {
+    const onRowClick = vi.fn()
+    const withCheckbox: Column<Row>[] = [
+      {
+        key: 'name',
+        header: 'Name',
+        primary: true,
+        cell: (row) => <Checkbox aria-label={`Select ${row.name}`} />,
+      },
+    ]
+    render(
+      <DataList
+        columns={withCheckbox}
+        rows={rows}
+        getRowKey={(row) => row.id}
+        onRowClick={onRowClick}
+        nestedControls
+        caption="Players"
+      />,
+    )
+    const list = screen.getByRole('list', { name: 'Players' })
+    // the only buttons/checkboxes inside the cards are the checkboxes themselves
+    expect(within(list).queryAllByRole('button')).toHaveLength(0)
+    expect(within(list).getAllByRole('checkbox')).toHaveLength(2)
+    // a tap on the card still opens the row
+    await userEvent.click(list.querySelectorAll('li > div')[0]!)
+    expect(onRowClick).toHaveBeenCalledWith(rows[0])
+  })
+
   it('shows the empty state instead of an empty table', () => {
     render(
       <DataList
@@ -150,6 +199,28 @@ describe('DataList', () => {
       />,
     )
     expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
+  })
+})
+
+describe('Checkbox', () => {
+  it('is a 44px tap target that looks like a 24px box and does not move its neighbours', async () => {
+    const onCheckedChange = vi.fn()
+    render(<Checkbox aria-label="Select Ali" onCheckedChange={onCheckedChange} />)
+    const box = screen.getByRole('checkbox', { name: 'Select Ali' })
+    expect(box.className).toContain('size-11')
+    expect(box.className).toContain('-m-2.5') // 44 − 2×10 = 24px of layout
+    await userEvent.click(box)
+    expect(onCheckedChange).toHaveBeenCalledWith(true)
+    expect(box).toHaveAttribute('data-state', 'checked')
+  })
+})
+
+describe('EmptyState', () => {
+  it('is a level-2 heading inside a page and can be the page heading itself', () => {
+    const { rerender } = render(<EmptyState icon={Users} title="Nothing here" />)
+    expect(screen.getByRole('heading', { level: 2, name: 'Nothing here' })).toBeInTheDocument()
+    rerender(<EmptyState icon={Users} title="Nothing here" titleAs="h1" />)
+    expect(screen.getByRole('heading', { level: 1, name: 'Nothing here' })).toBeInTheDocument()
   })
 })
 

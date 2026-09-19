@@ -6,6 +6,7 @@ import i18n from '@/lib/i18n'
 import { fakeProfile } from '@/test/auth'
 import type { Profile, SignInResult } from './auth-context'
 import { AuthProvider } from './AuthProvider'
+import { sessionEndedNotice } from './sessionNotice'
 import { useAuth } from './useAuth'
 
 // A minimal stand-in for the Supabase client: just the calls AuthProvider makes.
@@ -38,14 +39,18 @@ vi.mock('@/lib/supabase', () => ({
 }))
 
 // The Probe hands `signIn` out to the tests through this object (set in an effect, not during render).
-const captured = {} as { signIn: (email: string, password: string) => Promise<SignInResult> }
+const captured = {} as {
+  signIn: (email: string, password: string) => Promise<SignInResult>
+  signOut: () => Promise<void>
+}
 const signIn = (email: string, password: string) => captured.signIn(email, password)
 
 function Probe() {
   const auth = useAuth()
   useEffect(() => {
     captured.signIn = auth.signIn
-  }, [auth.signIn])
+    captured.signOut = auth.signOut
+  }, [auth.signIn, auth.signOut])
   return <p data-testid="state">{`${auth.status}|${auth.profile?.role ?? 'none'}`}</p>
 }
 
@@ -67,6 +72,7 @@ const session = { user: { id: 'u1' } }
 describe('AuthProvider', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
+    sessionStorage.clear()
     fake.listener = undefined
     fake.profile = fakeProfile('admin', { id: 'u1' })
     fake.signOut.mockImplementation(async () => fake.listener?.('SIGNED_OUT', null))
@@ -124,6 +130,46 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(state()).toBe('signedIn|admin'))
     await emit('SIGNED_OUT', null)
     expect(state()).toBe('signedOut|none')
+  })
+
+  describe('a session that ends', () => {
+    it('is remembered for the login screen when the app did not ask for it (expired, revoked, another tab)', async () => {
+      renderProvider()
+      await emit('INITIAL_SESSION', session)
+      await waitFor(() => expect(state()).toBe('signedIn|admin'))
+      await emit('SIGNED_OUT', null)
+      expect(sessionEndedNotice()).toBe(true)
+    })
+
+    it('is not, when the person signed out themselves', async () => {
+      renderProvider()
+      await emit('INITIAL_SESSION', session)
+      await waitFor(() => expect(state()).toBe('signedIn|admin'))
+      await act(() => captured.signOut())
+      expect(state()).toBe('signedOut|none')
+      expect(sessionEndedNotice()).toBe(false)
+    })
+
+    it('is not, when there was no session to begin with', async () => {
+      renderProvider()
+      await emit('INITIAL_SESSION', null)
+      await emit('SIGNED_OUT', null)
+      expect(sessionEndedNotice()).toBe(false)
+    })
+
+    it('is not, when an inactive account is turned away at sign-in (that has its own message)', async () => {
+      renderProvider()
+      await emit('INITIAL_SESSION', null)
+      fake.profile = fakeProfile('coach', { id: 'u1', active: false } as Partial<Profile>)
+      fake.signInWithPassword.mockImplementation(async () => {
+        fake.listener?.('SIGNED_IN', session)
+        return { data: { user: { id: 'u1' } }, error: null }
+      })
+      await act(async () => {
+        await expect(signIn('a@b.co', 'pw')).resolves.toEqual({ ok: false, error: 'inactive' })
+      })
+      expect(sessionEndedNotice()).toBe(false)
+    })
   })
 
   describe('signIn', () => {

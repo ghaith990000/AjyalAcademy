@@ -8,7 +8,7 @@ Original requests from the product owner, each with an ID, the phase that delive
 | R-02 | Player can subscribe: start date, end date, subscription fee, T-shirt fee for first-time joining, optional transportation fee | 2 (schema), 4                              | [x]    |
 | R-03 | Coaches can track who attended a training session                                                                             | 5                                          | [x]    |
 | R-04 | Schedule training sessions with start time and end time                                                                       | 5                                          | [x]    |
-| R-05 | Web app is accessible/usable on mobile phones                                                                                 | 1 (foundation), 8 (verify) — every phase   | [ ]    |
+| R-05 | Web app is accessible/usable on mobile phones                                                                                 | 1 (foundation), 8 (verify) — every phase   | [x]    |
 | R-06 | Every coach can manage a list of players                                                                                      | 3                                          | [x]    |
 | R-07 | Administrator distributes players to coaches                                                                                  | 3                                          | [x]    |
 | R-08 | Calculate total fees collected from players per month and per year                                                            | 6                                          | [x]    |
@@ -17,9 +17,9 @@ Original requests from the product owner, each with an ID, the phase that delive
 | R-11 | Track user activity: who added/removed a player, who added a subscription — visible on the home screen                        | 2 (triggers), 7 (UI)                       | [x]    |
 | R-12 | Discount feature on subscriptions                                                                                             | 4                                          | [x]    |
 | R-13 | Built with React + TypeScript                                                                                                 | 0                                          | [x]    |
-| R-14 | Support Arabic and English                                                                                                    | 0 (i18n base), 1 (RTL/switch), every phase | [ ]    |
-| R-15 | Beautiful UI for admins and trainers matching Ajyal Academy's theme                                                           | 1, then every phase                        | [ ]    |
-| R-16 | Build in phases and document everything in Markdown so Claude can rely on the docs                                            | 0, continuous                              | [ ]    |
+| R-14 | Support Arabic and English                                                                                                    | 0 (i18n base), 1 (RTL/switch), every phase | [x]    |
+| R-15 | Beautiful UI for admins and trainers matching Ajyal Academy's theme                                                           | 1, then every phase                        | [x]    |
+| R-16 | Build in phases and document everything in Markdown so Claude can rely on the docs                                            | 0, continuous                              | [x]    |
 
 ## Confirmed clarifications (from the product owner)
 

@@ -6,6 +6,7 @@ import i18n from '@/lib/i18n'
 import { fakeAuth } from '@/test/auth'
 import LoginPage from './pages/LoginPage'
 import { AuthContext, type SignInResult } from './auth-context'
+import { markSessionEnded, sessionEndedNotice } from './sessionNotice'
 
 function setup(signIn = vi.fn<() => Promise<SignInResult>>().mockResolvedValue({ ok: true })) {
   render(
@@ -20,7 +21,35 @@ function setup(signIn = vi.fn<() => Promise<SignInResult>>().mockResolvedValue({
 
 describe('LoginPage', () => {
   beforeEach(async () => {
+    sessionStorage.clear()
     await i18n.changeLanguage('en')
+  })
+
+  it('explains, once, that the session ended by itself', async () => {
+    markSessionEnded()
+    setup()
+    expect(
+      await screen.findByText('Your session has ended. Please sign in again.'),
+    ).toBeInTheDocument()
+    expect(sessionEndedNotice()).toBe(false) // shown once, then forgotten
+  })
+
+  it('says nothing about a session on an ordinary visit', () => {
+    setup()
+    expect(screen.queryByText(/session has ended/i)).not.toBeInTheDocument()
+  })
+
+  it('leaves the notice out when a sign-in error needs the space', async () => {
+    markSessionEnded()
+    const signIn = vi
+      .fn<() => Promise<SignInResult>>()
+      .mockResolvedValue({ ok: false, error: 'invalidCredentials' })
+    setup(signIn)
+    await userEvent.type(screen.getByLabelText(/Email/), 'a@b.co')
+    await userEvent.type(screen.getByLabelText(/Password/), 'bad')
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Incorrect email or password.')
+    expect(screen.queryByText(/session has ended/i)).not.toBeInTheDocument()
   })
 
   it('asks for both fields before signing in', async () => {

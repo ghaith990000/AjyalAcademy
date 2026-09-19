@@ -34,7 +34,13 @@ export function MonthsTable({ rows, highlight }: MonthsTableProps) {
   )
 
   return (
-    <div className="-mx-1 overflow-x-auto">
+    // A region that can scroll sideways must be reachable by keyboard, and named.
+    <div
+      className="-mx-1 overflow-x-auto"
+      role="region"
+      aria-label={t('months.caption')}
+      tabIndex={0}
+    >
       <table className="w-full min-w-[19.5rem] text-start text-sm">
         <caption className="sr-only">{t('months.caption')}</caption>
         <thead className="text-[13px] font-semibold text-ink-muted">

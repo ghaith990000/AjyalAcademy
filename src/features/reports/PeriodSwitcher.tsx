@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { IconButton } from '@/components/ui/IconButton'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import { FilterChips } from '@/components/ui/FilterChips'
 import { formatMonthYear } from '@/lib/dates'
 import {
   isLatestPeriod,
@@ -30,15 +30,15 @@ export function PeriodSwitcher({ period, onChange, kinds = false }: PeriodSwitch
   return (
     <div className="space-y-3">
       {kinds && (
-        <Tabs
+        <FilterChips
+          label={t('period.label')}
+          options={[
+            { value: 'month', label: t('period.month') },
+            { value: 'year', label: t('period.year') },
+          ]}
           value={period.kind}
-          onValueChange={(kind) => onChange(switchKind(period, kind as PeriodKind))}
-        >
-          <TabsList aria-label={t('period.label')}>
-            <TabsTrigger value="month">{t('period.month')}</TabsTrigger>
-            <TabsTrigger value="year">{t('period.year')}</TabsTrigger>
-          </TabsList>
-        </Tabs>
+          onChange={(kind: PeriodKind) => onChange(switchKind(period, kind))}
+        />
       )}
       <div className="flex items-center justify-between gap-2 rounded-card border border-line bg-surface p-1.5 shadow-card">
         <IconButton

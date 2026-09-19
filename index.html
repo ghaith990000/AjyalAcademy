@@ -2,19 +2,47 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="/brand/logo.jpg" />
+    <link rel="icon" href="/brand/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/brand/pwa-64x64.png" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon-180x180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#1860C8" />
-    <title>Ajyal Academy · أكاديمية أجيال</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
+    <meta name="theme-color" content="#1860c8" />
+    <meta
+      name="description"
+      content="Ajyal Academy — manage players, subscriptions, sessions and attendance · أكاديمية أجيال — إدارة اللاعبين والاشتراكات والحصص والحضور"
     />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Ajyal" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Ajyal Academy · أكاديمية أجيال</title>
+    <!-- The app draws itself with JavaScript; until it does, show the logo on the page colour instead of a blank
+         screen (this also gives the first paint sooner). React replaces everything inside #root. Colours are the
+         `page` token and the logo blue from src/styles/index.css. -->
+    <style>
+      body {
+        margin: 0;
+        background: #f3f6fc;
+      }
+      .splash {
+        display: flex;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+      }
+      .splash img {
+        width: 96px;
+        height: 96px;
+        border-radius: 22px;
+        box-shadow: 0 8px 24px -8px rgb(24 96 200 / 0.4);
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="splash"><img src="/brand/pwa-192x192.png" width="96" height="96" alt="" /></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

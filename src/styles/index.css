@@ -9,20 +9,22 @@
   --color-brand-navy-700: #0a2452;
   --color-brand-pink: #e02068;
   --color-brand-pink-50: #fdebf2;
+  /* Pink for TEXT on light backgrounds: the brand pink is 4.0:1 on its tint, this is 5.1:1 (WCAG AA needs 4.5). */
+  --color-brand-pink-700: #c4185a;
   --color-surface: #ffffff;
   --color-page: #f3f6fc;
   --color-ink: #10203f;
   --color-ink-muted: #5b6b8a;
   --color-line: #dde5f3;
-  --color-success: #12805c;
+  --color-success: #0f6e50;
   --color-success-50: #e5f5ef;
-  --color-warning: #b7791f;
+  --color-warning: #946200;
   --color-warning-50: #fdf3e0;
   --color-danger: #c62828;
   --color-danger-50: #fdeaea;
 
-  --font-sans: 'Poppins', 'Cairo', system-ui, sans-serif;
-  --font-arabic: 'Cairo', 'Poppins', system-ui, sans-serif;
+  --font-sans: 'Poppins', 'Cairo Variable', system-ui, sans-serif;
+  --font-arabic: 'Cairo Variable', 'Poppins', system-ui, sans-serif;
 
   --radius-card: 16px;
   --radius-control: 12px;
@@ -90,6 +92,13 @@
 
   html[dir='rtl'] body {
     font-family: var(--font-arabic);
+  }
+
+  /* An empty `dir="auto"` field has no text to take its direction from and would fall back to left-to-right,
+     putting an Arabic placeholder on the wrong side; while the placeholder shows, follow the page. */
+  input[dir='auto']:placeholder-shown,
+  textarea[dir='auto']:placeholder-shown {
+    direction: inherit;
   }
 
   :focus-visible {

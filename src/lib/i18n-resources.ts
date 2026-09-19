@@ -10,6 +10,7 @@ import arExpenses from '@/locales/ar/expenses.json'
 import arHome from '@/locales/ar/home.json'
 import arNav from '@/locales/ar/nav.json'
 import arPlayers from '@/locales/ar/players.json'
+import arPwa from '@/locales/ar/pwa.json'
 import arReports from '@/locales/ar/reports.json'
 import arSessions from '@/locales/ar/sessions.json'
 import arSettings from '@/locales/ar/settings.json'
@@ -27,6 +28,7 @@ import enExpenses from '@/locales/en/expenses.json'
 import enHome from '@/locales/en/home.json'
 import enNav from '@/locales/en/nav.json'
 import enPlayers from '@/locales/en/players.json'
+import enPwa from '@/locales/en/pwa.json'
 import enReports from '@/locales/en/reports.json'
 import enSessions from '@/locales/en/sessions.json'
 import enSettings from '@/locales/en/settings.json'
@@ -53,6 +55,7 @@ export const resources = {
     expenses: enExpenses,
     reports: enReports,
     activity: enActivity,
+    pwa: enPwa,
   },
   ar: {
     common: arCommon,
@@ -72,6 +75,7 @@ export const resources = {
     expenses: arExpenses,
     reports: arReports,
     activity: arActivity,
+    pwa: arPwa,
   },
 } as const
 

@@ -16,6 +16,9 @@ export function isRtl(language: string): boolean {
 export function applyDocumentLanguage(language: string): void {
   document.documentElement.lang = language
   document.documentElement.dir = isRtl(language) ? 'rtl' : 'ltr'
+  // The tab / home-screen title follows the language ("Ajyal Academy" / "أكاديمية أجيال").
+  const name = i18n.t('app.name', { lng: language })
+  if (name) document.title = name
 }
 
 void i18n

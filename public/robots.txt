@@ -1,0 +1,3 @@
+# A private management app: nothing here should appear in search results.
+User-agent: *
+Disallow: /

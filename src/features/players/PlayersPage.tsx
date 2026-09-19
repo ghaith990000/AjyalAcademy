@@ -128,21 +128,39 @@ export default function PlayersPage() {
       key: 'name',
       header: t('players:columns.name'),
       primary: true,
-      cell: (player) => (
-        <span className="flex items-center gap-3">
-          {isAdmin && <span className="md:hidden">{selectBox(player)}</span>}
-          <Avatar name={player.full_name} size="sm" />
-          <span className="min-w-0">
-            <span className="block truncate font-semibold">{player.full_name}</span>
-            <span
-              dir="ltr"
-              className="block truncate text-start text-[13px] font-normal text-ink-muted"
-            >
-              {player.cpr}
+      cell: (player) => {
+        const identity = (
+          <>
+            <Avatar name={player.full_name} size="sm" />
+            <span className="min-w-0">
+              <span className="block truncate font-semibold">{player.full_name}</span>
+              <span
+                dir="ltr"
+                className="block truncate text-start text-[13px] font-normal text-ink-muted"
+              >
+                {player.cpr}
+              </span>
             </span>
+          </>
+        )
+        // An admin's phone card holds a checkbox, so the card is not one big button (`nestedControls`); the name
+        // becomes a real button there, so the row still opens from the keyboard. Otherwise the card is the button.
+        return isAdmin ? (
+          <span className="flex items-center gap-3">
+            <span className="md:hidden">{selectBox(player)}</span>
+            <button
+              type="button"
+              {...isolate}
+              onClick={() => navigate(`${base}/${player.id}`)}
+              className="flex min-h-11 min-w-0 flex-1 items-center gap-3 text-start"
+            >
+              {identity}
+            </button>
           </span>
-        </span>
-      ),
+        ) : (
+          <span className="flex items-center gap-3">{identity}</span>
+        )
+      },
     },
     {
       key: 'age',
@@ -237,6 +255,7 @@ export default function PlayersPage() {
           rows={rows}
           getRowKey={(player) => player.id}
           onRowClick={(player) => navigate(`${base}/${player.id}`)}
+          nestedControls={isAdmin}
           loading={isPending}
           empty={
             filtered ? (

@@ -9,7 +9,7 @@ const badgeVariants = cva(
       tone: {
         neutral: 'bg-page text-ink-muted ring-1 ring-line',
         info: 'bg-brand-blue-50 text-brand-blue',
-        accent: 'bg-brand-pink-50 text-brand-pink',
+        accent: 'bg-brand-pink-50 text-brand-pink-700',
         success: 'bg-success-50 text-success',
         warning: 'bg-warning-50 text-warning',
         danger: 'bg-danger-50 text-danger',

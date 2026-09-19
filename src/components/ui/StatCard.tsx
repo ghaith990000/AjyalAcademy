@@ -5,7 +5,7 @@ import { Card } from './Card'
 
 const TONES = {
   blue: 'bg-brand-blue-50 text-brand-blue',
-  pink: 'bg-brand-pink-50 text-brand-pink',
+  pink: 'bg-brand-pink-50 text-brand-pink-700',
   success: 'bg-success-50 text-success',
   warning: 'bg-warning-50 text-warning',
 } as const

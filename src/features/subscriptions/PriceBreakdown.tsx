@@ -19,16 +19,19 @@ function Line({
   label,
   children,
   strong,
+  className,
 }: {
   label: ReactNode
   children: ReactNode
   strong?: boolean
+  className?: string
 }) {
   return (
     <div
       className={cn(
         'flex items-baseline justify-between gap-4',
         strong && 'text-lg font-extrabold',
+        className,
       )}
     >
       <dt className={cn('min-w-0', !strong && 'text-ink-muted')}>{label}</dt>
@@ -84,11 +87,10 @@ export function PriceBreakdown({
           </Line>
         </>
       )}
-      <div className="border-t border-line pt-2.5">
-        <Line label={t('detail.breakdown.total')} strong>
-          <Money fils={totalFils} />
-        </Line>
-      </div>
+      {/* A group inside a <dl> must be a <div> of dt/dd, so the rule above the total goes on the row itself. */}
+      <Line label={t('detail.breakdown.total')} strong className="border-t border-line pt-2.5">
+        <Money fils={totalFils} />
+      </Line>
       {paidFils !== undefined && balanceFils !== undefined && (
         <>
           <Line label={t('detail.breakdown.paid')}>

@@ -24,7 +24,7 @@ export interface NavItem {
 }
 
 export interface NavConfig {
-  /** Shown in the phone tab bar (max 4 when `more` is non-empty, else max 5) and the sidebar. */
+  /** Shown in the phone tab bar (at most 4: the fifth tab is always "More") and the sidebar. */
   primary: NavItem[]
   /** Sidebar-only on desktop; collected behind a "More" tab on phones. */
   more: NavItem[]
