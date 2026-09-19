@@ -1,9 +1,10 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Providers } from '@/app/providers'
 import { AuthContext } from '@/features/auth/auth-context'
+import * as attendanceApi from '@/features/attendance/api'
 import * as coachesApi from '@/features/coaches/api'
 import * as subscriptionsApi from '@/features/subscriptions/api'
 import i18n from '@/lib/i18n'
@@ -22,6 +23,11 @@ vi.mock('./api', async (importOriginal) => ({
 vi.mock('@/features/subscriptions/api', async (importOriginal) => ({
   ...(await importOriginal<typeof subscriptionsApi>()),
   listPlayerSubscriptions: vi.fn(),
+}))
+vi.mock('@/features/attendance/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof attendanceApi>()),
+  listPlayerAttendance: vi.fn(),
+  countPlayerPresent: vi.fn(),
 }))
 vi.mock('@/features/coaches/api', async (importOriginal) => ({
   ...(await importOriginal<typeof coachesApi>()),
@@ -69,6 +75,8 @@ describe('PlayerDetailPage', () => {
       id === 'p1' ? healthy : id === 'p2' ? withCondition : null,
     )
     vi.mocked(subscriptionsApi.listPlayerSubscriptions).mockResolvedValue([])
+    vi.mocked(attendanceApi.listPlayerAttendance).mockResolvedValue({ rows: [], total: 0 })
+    vi.mocked(attendanceApi.countPlayerPresent).mockResolvedValue(0)
     vi.mocked(coachesApi.listCoaches).mockResolvedValue([
       fakeProfile('coach', { id: 'c1', full_name: 'Khalid Al Dosari' }),
       fakeProfile('coach', { id: 'c2', full_name: 'Sara Al Khalifa' }),
@@ -140,10 +148,46 @@ describe('PlayerDetailPage', () => {
     )
   })
 
-  it('says so when the player has no subscriptions yet, and still keeps attendance for phase 5', async () => {
+  it('says so when the player has no subscriptions yet', async () => {
     renderDetail('p1')
     expect(await screen.findByText('No subscriptions yet.')).toBeInTheDocument()
-    expect(screen.getByText('Attendance')).toBeInTheDocument()
+  })
+
+  it("shows the player's attendance rate and history, and says so when there is none", async () => {
+    renderDetail('p1')
+    expect(await screen.findByText('No attendance recorded yet.')).toBeInTheDocument()
+
+    vi.mocked(attendanceApi.listPlayerAttendance).mockResolvedValue({
+      rows: [
+        {
+          session_id: 's1',
+          status: 'present',
+          marked_at: '2026-09-19T15:00:00Z',
+          session_date: '2026-09-19',
+          start_time: '16:00:00',
+          end_time: '17:30:00',
+          location: null,
+        },
+        {
+          session_id: 's2',
+          status: 'absent',
+          marked_at: '2026-09-16T15:00:00Z',
+          session_date: '2026-09-16',
+          start_time: '16:00:00',
+          end_time: '17:30:00',
+          location: null,
+        },
+      ],
+      total: 2,
+    })
+    vi.mocked(attendanceApi.countPlayerPresent).mockResolvedValue(1)
+    cleanup()
+    renderDetail('p1')
+    expect(await screen.findByText('50%')).toBeInTheDocument()
+    expect(screen.getByText('Present at 1 of 2 sessions')).toBeInTheDocument()
+    expect(screen.getByText('19/09/2026')).toBeInTheDocument()
+    expect(screen.getByText('Present')).toBeInTheDocument()
+    expect(screen.getByText('Absent')).toBeInTheDocument()
   })
 
   describe('not found and errors', () => {

@@ -1,0 +1,138 @@
+{
+  "adminDescription": "Schedule training sessions and follow who attends.",
+  "coachDescription": "Your training sessions.",
+  "add": "Schedule session",
+  "filters": {
+    "status": {
+      "label": "Show",
+      "upcoming": "Today & upcoming",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "all": "All sessions"
+    },
+    "coach": {
+      "label": "Coach",
+      "all": "All coaches"
+    },
+    "clear": "Clear filters"
+  },
+  "status": {
+    "upcoming": "Upcoming",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "day": {
+    "today": "Today",
+    "tomorrow": "Tomorrow"
+  },
+  "list": {
+    "agenda": "Sessions by day",
+    "showing": "Showing {{shown}} of {{total}}",
+    "showMore": "Show more",
+    "coach": "Coach: {{name}}",
+    "takeAttendance": "Attendance"
+  },
+  "empty": {
+    "title": "No upcoming sessions",
+    "description": "Schedule a training session to start taking attendance."
+  },
+  "noResults": {
+    "title": "No sessions match",
+    "description": "Try a different filter."
+  },
+  "loadError": {
+    "title": "Couldn't load sessions",
+    "description": "Check your connection and try again."
+  },
+  "form": {
+    "createTitle": "Schedule a session",
+    "createDescription": "Pick the day and time. You can repeat it every week.",
+    "editTitle": "Edit session",
+    "date": {
+      "label": "Date",
+      "required": "Choose a date.",
+      "invalid": "Enter a valid date."
+    },
+    "startTime": {
+      "label": "Starts",
+      "required": "Choose a start time."
+    },
+    "endTime": {
+      "label": "Ends",
+      "required": "Choose an end time.",
+      "afterStart": "The end must be after the start."
+    },
+    "coach": {
+      "label": "Coach",
+      "placeholder": "Choose a coach",
+      "hint": "The session's roster is this coach's players.",
+      "required": "Choose a coach."
+    },
+    "location": {
+      "label": "Location",
+      "placeholder": "e.g. Field 2",
+      "tooLong": "Keep the location under 120 characters."
+    },
+    "notes": {
+      "label": "Notes",
+      "tooLong": "Keep the notes under 500 characters."
+    },
+    "repeat": {
+      "label": "Repeat every week",
+      "hint": "Creates one session per week at the same time."
+    },
+    "repeatWeeks": {
+      "label": "Number of weeks",
+      "hint": "Including this one (2 to 26).",
+      "invalid": "Enter a whole number from 2 to 26."
+    },
+    "conflict": {
+      "title": "This coach already has a session at that time",
+      "more": "…and {{n}} more",
+      "hint": "You can still save it."
+    },
+    "submitCreate": "Schedule",
+    "submitEdit": "Save changes"
+  },
+  "toast": {
+    "created": "Session scheduled",
+    "createdMany": "{{n}} sessions scheduled",
+    "updated": "Session updated",
+    "cancelled": "Session cancelled"
+  },
+  "detail": {
+    "back": "Back to sessions",
+    "coach": "Coach",
+    "location": "Location",
+    "notes": "Notes",
+    "notProvided": "Not provided",
+    "edit": "Edit",
+    "cancel": "Cancel session",
+    "takeAttendance": "Take attendance",
+    "editAttendance": "Edit attendance",
+    "cancelledNotice": "This session was cancelled. Attendance can't be taken.",
+    "loadError": {
+      "title": "Couldn't load this session",
+      "description": "Check your connection and try again."
+    },
+    "notFound": {
+      "title": "Session not found",
+      "description": "It may have been removed, or it belongs to another coach."
+    }
+  },
+  "cancelDialog": {
+    "title": "Cancel this session?",
+    "description": "Attendance can no longer be taken for it, and it can't be reopened.",
+    "keep": "Keep session",
+    "confirm": "Cancel session"
+  },
+  "error": {
+    "invalid_coach": "Choose an active coach for this session.",
+    "session_cancelled": "This session was cancelled, so it can't be changed.",
+    "session_has_attendance": "Attendance was already taken for this session, so its coach can't be changed.",
+    "session_not_found": "This session no longer exists, or it belongs to another coach.",
+    "not_on_roster": "One of the players isn't on this coach's roster any more. Reload and try again.",
+    "invalid_records": "The attendance couldn't be read. Reload and try again.",
+    "forbidden": "You don't have permission to do that."
+  }
+}

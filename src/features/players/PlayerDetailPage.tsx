@@ -1,5 +1,4 @@
 import {
-  CalendarCheck,
   ChevronLeft,
   CloudOff,
   HeartPulse,
@@ -21,6 +20,7 @@ import { Select } from '@/components/ui/Select'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/toast-context'
 import { useAuth } from '@/features/auth/useAuth'
+import { PlayerAttendanceCard } from '@/features/attendance/PlayerAttendanceCard'
 import { useCoaches } from '@/features/coaches/hooks'
 import { ageInYears, formatDate } from '@/lib/dates'
 import { cn } from '@/lib/utils'
@@ -246,13 +246,7 @@ export default function PlayerDetailPage() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <PlayerSubscriptionsCard playerId={player.id} />
-          <Card>
-            <div className="flex items-center gap-2">
-              <CalendarCheck className="size-5 text-brand-blue" aria-hidden />
-              <CardTitle>{t('players:detail.attendance.title')}</CardTitle>
-            </div>
-            <p className="mt-2 text-ink-muted">{t('players:detail.attendance.soon')}</p>
-          </Card>
+          <PlayerAttendanceCard playerId={player.id} />
         </div>
       </div>
 

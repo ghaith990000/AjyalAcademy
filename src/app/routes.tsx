@@ -1,11 +1,14 @@
-import { CalendarDays, ChartColumn, Receipt } from 'lucide-react'
+import { ChartColumn, Receipt } from 'lucide-react'
 import type { RouteObject } from 'react-router-dom'
+import AttendancePage from '@/features/attendance/AttendancePage'
 import { RedirectIfSignedIn, RequireRole, RootRedirect } from '@/features/auth/guards'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import CoachesPage from '@/features/coaches/CoachesPage'
 import DiscountsPage from '@/features/discounts/DiscountsPage'
 import PlayerDetailPage from '@/features/players/PlayerDetailPage'
 import PlayersPage from '@/features/players/PlayersPage'
+import SessionDetailPage from '@/features/sessions/SessionDetailPage'
+import SessionsPage from '@/features/sessions/SessionsPage'
 import SettingsPage from '@/features/settings/SettingsPage'
 import NewSubscriptionPage from '@/features/subscriptions/NewSubscriptionPage'
 import SubscriptionDetailPage from '@/features/subscriptions/SubscriptionDetailPage'
@@ -38,10 +41,9 @@ export const routes: RouteObject[] = [
           { path: 'subscriptions', element: <SubscriptionsPage /> },
           { path: 'subscriptions/new', element: <NewSubscriptionPage /> },
           { path: 'subscriptions/:id', element: <SubscriptionDetailPage /> },
-          {
-            path: 'sessions',
-            element: <PlaceholderPage title="sessions" phase={5} icon={CalendarDays} />,
-          },
+          { path: 'sessions', element: <SessionsPage /> },
+          { path: 'sessions/:id', element: <SessionDetailPage /> },
+          { path: 'sessions/:id/attendance', element: <AttendancePage /> },
           { path: 'coaches', element: <CoachesPage /> },
           { path: 'discounts', element: <DiscountsPage /> },
           {
@@ -67,10 +69,9 @@ export const routes: RouteObject[] = [
           { index: true, element: <HomePage role="coach" /> },
           { path: 'players', element: <PlayersPage /> },
           { path: 'players/:id', element: <PlayerDetailPage /> },
-          {
-            path: 'sessions',
-            element: <PlaceholderPage title="sessions" phase={5} icon={CalendarDays} />,
-          },
+          { path: 'sessions', element: <SessionsPage /> },
+          { path: 'sessions/:id', element: <SessionDetailPage /> },
+          { path: 'sessions/:id/attendance', element: <AttendancePage /> },
           { path: 'subscriptions', element: <SubscriptionsPage /> },
           { path: 'subscriptions/new', element: <NewSubscriptionPage /> },
           { path: 'subscriptions/:id', element: <SubscriptionDetailPage /> },

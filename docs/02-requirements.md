@@ -6,8 +6,8 @@ Original requests from the product owner, each with an ID, the phase that delive
 | ---- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------ |
 | R-01 | Store players: name, CPR, date of birth, address, school, phone number, has-disease flag, and disease description if so       | 2 (schema), 3                              | [x]    |
 | R-02 | Player can subscribe: start date, end date, subscription fee, T-shirt fee for first-time joining, optional transportation fee | 2 (schema), 4                              | [x]    |
-| R-03 | Coaches can track who attended a training session                                                                             | 5                                          | [ ]    |
-| R-04 | Schedule training sessions with start time and end time                                                                       | 5                                          | [ ]    |
+| R-03 | Coaches can track who attended a training session                                                                             | 5                                          | [x]    |
+| R-04 | Schedule training sessions with start time and end time                                                                       | 5                                          | [x]    |
 | R-05 | Web app is accessible/usable on mobile phones                                                                                 | 1 (foundation), 8 (verify) — every phase   | [ ]    |
 | R-06 | Every coach can manage a list of players                                                                                      | 3                                          | [x]    |
 | R-07 | Administrator distributes players to coaches                                                                                  | 3                                          | [x]    |

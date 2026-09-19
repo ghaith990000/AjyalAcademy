@@ -576,6 +576,20 @@ export type Database = {
       }
     }
     Views: {
+      player_attendance: {
+        Row: {
+          coach_id: string | null
+          end_time: string | null
+          location: string | null
+          marked_at: string | null
+          player_id: string | null
+          session_date: string | null
+          session_id: string | null
+          start_time: string | null
+          status: Database['public']['Enums']['attendance_status'] | null
+        }
+        Relationships: []
+      }
       player_subscription_status: {
         Row: {
           end_date: string | null
@@ -672,6 +686,10 @@ export type Database = {
         Returns: string
       }
       remove_player: { Args: { p_player_id: string }; Returns: undefined }
+      save_attendance: {
+        Args: { p_records: Json; p_session_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       attendance_status: 'present' | 'absent'

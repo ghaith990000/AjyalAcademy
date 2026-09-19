@@ -98,3 +98,7 @@ Source of truth for what exists in `src/components/ui` (import from `@/component
 - **Radix direction:** `Providers` wraps the app in Radix `Direction.Provider` so keyboard navigation (tabs, etc.) follows RTL.
 - **Dev gallery:** `/dev/ui` (development builds only) renders every component in the current language — use it to review any change to `components/ui` in both languages.
 - Verified at 390px and 1280px in Arabic and English with real Chrome: no horizontal overflow on any screen.
+
+## As built (Phase 5)
+
+No new `components/ui` component. The **attendance screen** (`features/attendance/AttendancePage`) is the reference for a thumb-first list: each player is one full-width toggle button (`min-h-16` = 64px, `aria-pressed`, a check/cross icon **and** a "Present"/"Absent" label — never colour alone), live counts in a `role="status"` row, and a **sticky save bar** that sits just above the phone tab bar (`bottom-[calc(4.5rem+env(safe-area-inset-bottom))]`, `md:bottom-0` on desktop). The sessions **agenda** is a plain list of cards grouped under day headings (not a `DataList`), with an "Attendance" shortcut on each session that has started. Verified at 390px and 1280px in Arabic and English (RTL mirroring, long Arabic and English names, dialogs inside the viewport).

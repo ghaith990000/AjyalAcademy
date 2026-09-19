@@ -1,0 +1,56 @@
+{
+  "title": "Attendance",
+  "back": "Back to session",
+  "intro": "Tap a player to mark them present or absent, then save.",
+  "state": {
+    "present": "Present",
+    "absent": "Absent"
+  },
+  "counts": {
+    "present": "Present",
+    "absent": "Absent",
+    "total": "Players"
+  },
+  "markAll": "Mark all present",
+  "clear": "Clear all",
+  "unsaved": "Unsaved changes",
+  "save": "Save attendance",
+  "saved": "Attendance saved",
+  "noSubscription": "No active subscription",
+  "list": {
+    "caption": "Players to mark"
+  },
+  "roster": {
+    "empty": {
+      "title": "No players on this roster",
+      "description": "A session's roster is its coach's players. Assign players to the coach first."
+    }
+  },
+  "cancelled": {
+    "title": "This session was cancelled",
+    "description": "Attendance can't be taken for a cancelled session."
+  },
+  "loadError": {
+    "title": "Couldn't load the attendance screen",
+    "description": "Check your connection and try again."
+  },
+  "notFound": {
+    "title": "Session not found",
+    "description": "It may have been removed, or it belongs to another coach."
+  },
+  "session": {
+    "title": "Who attended",
+    "summary": "{{present}} of {{total}} present",
+    "notTaken": "Attendance hasn't been taken for this session yet.",
+    "loadError": "Couldn't load the attendance."
+  },
+  "player": {
+    "title": "Attendance",
+    "rateLabel": "Attendance rate",
+    "rate": "{{rate}}%",
+    "summary": "Present at {{present}} of {{total}} sessions",
+    "none": "No attendance recorded yet.",
+    "loadError": "Couldn't load the attendance.",
+    "showMore": "Show more"
+  }
+}

@@ -5,6 +5,7 @@ import {
   formatDate,
   formatLongDate,
   formatTime,
+  formatTimeRange,
   isValidISODate,
   todayISO,
 } from './dates'
@@ -66,5 +67,13 @@ describe('defaultEndDate', () => {
     expect(defaultEndDate('2026-01-31')).toBe('2026-02-27')
     expect(defaultEndDate('2026-02-01')).toBe('2026-02-28')
     expect(defaultEndDate('2028-02-01')).toBe('2028-02-29')
+  })
+})
+
+describe('formatTimeRange', () => {
+  it('joins the two times with an en dash, in either language', () => {
+    expect(formatTimeRange('16:00:00', '17:30:00', 'en')).toBe('4:00 PM – 5:30 PM')
+    expect(formatTimeRange('09:05', '10:00', 'en')).toBe('9:05 AM – 10:00 AM')
+    expect(formatTimeRange('16:00', '17:30', 'ar')).toMatch(/^4:00 [^\d\s]+ – 5:30 [^\d\s]+$/)
   })
 })

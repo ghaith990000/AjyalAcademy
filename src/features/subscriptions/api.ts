@@ -198,3 +198,21 @@ export async function cancelSubscription(id: string, reason: string): Promise<vo
   })
   if (error) throw error
 }
+
+/**
+ * Which of these players are covered by a not-cancelled subscription on `date` (either end inclusive). Used by
+ * the attendance roster's "no active subscription" warning, which asks about the session's own day rather
+ * than today.
+ */
+export async function listPlayersCoveredOn(playerIds: string[], date: string): Promise<string[]> {
+  if (playerIds.length === 0) return []
+  const { data, error } = await supabase
+    .from('subscription_players')
+    .select('player_id, subscriptions!inner(start_date, end_date, cancelled_at)')
+    .in('player_id', playerIds)
+    .is('subscriptions.cancelled_at', null)
+    .lte('subscriptions.start_date', date)
+    .gte('subscriptions.end_date', date)
+  if (error) throw error
+  return [...new Set(data.map((row) => row.player_id))]
+}

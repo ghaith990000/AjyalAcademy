@@ -43,6 +43,14 @@ export function formatTime(value: string | Date, language: Language): string {
     .replace(SPACE_LIKE, ' ')
 }
 
+/**
+ * "4:30 PM – 6:00 PM" / "4:30 م – 6:00 م". Render it inside a plain `<bdi>` (no forced `dir`): the Arabic
+ * am/pm letters are right-to-left, and inside an LTR box the range comes out scrambled ("4:30 م 6:00 – م").
+ */
+export function formatTimeRange(start: string, end: string, language: Language): string {
+  return `${formatTime(start, language)} – ${formatTime(end, language)}`
+}
+
 /** Today (or `on`) as "yyyy-MM-dd" in local time — for comparing with date-only strings. */
 export function todayISO(on: Date = new Date()): string {
   return format(on, 'yyyy-MM-dd')

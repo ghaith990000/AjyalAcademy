@@ -102,7 +102,14 @@ Reports also show: collected per month (12 bars for a year), expenses by categor
 - **Disease:** `has_disease = true` ⇒ description required; `false` ⇒ description cleared.
 - **Removal is soft:** the player disappears from lists and rosters; subscriptions/payments/attendance history are kept; the removal is logged with who did it.
 - **Ownership:** a coach who creates a player is automatically their coach. Only an admin can reassign (single or bulk). A player can have **one** coach.
-- **Roster for a session** = active (non-removed) players whose `coach_id` equals the session's coach. Players without an active subscription are flagged with a warning badge but can still be marked.
+- **Roster for a session** = active (non-removed) players whose `coach_id` equals the session's coach. Players without an active subscription are flagged with a warning badge but can still be marked. "Active subscription" is judged on the **session's own date**: a non-cancelled subscription whose (inclusive) period covers that day (D-057).
+
+## Sessions and attendance
+
+- A session has a date, a start and an end time (`end > start`), one **coach** (an active coach; a coach schedules only for themself, an admin picks), an optional location and notes. "Repeat weekly" creates 2–26 sessions a week apart, the first included. A clash with the same coach's other non-cancelled sessions (same day, overlapping times; touching ends do not clash) is a **warning**, never a block.
+- Session status: **cancelled** (final), else **done** once its end time has passed, else **upcoming**. The agenda's default filter "Today & upcoming" shows everything not cancelled from today on, whatever the time, so a session that has just ended can still be marked (D-058).
+- Attendance is **present / absent** only (D-023). The screen starts everyone absent; saving records the whole roster and can be repeated to correct marks. A cancelled session cannot be marked; only the session's coach or an admin can save.
+- **Attendance rate** (player page) = sessions marked present ÷ sessions with a mark, as a whole percent (half up); "—" when there is nothing to divide; cancelled sessions are not counted (D-059).
 
 ## Activity feed rules
 

@@ -15,6 +15,7 @@ import {
   getSubscriptionPlayers,
   listApplicableDiscounts,
   listPlayerStatuses,
+  listPlayersCoveredOn,
   listPlayerSubscriptions,
   listReturningPlayers,
   listSubscriptions,
@@ -101,6 +102,17 @@ export function usePlayerStatuses(playerIds: string[]) {
     enabled: ids.length > 0,
     placeholderData: keepPreviousData,
     meta: { silent: true }, // the badge is a nicety; the list works without it
+  })
+}
+
+/** Roster players with a subscription covering `date`; a nicety, so a failure just hides the warning. */
+export function usePlayersCoveredOn(playerIds: string[], date: string | undefined) {
+  const ids = [...playerIds].sort()
+  return useQuery({
+    queryKey: [...KEY, 'covered', date, ids],
+    queryFn: () => listPlayersCoveredOn(ids, date!),
+    enabled: ids.length > 0 && date !== undefined,
+    meta: { silent: true },
   })
 }
 

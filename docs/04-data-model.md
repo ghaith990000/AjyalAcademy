@@ -182,7 +182,7 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 | `create_subscription(...)`               | admin, coach (own players) | Validates, recomputes fees/discount/total, inserts subscription + players (+ optional payment), logs activity. |
 | `record_payment(subscription_id, ...)`   | admin, coach (own)         | Adds a payment, guards overpayment, logs activity.                                                             |
 | `cancel_subscription(id, reason)`        | admin, coach (own)         | Sets `cancelled_at`, logs activity.                                                                            |
-| `save_attendance(session_id, records[])` | admin, session coach       | Upserts attendance rows, logs one `attendance.saved`.                                                          |
+| `save_attendance(session_id, records)`   | admin, session coach       | Upserts attendance rows (records = JSON array), logs one `attendance.saved`.                                   |
 | `assign_players(player_ids[], coach_id)` | admin                      | Bulk (re)assignment, logs `player.reassigned`.                                                                 |
 | `generate_monthly_salaries(month date)`  | admin                      | Idempotently inserts a `coach_salary` expense per active coach with a salary.                                  |
 | `report_summary(from, to)`               | admin                      | `{ collected_fils, expenses_fils, profit_fils, margin_bps }`.                                                  |
@@ -200,12 +200,20 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 
 Player create/update use plain table access + triggers (RLS-scoped); **removal is the `remove_player(id)` RPC** (D-033). The activity trigger records the actor via `auth.uid()`.
 
-**Implementation status:** `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` ✅ (Phase 4 — see below) · `remove_player` ✅ (Phase 2) · `assign_players(p_player_ids uuid[], p_coach_id uuid default null) → integer` ✅ (Phase 3: admin only; `null` unassigns; skips removed players and rows already on that coach; max 500; the players trigger logs one `player.reassigned` per changed player; D-042) · `save_attendance` → Phase 5 · `generate_monthly_salaries`, `report_summary`, `revenue_by_month`, `expenses_by_category` → Phase 6 (D-032).
+**Implementation status:** `calc_subscription_total`, `create_subscription`, `record_payment`, `cancel_subscription` ✅ (Phase 4 — see below) · `remove_player` ✅ (Phase 2) · `assign_players(p_player_ids uuid[], p_coach_id uuid default null) → integer` ✅ (Phase 3: admin only; `null` unassigns; skips removed players and rows already on that coach; max 500; the players trigger logs one `player.reassigned` per changed player; D-042) · `save_attendance(p_session_id uuid, p_records jsonb) → void` ✅ (Phase 5) · `generate_monthly_salaries`, `report_summary`, `revenue_by_month`, `expenses_by_category` → Phase 6 (D-032).
+
+### As built (Phase 5)
+
+- **Sessions are written with plain table access** (RLS: an admin any coach's session, a coach their own — the update policy cannot move a session to another coach). The `trg_sessions_guard` trigger adds what RLS cannot express: `created_by` is always the caller; a new session is never already cancelled; the session's coach must be an **active coach** (`ajyal:invalid_coach`); cancelling stamps the server time and is **final** — a cancelled session is read-only (`ajyal:session_cancelled`); a session that already has attendance cannot change coach (`ajyal:session_has_attendance`). A weekly series is one multi-row `insert` (one statement, all-or-nothing); each row logs `session.created`.
+- `save_attendance(p_session_id, p_records)` — `p_records` = `[{ "player_id": uuid, "status": "present" | "absent" }, …]`, at least one, each player once. Checks, in order: caller active → session visible (`can_view_session`) and existing → not cancelled → records well-formed → every player on the **roster** (the session coach's players, not removed) → upsert → one `attendance.saved` log entry (`session_date`, `start_time`, `coach_name`, `present_count`, `total_count`). All-or-nothing; the session row is locked first (`for update`) so it serialises with cancelling/editing. Rows whose status did not change keep their `marked_by`/`marked_at`. Players not mentioned keep their mark.
+- **Error codes** (`ajyal:<code>`): `forbidden`, `session_not_found`, `session_cancelled`, `session_has_attendance`, `invalid_coach`, `invalid_records`, `not_on_roster`.
+- **View** `player_attendance` (`security_invoker`, D-059): one row per mark joined with its session (`player_id, session_id, status, marked_at, session_date, start_time, end_time, location, coach_id`), **cancelled sessions left out**; RLS applies as the caller, so a coach only sees marks from sessions they run.
 
 ## Triggers
 
 - `on_auth_user_created` → nothing (profiles are inserted by the `create-coach` Edge Function / seed, never self-signup).
 - `players` AFTER INSERT → `player.created`; AFTER UPDATE of `deleted_at` (null → not null) → `player.removed`; AFTER UPDATE of `coach_id` → `player.reassigned`.
+- `training_sessions` BEFORE INSERT/UPDATE → `trg_sessions_guard` (see Phase 5 above).
 - `discounts` AFTER INSERT → `discount.created`; `training_sessions` AFTER INSERT/cancel → `session.*`; `expenses` AFTER INSERT → `expense.created`.
 - All activity inserts are `SECURITY DEFINER` functions (`log_activity`, not callable through the API); the table itself has **no insert policy** for clients. `coach.created` is written by the `create-coach` Edge Function (D-038).
 

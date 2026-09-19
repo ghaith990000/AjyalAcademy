@@ -144,10 +144,6 @@
     "subscriptions": {
       "title": "Subscriptions",
       "soon": "Subscriptions and payments will appear here."
-    },
-    "attendance": {
-      "title": "Attendance",
-      "soon": "Training attendance will appear here."
     }
   },
   "assign": {
