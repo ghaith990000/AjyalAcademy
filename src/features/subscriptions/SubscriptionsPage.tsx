@@ -12,6 +12,7 @@ import { Money } from '@/components/ui/Money'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/features/auth/useAuth'
+import { LocationSelect } from '@/features/locations/LocationField'
 import { formatDate } from '@/lib/dates'
 import { SUBSCRIPTION_STATUSES } from '@/lib/subscription-status'
 import { cn } from '@/lib/utils'
@@ -29,7 +30,7 @@ function useDebounced<T>(value: T, delay: number): T {
 }
 
 export default function SubscriptionsPage() {
-  const { t } = useTranslation(['subscriptions', 'nav', 'common'])
+  const { t } = useTranslation(['subscriptions', 'nav', 'common', 'locations'])
   const { profile } = useAuth()
   const isAdmin = profile?.role === 'admin'
   const base = useSubscriptionsBasePath()
@@ -37,8 +38,14 @@ export default function SubscriptionsPage() {
 
   const [searchText, setSearchText] = useState('')
   const [status, setStatus] = useState<SubscriptionFilters['status']>('all')
+  const [locationId, setLocationId] = useState(DEFAULT_SUBSCRIPTION_FILTERS.locationId)
   const search = useDebounced(searchText, 300)
-  const filters: SubscriptionFilters = { ...DEFAULT_SUBSCRIPTION_FILTERS, status, search }
+  const filters: SubscriptionFilters = {
+    ...DEFAULT_SUBSCRIPTION_FILTERS,
+    status,
+    search,
+    locationId,
+  }
   const {
     rows,
     total,
@@ -49,11 +56,12 @@ export default function SubscriptionsPage() {
     isFetchingNextPage,
     refetch,
   } = useSubscriptionsList(filters)
-  const filtered = status !== 'all' || search !== ''
+  const filtered = status !== 'all' || search !== '' || locationId !== ''
 
   function clearFilters() {
     setSearchText('')
     setStatus('all')
+    setLocationId('')
   }
 
   const columns: Column<SubscriptionRow>[] = [
@@ -73,7 +81,15 @@ export default function SubscriptionsPage() {
               </span>
             )}
             <span className="block text-[13px] font-normal text-ink-muted">
-              {t(`subscriptions:plan.${row.plan_code as 'solo' | 'duo' | 'trio' | 'quad'}`)}
+              <span>
+                {t(`subscriptions:plan.${row.plan_code as 'solo' | 'duo' | 'trio' | 'quad'}`)}
+              </span>
+              {' · '}
+              {row.location_name ? (
+                <bdi>{row.location_name}</bdi>
+              ) : (
+                <span>{t('locations:select.none')}</span>
+              )}
             </span>
           </span>
         )
@@ -165,6 +181,18 @@ export default function SubscriptionsPage() {
                 </option>
               ))}
             </Select>
+          )}
+        </Field>
+        <Field label={t('locations:filter.label')}>
+          {(c) => (
+            <LocationSelect
+              {...c}
+              value={locationId}
+              currentId={locationId}
+              emptyLabel={t('locations:select.all')}
+              extraOptions={[{ value: 'none', label: t('locations:select.none') }]}
+              onChange={(event) => setLocationId(event.target.value)}
+            />
           )}
         </Field>
         {filtered && (

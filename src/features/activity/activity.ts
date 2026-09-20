@@ -12,6 +12,7 @@ import {
   ClipboardCheck,
   CreditCard,
   HandCoins,
+  MapPin,
   Pencil,
   Percent,
   Receipt,
@@ -54,14 +55,14 @@ export const ACTIVITY_FILTERS = [
 ] as const
 export type ActivityFilter = (typeof ACTIVITY_FILTERS)[number]
 
-/** `entity_type` values behind each chip (attendance belongs with sessions; discounts and coaches are "other"). */
+/** `entity_type` values behind each chip (attendance belongs with sessions; discounts, coaches and locations are "other"). */
 export const FILTER_ENTITY_TYPES: Record<Exclude<ActivityFilter, 'all'>, readonly string[]> = {
   player: ['player'],
   subscription: ['subscription'],
   payment: ['payment'],
   session: ['session', 'attendance'],
   expense: ['expense'],
-  other: ['discount', 'coach'],
+  other: ['discount', 'coach', 'location'],
 }
 
 /** A coach can only ever have done these things, so the other chips would always be empty. */
@@ -91,6 +92,7 @@ const LOOKS = {
   'player.reassigned': { icon: ArrowLeftRight, tone: 'blue' },
   'subscription.created': { icon: CreditCard, tone: 'pink' },
   'subscription.cancelled': { icon: Ban, tone: 'danger' },
+  'subscription.location_changed': { icon: MapPin, tone: 'blue' },
   'payment.recorded': { icon: HandCoins, tone: 'success' },
   'discount.created': { icon: Percent, tone: 'pink' },
   'session.created': { icon: CalendarPlus, tone: 'blue' },
@@ -101,6 +103,8 @@ const LOOKS = {
   'expense.deleted': { icon: Trash2, tone: 'danger' },
   'expense.salaries_generated': { icon: Wallet, tone: 'warning' },
   'coach.created': { icon: UserCog, tone: 'blue' },
+  'location.created': { icon: MapPin, tone: 'blue' },
+  'location.updated': { icon: MapPin, tone: 'blue' },
 } as const satisfies Record<string, ActionLook>
 
 export type KnownAction = keyof typeof LOOKS
@@ -220,11 +224,26 @@ export function describeActivity(
       })
     case 'subscription.created': {
       const plan = text(s, 'plan')
-      return view('action.subscription.created', {
-        plan: plan ? labels.plan(plan) : DASH,
-        players,
-        total: money(count(s, 'total_fils'), language),
-      })
+      const location = text(s, 'location_name')
+      return view(
+        'action.subscription.created',
+        {
+          plan: plan ? labels.plan(plan) : DASH,
+          players,
+          total: money(count(s, 'total_fils'), language),
+        },
+        location ? { key: 'detail.location', values: { location } } : null,
+      )
+    }
+    case 'subscription.location_changed': {
+      const from = text(s, 'from_location_name')
+      return view(
+        'action.subscription.location_changed',
+        { players, location: text(s, 'to_location_name') ?? DASH },
+        from
+          ? { key: 'detail.locationWas', values: { location: from } }
+          : { key: 'detail.locationWasNone', values: {} },
+      )
     }
     case 'subscription.cancelled': {
       const reason = text(s, 'reason')
@@ -254,12 +273,18 @@ export function describeActivity(
         value: value === null ? DASH : percent ? formatPercent(value) : formatBHD(value, language),
       })
     }
-    case 'session.created':
-      return view('action.session.created', {
-        coach: coach ?? labels.coach,
-        date: day(text(s, 'session_date')),
-        time: clock(text(s, 'start_time'), language),
-      })
+    case 'session.created': {
+      const location = text(s, 'location_name')
+      return view(
+        'action.session.created',
+        {
+          coach: coach ?? labels.coach,
+          date: day(text(s, 'session_date')),
+          time: clock(text(s, 'start_time'), language),
+        },
+        location ? { key: 'detail.location', values: { location } } : null,
+      )
+    }
     case 'session.cancelled':
       return view('action.session.cancelled', {
         coach: coach ?? labels.coach,
@@ -294,6 +319,21 @@ export function describeActivity(
     }
     case 'coach.created':
       return view('action.coach.created', { coach: coach ?? labels.coach })
+    case 'location.created':
+      return view('action.location.created', { location: text(s, 'location_name') ?? DASH })
+    case 'location.updated': {
+      const name = text(s, 'location_name') ?? DASH
+      const previous = text(s, 'previous_name')
+      return view(
+        'action.location.updated',
+        { location: name },
+        s.active === false
+          ? { key: 'detail.switchedOff', values: {} }
+          : previous && previous !== name
+            ? { key: 'detail.renamedFrom', values: { location: previous } }
+            : null,
+      )
+    }
     default:
       return view('action.unknown', {})
   }

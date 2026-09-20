@@ -15,7 +15,9 @@ export function fakeExpense(overrides: Partial<ExpenseRow> = {}): ExpenseRow {
     description: null,
     created_by: 'admin-1',
     created_at: '2026-10-15T08:00:00Z',
+    location_id: null,
     coach: null,
+    location: null,
     ...overrides,
   }
 }

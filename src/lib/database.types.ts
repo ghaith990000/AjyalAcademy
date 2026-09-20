@@ -152,6 +152,7 @@ export type Database = {
           description: string | null
           expense_date: string
           id: string
+          location_id: string | null
         }
         Insert: {
           amount_fils: number
@@ -162,6 +163,7 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          location_id?: string | null
         }
         Update: {
           amount_fils?: number
@@ -172,6 +174,7 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          location_id?: string | null
         }
         Relationships: [
           {
@@ -188,7 +191,38 @@ export type Database = {
             referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
+          {
+            foreignKeyName: 'expenses_location_id_fkey'
+            columns: ['location_id']
+            isOneToOne: false
+            referencedRelation: 'locations'
+            referencedColumns: ['id']
+          },
         ]
+      }
+      locations: {
+        Row: {
+          active: boolean
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       payments: {
         Row: {
@@ -276,6 +310,7 @@ export type Database = {
           full_name: string
           has_disease: boolean
           id: string
+          location_id: string | null
           phone: string
           school: string | null
         }
@@ -292,6 +327,7 @@ export type Database = {
           full_name: string
           has_disease?: boolean
           id?: string
+          location_id?: string | null
           phone: string
           school?: string | null
         }
@@ -308,6 +344,7 @@ export type Database = {
           full_name?: string
           has_disease?: boolean
           id?: string
+          location_id?: string | null
           phone?: string
           school?: string | null
         }
@@ -331,6 +368,13 @@ export type Database = {
             columns: ['deleted_by']
             isOneToOne: false
             referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'players_location_id_fkey'
+            columns: ['location_id']
+            isOneToOne: false
+            referencedRelation: 'locations'
             referencedColumns: ['id']
           },
         ]
@@ -442,6 +486,7 @@ export type Database = {
           discount_value: number | null
           end_date: string
           id: string
+          location_id: string | null
           plan_id: string
           plan_price_fils: number
           start_date: string
@@ -462,6 +507,7 @@ export type Database = {
           discount_value?: number | null
           end_date: string
           id?: string
+          location_id?: string | null
           plan_id: string
           plan_price_fils: number
           start_date: string
@@ -482,6 +528,7 @@ export type Database = {
           discount_value?: number | null
           end_date?: string
           id?: string
+          location_id?: string | null
           plan_id?: string
           plan_price_fils?: number
           start_date?: string
@@ -518,6 +565,13 @@ export type Database = {
             referencedRelation: 'plans'
             referencedColumns: ['id']
           },
+          {
+            foreignKeyName: 'subscriptions_location_id_fkey'
+            columns: ['location_id']
+            isOneToOne: false
+            referencedRelation: 'locations'
+            referencedColumns: ['id']
+          },
         ]
       }
       training_sessions: {
@@ -528,7 +582,7 @@ export type Database = {
           created_by: string | null
           end_time: string
           id: string
-          location: string | null
+          location_id: string | null
           notes: string | null
           session_date: string
           start_time: string
@@ -540,7 +594,7 @@ export type Database = {
           created_by?: string | null
           end_time: string
           id?: string
-          location?: string | null
+          location_id?: string | null
           notes?: string | null
           session_date: string
           start_time: string
@@ -552,7 +606,7 @@ export type Database = {
           created_by?: string | null
           end_time?: string
           id?: string
-          location?: string | null
+          location_id?: string | null
           notes?: string | null
           session_date?: string
           start_time?: string
@@ -572,6 +626,13 @@ export type Database = {
             referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
+          {
+            foreignKeyName: 'training_sessions_location_id_fkey'
+            columns: ['location_id']
+            isOneToOne: false
+            referencedRelation: 'locations'
+            referencedColumns: ['id']
+          },
         ]
       }
     }
@@ -580,7 +641,8 @@ export type Database = {
         Row: {
           coach_id: string | null
           end_time: string | null
-          location: string | null
+          location_id: string | null
+          location_name: string | null
           marked_at: string | null
           player_id: string | null
           session_date: string | null
@@ -615,6 +677,8 @@ export type Database = {
           discount_value: number | null
           end_date: string | null
           id: string | null
+          location_id: string | null
+          location_name: string | null
           paid_fils: number | null
           plan_code: string | null
           plan_id: string | null
@@ -649,6 +713,7 @@ export type Database = {
           p_discount_code?: string
           p_end_date: string
           p_initial_payment_fils?: number
+          p_location_id: string
           p_manual_discount_reason?: string
           p_manual_discount_type?: Database['public']['Enums']['discount_type']
           p_manual_discount_value?: number
@@ -664,7 +729,7 @@ export type Database = {
         Returns: Database['public']['Enums']['user_role']
       }
       expenses_by_category: {
-        Args: { p_from: string; p_to: string }
+        Args: { p_from: string; p_location_id?: string; p_to: string }
         Returns: {
           category: Database['public']['Enums']['expense_category']
           total_fils: number
@@ -701,8 +766,18 @@ export type Database = {
         Returns: string
       }
       remove_player: { Args: { p_player_id: string }; Returns: undefined }
-      report_summary: {
+      report_by_location: {
         Args: { p_from: string; p_to: string }
+        Returns: {
+          collected_fils: number
+          expenses_fils: number
+          location_id: string
+          margin_bps: number
+          profit_fils: number
+        }[]
+      }
+      report_summary: {
+        Args: { p_from: string; p_location_id?: string; p_to: string }
         Returns: {
           collected_fils: number
           expenses_fils: number
@@ -711,7 +786,7 @@ export type Database = {
         }[]
       }
       revenue_by_month: {
-        Args: { p_year: number }
+        Args: { p_location_id?: string; p_year: number }
         Returns: {
           collected_fils: number
           expenses_fils: number
@@ -721,6 +796,10 @@ export type Database = {
       }
       save_attendance: {
         Args: { p_records: Json; p_session_id: string }
+        Returns: undefined
+      }
+      set_subscription_location: {
+        Args: { p_location_id: string; p_subscription_id: string }
         Returns: undefined
       }
     }

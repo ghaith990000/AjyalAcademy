@@ -13,18 +13,23 @@ export interface ExpenseRow {
   description: string | null
   created_by: string | null
   created_at: string
+  location_id: string | null
   coach: { full_name: string } | null
+  location: { name: string } | null
 }
 
 export interface ExpenseFilters {
   range: DateRange
   category: ExpenseCategory | 'all'
+  /** '' = every location. */
+  locationId: string
 }
 
 export const EXPENSES_PAGE_SIZE = 25
 
 // `created_by` is a second foreign key to `profiles`, so the embed needs the constraint name.
-const EXPENSE_COLUMNS = '*, coach:profiles!expenses_coach_id_fkey(full_name)'
+const EXPENSE_COLUMNS =
+  '*, coach:profiles!expenses_coach_id_fkey(full_name), location:locations(name)'
 
 /** A month's expenses, newest first (`total` counts every match, for "show more"). */
 export async function listExpenses(
@@ -37,6 +42,7 @@ export async function listExpenses(
     .gte('expense_date', filters.range.from)
     .lte('expense_date', filters.range.to)
   if (filters.category !== 'all') query = query.eq('category', filters.category)
+  if (filters.locationId) query = query.eq('location_id', filters.locationId)
   query = query
     .order('expense_date', { ascending: false })
     .order('created_at', { ascending: false })

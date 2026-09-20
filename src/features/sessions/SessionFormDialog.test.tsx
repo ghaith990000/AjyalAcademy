@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Providers } from '@/app/providers'
 import { AuthContext } from '@/features/auth/auth-context'
 import * as coachesApi from '@/features/coaches/api'
+import * as locationsApi from '@/features/locations/api'
 import i18n from '@/lib/i18n'
 import { fakeAuth, fakeProfile } from '@/test/auth'
 import { FUTURE, fakeSession } from '@/test/sessions'
@@ -41,6 +42,12 @@ function fillTimes(dialog: HTMLElement, date = FUTURE, start = '16:00', end = '1
   fireEvent.change(within(dialog).getByLabelText(/^Ends/), { target: { value: end } })
 }
 
+/** Choose a location once the list has arrived (the select is switched off until then). */
+async function pickLocation(dialog: HTMLElement, id = 'loc-1') {
+  await within(dialog).findByRole('option', { name: 'Al-Rifa' })
+  await userEvent.selectOptions(within(dialog).getByLabelText(/^Location/), id)
+}
+
 const submit = (dialog: HTMLElement, name = 'Schedule') =>
   userEvent.click(within(dialog).getByRole('button', { name }))
 
@@ -64,6 +71,7 @@ describe('SessionFormDialog', () => {
       expect(await within(dialog).findByText('Choose a start time.')).toBeInTheDocument()
       expect(within(dialog).getByText('Choose an end time.')).toBeInTheDocument()
       expect(within(dialog).getByText('Choose a coach.')).toBeInTheDocument()
+      expect(within(dialog).getByText('Choose a location.')).toBeInTheDocument()
       expect(api.createSessions).not.toHaveBeenCalled()
     })
 
@@ -97,7 +105,7 @@ describe('SessionFormDialog', () => {
       const dialog = await renderForm('coach')
       expect(within(dialog).queryByLabelText(/^Coach/)).not.toBeInTheDocument()
       fillTimes(dialog)
-      await userEvent.type(within(dialog).getByLabelText('Location'), '  Field 2 ')
+      await pickLocation(dialog)
       await submit(dialog)
       await waitFor(() =>
         expect(api.createSessions).toHaveBeenCalledWith([
@@ -106,7 +114,7 @@ describe('SessionFormDialog', () => {
             start_time: '16:00',
             end_time: '17:30',
             coach_id: 'coach-1', // the signed-in fake coach
-            location: 'Field 2',
+            location_id: 'loc-1',
             notes: null,
           },
         ]),
@@ -128,10 +136,11 @@ describe('SessionFormDialog', () => {
       ).toEqual(['Choose a coach', 'Khalid Al Dosari', 'Sara Al Khalifa']) // not the deactivated one
       await userEvent.selectOptions(coach, 'c2')
       fillTimes(dialog)
+      await pickLocation(dialog, 'loc-2')
       await submit(dialog)
       await waitFor(() => expect(api.createSessions).toHaveBeenCalledTimes(1))
       expect(vi.mocked(api.createSessions).mock.calls[0]![0]).toEqual([
-        expect.objectContaining({ coach_id: 'c2', session_date: FUTURE }),
+        expect.objectContaining({ coach_id: 'c2', session_date: FUTURE, location_id: 'loc-2' }),
       ])
     })
   })
@@ -145,6 +154,7 @@ describe('SessionFormDialog', () => {
       const weeks = within(dialog).getByLabelText(/^Number of weeks/)
       await userEvent.clear(weeks)
       await userEvent.type(weeks, '3')
+      await pickLocation(dialog)
       await submit(dialog)
       await waitFor(() => expect(api.createSessions).toHaveBeenCalledTimes(1))
       const rows = vi.mocked(api.createSessions).mock.calls[0]![0]
@@ -171,6 +181,7 @@ describe('SessionFormDialog', () => {
       expect(warning).toHaveTextContent('05/01/2099 · 5:00 PM – 6:00 PM')
       expect(api.listCoachSessionsBetween).toHaveBeenCalledWith('coach-1', FUTURE, FUTURE)
 
+      await pickLocation(dialog)
       await submit(dialog) // still allowed
       await waitFor(() => expect(api.createSessions).toHaveBeenCalledTimes(1))
     })
@@ -196,7 +207,8 @@ describe('SessionFormDialog', () => {
       start_time: '16:00:00',
       end_time: '17:30:00',
       coach_id: 'c1',
-      location: 'Field 2',
+      location_id: 'loc-1',
+      location: { name: 'Field 2' },
       notes: 'Bring bibs',
     })
 
@@ -205,7 +217,8 @@ describe('SessionFormDialog', () => {
       expect(within(dialog).getByRole('heading', { name: 'Edit session' })).toBeInTheDocument()
       expect(within(dialog).getByLabelText(/^Starts/)).toHaveValue('16:00')
       expect(within(dialog).getByLabelText(/^Ends/)).toHaveValue('17:30')
-      expect(within(dialog).getByLabelText('Location')).toHaveValue('Field 2')
+      await within(dialog).findByRole('option', { name: 'Al-Rifa' })
+      expect(within(dialog).getByLabelText(/^Location/)).toHaveValue('loc-1')
       expect(within(dialog).getByLabelText('Notes')).toHaveValue('Bring bibs')
       expect(within(dialog).queryByRole('switch')).not.toBeInTheDocument()
 
@@ -217,7 +230,7 @@ describe('SessionFormDialog', () => {
           start_time: '16:00',
           end_time: '18:00',
           coach_id: 'c1',
-          location: 'Field 2',
+          location_id: 'loc-1',
           notes: 'Bring bibs',
         }),
       )
@@ -238,10 +251,53 @@ describe('SessionFormDialog', () => {
     })
   })
 
+  describe('the location', () => {
+    it('offers the locations in use, not the switched-off one', async () => {
+      const dialog = await renderForm('coach')
+      await within(dialog).findByRole('option', { name: 'Al-Rifa' })
+      expect(
+        within(within(dialog).getByLabelText(/^Location/))
+          .getAllByRole('option')
+          .map((option) => option.textContent),
+      ).toEqual(['Choose a location', 'Al-Rifa', 'Hamad City'])
+    })
+
+    it('keeps the current location of a session selectable even after it was switched off', async () => {
+      const old = fakeSession({ id: 'old', session_date: FUTURE, location_id: 'loc-3' })
+      const dialog = await renderForm('coach', old)
+      await within(dialog).findByRole('option', { name: 'Old Field (switched off)' })
+      expect(within(dialog).getByLabelText(/^Location/)).toHaveValue('loc-3')
+    })
+
+    it('explains when there is no location yet, and what to do about it', async () => {
+      vi.mocked(locationsApi.listLocations).mockResolvedValue([])
+      const dialog = await renderForm('coach')
+      expect(
+        await within(dialog).findByText(
+          'There are no locations yet. An admin can add one under More → Locations.',
+        ),
+      ).toBeInTheDocument()
+    })
+
+    it('shows the translated message when the database refuses the location', async () => {
+      vi.mocked(api.createSessions).mockRejectedValue(new Error('ajyal:invalid_location'))
+      const dialog = await renderForm('coach')
+      fillTimes(dialog)
+      await pickLocation(dialog)
+      await submit(dialog)
+      expect(
+        await screen.findByText(
+          "That location is switched off or doesn't exist. Choose another one.",
+        ),
+      ).toBeInTheDocument()
+    })
+  })
+
   it('shows a generic message for an unexpected failure and keeps the form open', async () => {
     vi.mocked(api.createSessions).mockRejectedValue(new Error('boom'))
     const dialog = await renderForm('coach')
     fillTimes(dialog)
+    await pickLocation(dialog)
     await submit(dialog)
     expect(
       await screen.findByText('An unexpected error occurred. Please try again.'),

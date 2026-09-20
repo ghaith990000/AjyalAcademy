@@ -8,6 +8,7 @@ import arDev from '@/locales/ar/dev.json'
 import arErrors from '@/locales/ar/errors.json'
 import arExpenses from '@/locales/ar/expenses.json'
 import arHome from '@/locales/ar/home.json'
+import arLocations from '@/locales/ar/locations.json'
 import arNav from '@/locales/ar/nav.json'
 import arPlayers from '@/locales/ar/players.json'
 import arPwa from '@/locales/ar/pwa.json'
@@ -26,6 +27,7 @@ import enDev from '@/locales/en/dev.json'
 import enErrors from '@/locales/en/errors.json'
 import enExpenses from '@/locales/en/expenses.json'
 import enHome from '@/locales/en/home.json'
+import enLocations from '@/locales/en/locations.json'
 import enNav from '@/locales/en/nav.json'
 import enPlayers from '@/locales/en/players.json'
 import enPwa from '@/locales/en/pwa.json'
@@ -48,6 +50,7 @@ export const resources = {
     coaches: enCoaches,
     players: enPlayers,
     discounts: enDiscounts,
+    locations: enLocations,
     settings: enSettings,
     subscriptions: enSubscriptions,
     sessions: enSessions,
@@ -68,6 +71,7 @@ export const resources = {
     coaches: arCoaches,
     players: arPlayers,
     discounts: arDiscounts,
+    locations: arLocations,
     settings: arSettings,
     subscriptions: arSubscriptions,
     sessions: arSessions,

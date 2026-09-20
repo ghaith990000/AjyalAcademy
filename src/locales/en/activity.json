@@ -45,7 +45,8 @@
     },
     "subscription": {
       "created": "<b>{{actor}}</b> created a {{plan}} subscription for <b>{{players}}</b> (<m>{{total}}</m>)",
-      "cancelled": "<b>{{actor}}</b> cancelled the subscription of <b>{{players}}</b>"
+      "cancelled": "<b>{{actor}}</b> cancelled the subscription of <b>{{players}}</b>",
+      "location_changed": "<b>{{actor}}</b> moved the subscription of <b>{{players}}</b> to <b>{{location}}</b>"
     },
     "payment": {
       "recorded": "<b>{{actor}}</b> recorded a payment of <m>{{amount}}</m> for <b>{{players}}</b>"
@@ -69,11 +70,20 @@
     "coach": {
       "created": "<b>{{actor}}</b> added the coach <b>{{coach}}</b>"
     },
-    "unknown": "<b>{{actor}}</b> made a change"
+    "unknown": "<b>{{actor}}</b> made a change",
+    "location": {
+      "created": "<b>{{actor}}</b> added the location <b>{{location}}</b>",
+      "updated": "<b>{{actor}}</b> updated the location <b>{{location}}</b>"
+    }
   },
   "detail": {
     "paidInFull": "Paid in full",
     "balance": "Balance left: <m>{{amount}}</m>",
-    "reason": "Reason: {{reason}}"
+    "reason": "Reason: {{reason}}",
+    "location": "Location: {{location}}",
+    "locationWas": "It was: {{location}}",
+    "locationWasNone": "It had no location",
+    "switchedOff": "Switched off",
+    "renamedFrom": "Renamed from {{location}}"
   }
 }

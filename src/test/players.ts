@@ -17,6 +17,8 @@ export function fakePlayer(overrides: Partial<PlayerRow> = {}): PlayerRow {
     disease_description: null,
     coach_id: 'c1',
     coach: { full_name: 'Khalid Al Dosari' },
+    location_id: 'loc-1',
+    location: { name: 'Al-Rifa' },
     created_by: null,
     created_at: '2026-01-01T00:00:00Z',
     deleted_at: null,

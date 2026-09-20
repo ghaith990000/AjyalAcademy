@@ -13,6 +13,7 @@ vi.mock('./api', async (importOriginal) => ({
   getReportSummary: vi.fn(),
   getRevenueByMonth: vi.fn(),
   getExpensesByCategory: vi.fn(),
+  getReportByLocation: vi.fn(),
   listPaymentsForExport: vi.fn(),
   listExpensesForExport: vi.fn(),
 }))
@@ -57,6 +58,7 @@ describe('ReportsPage', () => {
     vi.mocked(api.getReportSummary).mockResolvedValue(OCTOBER_SUMMARY)
     vi.mocked(api.getRevenueByMonth).mockResolvedValue(OCTOBER_YEAR)
     vi.mocked(api.getExpensesByCategory).mockResolvedValue(OCTOBER_CATEGORIES)
+    vi.mocked(api.getReportByLocation).mockResolvedValue([])
   })
   afterEach(() => vi.useRealTimers())
 
@@ -68,9 +70,15 @@ describe('ReportsPage', () => {
     expect(within(await kpi('Expenses')).getByText('210.000 BD')).toBeInTheDocument()
     expect(within(await kpi('Profit')).getByText('330.000 BD')).toBeInTheDocument()
     expect(within(await kpi('Margin')).getByText('61.11%')).toBeInTheDocument()
-    expect(api.getReportSummary).toHaveBeenCalledWith({ from: '2026-10-01', to: '2026-10-31' })
-    expect(api.getRevenueByMonth).toHaveBeenCalledWith(2026)
-    expect(api.getExpensesByCategory).toHaveBeenCalledWith({ from: '2026-10-01', to: '2026-10-31' })
+    expect(api.getReportSummary).toHaveBeenCalledWith(
+      { from: '2026-10-01', to: '2026-10-31' },
+      undefined,
+    )
+    expect(api.getRevenueByMonth).toHaveBeenCalledWith(2026, undefined)
+    expect(api.getExpensesByCategory).toHaveBeenCalledWith(
+      { from: '2026-10-01', to: '2026-10-31' },
+      undefined,
+    )
   })
 
   it('shows a loss in red with a minus sign, and no margin when nothing was collected', async () => {
@@ -169,12 +177,12 @@ describe('ReportsPage', () => {
 
     expect(await screen.findByText('September 2026')).toBeInTheDocument()
     await waitFor(() =>
-      expect(api.getReportSummary).toHaveBeenLastCalledWith({
-        from: '2026-09-01',
-        to: '2026-09-30',
-      }),
+      expect(api.getReportSummary).toHaveBeenLastCalledWith(
+        { from: '2026-09-01', to: '2026-09-30' },
+        undefined,
+      ),
     )
-    expect(api.getRevenueByMonth).toHaveBeenLastCalledWith(2026)
+    expect(api.getRevenueByMonth).toHaveBeenLastCalledWith(2026, undefined)
     expect(screen.getByRole('button', { name: 'Next month' })).toBeEnabled()
   })
 
@@ -184,8 +192,11 @@ describe('ReportsPage', () => {
     await screen.findByText('January 2026')
     await userEvent.click(screen.getByRole('button', { name: 'Previous month' }))
     expect(await screen.findByText('December 2025')).toBeInTheDocument()
-    await waitFor(() => expect(api.getRevenueByMonth).toHaveBeenLastCalledWith(2025))
-    expect(api.getReportSummary).toHaveBeenLastCalledWith({ from: '2025-12-01', to: '2025-12-31' })
+    await waitFor(() => expect(api.getRevenueByMonth).toHaveBeenLastCalledWith(2025, undefined))
+    expect(api.getReportSummary).toHaveBeenLastCalledWith(
+      { from: '2025-12-01', to: '2025-12-31' },
+      undefined,
+    )
   })
 
   it('switches to the year view: the whole year, stepping by year', async () => {
@@ -196,10 +207,10 @@ describe('ReportsPage', () => {
 
     expect(await screen.findByText('2026', { selector: 'bdi' })).toBeInTheDocument()
     await waitFor(() =>
-      expect(api.getReportSummary).toHaveBeenLastCalledWith({
-        from: '2026-01-01',
-        to: '2026-12-31',
-      }),
+      expect(api.getReportSummary).toHaveBeenLastCalledWith(
+        { from: '2026-01-01', to: '2026-12-31' },
+        undefined,
+      ),
     )
     expect(screen.getByRole('button', { name: 'Next year' })).toBeDisabled()
     const table = await screen.findByRole('table')
@@ -207,8 +218,98 @@ describe('ReportsPage', () => {
     expect(table.querySelector('[aria-current]')).toBeNull()
 
     await userEvent.click(screen.getByRole('button', { name: 'Previous year' }))
-    await waitFor(() => expect(api.getRevenueByMonth).toHaveBeenLastCalledWith(2025))
-    expect(api.getReportSummary).toHaveBeenLastCalledWith({ from: '2025-01-01', to: '2025-12-31' })
+    await waitFor(() => expect(api.getRevenueByMonth).toHaveBeenLastCalledWith(2025, undefined))
+    expect(api.getReportSummary).toHaveBeenLastCalledWith(
+      { from: '2025-01-01', to: '2025-12-31' },
+      undefined,
+    )
+  })
+
+  describe('by location', () => {
+    const split: api.LocationTotals[] = [
+      {
+        locationId: 'loc-1',
+        collectedFils: 300_000,
+        expensesFils: 90_000,
+        profitFils: 210_000,
+        marginBps: 7000,
+      },
+      {
+        locationId: 'loc-2',
+        collectedFils: 200_000,
+        expensesFils: 60_000,
+        profitFils: 140_000,
+        marginBps: 7000,
+      },
+      {
+        locationId: null,
+        collectedFils: 40_000,
+        expensesFils: 60_000,
+        profitFils: -20_000,
+        marginBps: -5000,
+      },
+    ]
+
+    it('splits the period by location, the rows adding up to the total, with "No location" last', async () => {
+      vi.mocked(api.getReportByLocation).mockResolvedValue(split)
+      renderPage()
+      const table = await screen.findByRole('table', {
+        name: 'Collected, expenses and profit for each location',
+      })
+      const rows = within(table)
+        .getAllByRole('row')
+        .map((row) => row.textContent)
+      expect(rows[1]).toContain('Al-Rifa')
+      expect(rows[1]).toContain('300.000')
+      expect(rows[2]).toContain('Hamad City')
+      expect(rows[3]).toContain('No location')
+      expect(rows[3]).toContain('-20.000')
+      expect(rows[4]).toContain('All')
+      expect(rows[4]).toContain('540.000') // 300 + 200 + 40
+      expect(rows[4]).toContain('210.000') // 90 + 60 + 60
+      expect(api.getReportByLocation).toHaveBeenCalledWith({ from: '2026-10-01', to: '2026-10-31' })
+    })
+
+    it('is not shown when there is only one place to compare', async () => {
+      vi.mocked(api.getReportByLocation).mockResolvedValue([split[0]!])
+      renderPage()
+      await screen.findByText('540.000 BD')
+      expect(screen.queryByText('By location')).not.toBeInTheDocument()
+    })
+
+    it('narrows the figures, the chart data, the categories and the exports to one location', async () => {
+      vi.mocked(api.getReportByLocation).mockResolvedValue(split)
+      vi.mocked(api.listPaymentsForExport).mockResolvedValue([])
+      renderPage()
+      await screen.findByText('540.000 BD')
+      await screen.findByRole('option', { name: 'Hamad City' })
+      await userEvent.selectOptions(screen.getByLabelText('Location'), 'loc-2')
+
+      await waitFor(() =>
+        expect(api.getReportSummary).toHaveBeenLastCalledWith(
+          { from: '2026-10-01', to: '2026-10-31' },
+          'loc-2',
+        ),
+      )
+      expect(api.getRevenueByMonth).toHaveBeenLastCalledWith(2026, 'loc-2')
+      expect(api.getExpensesByCategory).toHaveBeenLastCalledWith(
+        { from: '2026-10-01', to: '2026-10-31' },
+        'loc-2',
+      )
+      // one location's figures: the split is hidden and a note says what is (not) included
+      expect(screen.queryByText('By location')).not.toBeInTheDocument()
+      expect(
+        screen.getByText(/Expenses for the whole academy are not included/),
+      ).toBeInTheDocument()
+
+      await userEvent.click(screen.getByRole('button', { name: 'Payments (CSV)' }))
+      await waitFor(() =>
+        expect(api.listPaymentsForExport).toHaveBeenCalledWith(
+          { from: '2026-10-01', to: '2026-10-31' },
+          'loc-2',
+        ),
+      )
+    })
   })
 
   it('has a retry state', async () => {
@@ -230,6 +331,7 @@ describe('ReportsPage', () => {
           received_by: { full_name: 'Demo Admin' },
           subscription: {
             plan: { code: 'solo' },
+            location: { name: 'Al-Rifa' },
             subscription_players: [{ player: { full_name: 'محمد علي' } }],
           },
         },
@@ -239,15 +341,15 @@ describe('ReportsPage', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Payments (CSV)' }))
 
       await waitFor(() => expect(exportCsv.downloadCsv).toHaveBeenCalledOnce())
-      expect(api.listPaymentsForExport).toHaveBeenCalledWith({
-        from: '2026-10-01',
-        to: '2026-10-31',
-      })
+      expect(api.listPaymentsForExport).toHaveBeenCalledWith(
+        { from: '2026-10-01', to: '2026-10-31' },
+        undefined,
+      )
       const [fileName, content] = vi.mocked(exportCsv.downloadCsv).mock.calls[0]!
       expect(fileName).toBe('ajyal-payments-2026-10.csv')
       expect(content.charCodeAt(0)).toBe(0xfeff)
-      expect(content).toContain('Date,Amount (BD),Method,Players,Plan,Note,Received by')
-      expect(content).toContain('2026-10-01,200.000,Cash,محمد علي,Solo,,Demo Admin')
+      expect(content).toContain('Date,Amount (BD),Method,Players,Plan,Location,Note,Received by')
+      expect(content).toContain('2026-10-01,200.000,Cash,محمد علي,Solo,Al-Rifa,,Demo Admin')
       expect(await screen.findByText('File downloaded')).toBeInTheDocument()
     })
 
@@ -259,6 +361,7 @@ describe('ReportsPage', () => {
           amount_fils: 150_000,
           description: null,
           coach: { full_name: 'Khalid' },
+          location: null,
         },
       ])
       renderPage()
@@ -267,13 +370,13 @@ describe('ReportsPage', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Expenses (CSV)' }))
 
       await waitFor(() => expect(exportCsv.downloadCsv).toHaveBeenCalledOnce())
-      expect(api.listExpensesForExport).toHaveBeenCalledWith({
-        from: '2026-01-01',
-        to: '2026-12-31',
-      })
+      expect(api.listExpensesForExport).toHaveBeenCalledWith(
+        { from: '2026-01-01', to: '2026-12-31' },
+        undefined,
+      )
       const [fileName, content] = vi.mocked(exportCsv.downloadCsv).mock.calls[0]!
       expect(fileName).toBe('ajyal-expenses-2026.csv')
-      expect(content).toContain('2026-03-01,Coach salary,150.000,Khalid,')
+      expect(content).toContain('2026-03-01,Coach salary,150.000,,Khalid,')
     })
 
     it('says so when the file could not be built', async () => {

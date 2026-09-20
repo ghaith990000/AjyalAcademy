@@ -51,6 +51,7 @@ for (const lang of LANGS) {
       const rpc = api.world.calls.find((c) => c.path === 'rpc/create_subscription')
       expect(rpc?.body).toMatchObject({
         p_players: [expect.objectContaining({ player_id: 'p5' })],
+        p_location_id: 'loc-1', // offered from the player's own location
         p_initial_payment_fils: 20_000, // a solo plan for a returning player: no T-shirt fee
       })
       await expectMobileLayout(page, 'new subscription page')
@@ -92,9 +93,47 @@ for (const lang of LANGS) {
       await expect(kpis).toContainText(lang === 'ar' ? 'د.ب' : 'BD')
       await page.getByRole('button', { name: t(lang, 'reports:period.year'), exact: true }).click()
       await expect(page.locator('main [role=img] svg.recharts-surface')).toBeVisible()
-      await expect(page.getByRole('table')).toBeVisible()
+      await expect(
+        page.getByRole('table', { name: t(lang, 'reports:months.caption') }),
+      ).toBeVisible()
       expect(api.world.calls.some((c) => c.path === 'rpc/revenue_by_month')).toBe(true)
       await expectMobileLayout(page, 'reports')
+    })
+
+    test('the admin reports split the money by location, and one location can be picked', async ({
+      page,
+    }) => {
+      const api = await openApp(page, ADMIN, lang, '/admin/reports')
+      const table = page.getByRole('table', { name: t(lang, 'reports:locations.caption') })
+      await expect(table).toBeVisible()
+      await expect(table).toContainText('ملعب حديقة الرفاع')
+      await expect(table).toContainText('Hamad City Field')
+      await expect(table).toContainText(t(lang, 'reports:locations.none'))
+      await expectMobileLayout(page, 'reports by location')
+
+      await page
+        .getByLabel(t(lang, 'locations:filter.label'), { exact: true })
+        .selectOption({ label: 'Hamad City Field' })
+      await expect(page.getByText(t(lang, 'reports:locationNote'))).toBeVisible()
+      await expect(table).toBeHidden() // one location: nothing to compare
+      const call = api.world.calls.filter((c) => c.path === 'rpc/report_summary').at(-1)
+      expect(call?.body).toMatchObject({ p_location_id: 'loc-2' })
+    })
+
+    test('an admin adds a location and the list shows it', async ({ page }) => {
+      const api = await openApp(page, ADMIN, lang, '/admin/locations')
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      await page
+        .getByRole('button', { name: t(lang, 'locations:add') })
+        .first()
+        .click()
+      const dialog = page.getByRole('dialog')
+      await dialog.getByLabel(t(lang, 'locations:form.name.label')).fill('Isa Town Field')
+      await dialog.getByRole('button', { name: t(lang, 'locations:form.submitCreate') }).click()
+      await expect(page.getByText('Isa Town Field').last()).toBeVisible()
+      const post = api.world.calls.find((c) => c.method === 'POST' && c.path === 'locations')
+      expect(post?.body).toEqual({ name: 'Isa Town Field', address: null, active: true })
+      await expectMobileLayout(page, 'locations')
     })
 
     test('a new activity entry appears on the admin home without a refresh', async ({ page }) => {

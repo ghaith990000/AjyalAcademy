@@ -49,6 +49,7 @@ begin
   reset role;
   perform set_config('request.jwt.claims', '', true);
 end $$;
+create function tests.loc() returns uuid language sql immutable as $$ select tests.u(900) $$;
 grant execute on all functions in schema tests to public;
 
 -- Fixtures ------------------------------------------------------------------------------------------
@@ -58,6 +59,8 @@ insert into public.profiles (id, full_name, email, role) values
   (tests.u(1), 'Admin A', 'admin@tests.invalid', 'admin'),
   (tests.u(2), 'Coach One', 'coach1@tests.invalid', 'coach'),
   (tests.u(3), 'Coach Two', 'coach2@tests.invalid', 'coach');
+
+insert into public.locations (id, name) values (tests.u(900), 'sp-Location');
 
 -- Independent of whatever the real settings/plans are: pin the placeholder values from the docs.
 update public.settings set tshirt_fee_fils = 5000, transport_fee_fils = 10000, expiring_soon_days = 7;
@@ -135,23 +138,23 @@ select is((select status from public.subscription_overview where id = tests.u(20
 -- create_subscription as a coach: fees, first-time rule, snapshots
 -- ---------------------------------------------------------------------------
 select tests.act_as(tests.u(2));
-insert into tests.ids select 'T1', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[13]));
+insert into tests.ids select 'T1', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[13]), tests.loc());
 select is((select total_fils from public.subscriptions where id = tests.s('T1')), 25000, '#2 a first-time player: plan 20.000 + T-shirt 5.000');
 select is((select tshirt_fee_fils || '/' || transport_fee_fils from public.subscription_players where subscription_id = tests.s('T1')), '5000/0', 'fees are snapshotted per player');
 select is((select plan_price_fils || '/' || tshirt_total_fils || '/' || transport_total_fils || '/' || discount_fils from public.subscriptions where id = tests.s('T1')), '20000/5000/0/0', 'the stored parts add up');
 select is((select created_by from public.subscriptions where id = tests.s('T1')), tests.u(2), 'created_by is the coach');
 select is((select paid_fils || '/' || balance_fils || '/' || status from public.subscription_overview where id = tests.s('T1')), '0/25000/active', 'unpaid by default: paid 0, balance = total');
 
-insert into tests.ids select 'T1b', public.create_subscription(public.today_bh() + 30, public.today_bh() + 59, tests.pj(array[13]));
+insert into tests.ids select 'T1b', public.create_subscription(public.today_bh() + 30, public.today_bh() + 59, tests.pj(array[13]), tests.loc());
 select is((select total_fils from public.subscriptions where id = tests.s('T1b')), 20000, 'a returning player pays no T-shirt');
 
-insert into tests.ids select 'T2', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[14]));
+insert into tests.ids select 'T2', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[14]), tests.loc());
 select public.cancel_subscription(tests.s('T2'), 'created by mistake');
-insert into tests.ids select 'T2b', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[14]));
+insert into tests.ids select 'T2b', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[14]), tests.loc());
 select is((select total_fils from public.subscriptions where id = tests.s('T2b')), 20000, 'a cancelled first subscription does not re-trigger the T-shirt fee');
 select is((select count(*)::int from public.subscriptions s join public.subscription_players sp on sp.subscription_id = s.id where sp.player_id = tests.u(14) and s.cancelled_at is null), 1, 'and a cancelled subscription does not block the same dates');
 
-insert into tests.ids select 'T3', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[15, 11], array[15]), 'ZTEN', null, null, null, 45000, 'benefit');
+insert into tests.ids select 'T3', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[15, 11], array[15]), tests.loc(), 'ZTEN', null, null, null, 45000, 'benefit');
 select is((select discount_fils || '/' || total_fils from public.subscriptions where id = tests.s('T3')), '5000/45000', '#3 duo: A first-time + transport, B returning, 10% code');
 select is((select plan_code from public.subscription_overview where id = tests.s('T3')), 'duo', 'two players → the duo plan');
 select is((select discount_id from public.subscriptions where id = tests.s('T3')), tests.u(301), 'the code is linked');
@@ -159,32 +162,32 @@ select is((select discount_type::text || '/' || discount_value from public.subsc
 select is((select paid_fils || '/' || balance_fils from public.subscription_overview where id = tests.s('T3')), '45000/0', 'paid in full at creation');
 select is((select method::text || '/' || paid_at::text from public.payments where subscription_id = tests.s('T3')), 'benefit/' || public.today_bh()::text, 'the initial payment uses the chosen method, dated today');
 
-insert into tests.ids select 'T5', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[16], array[16]), null, 'percent', 1250, '  Staff child ', 10000);
+insert into tests.ids select 'T5', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[16], array[16]), tests.loc(), null, 'percent', 1250, '  Staff child ', 10000);
 select is((select discount_fils || '/' || total_fils from public.subscriptions where id = tests.s('T5')), '4375/30625', '#7 manual 12.5% with rounding');
 select is((select discount_reason from public.subscriptions where id = tests.s('T5')), 'Staff child', 'the manual reason is trimmed and stored');
 select is((select discount_id from public.subscriptions where id = tests.s('T5')), null, 'a manual discount has no code');
 select is((select paid_fils || '/' || balance_fils from public.subscription_overview where id = tests.s('T5')), '10000/20625', 'a partial initial payment leaves a balance');
 
-insert into tests.ids select 'T5b', public.create_subscription(public.today_bh() + 30, public.today_bh() + 59, tests.pj(array[16]));
+insert into tests.ids select 'T5b', public.create_subscription(public.today_bh() + 30, public.today_bh() + 59, tests.pj(array[16]), tests.loc());
 select is((select total_fils from public.subscriptions where id = tests.s('T5b')), 20000, 'the day after the previous one ends is allowed (adjacent, not overlapping)');
 
-insert into tests.ids select 'T7', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[17]), null, 'fixed', 3000, 'Loyalty');
+insert into tests.ids select 'T7', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[17]), tests.loc(), null, 'fixed', 3000, 'Loyalty');
 select is((select discount_fils || '/' || total_fils from public.subscriptions where id = tests.s('T7')), '3000/22000', '#4 manual fixed discount');
 
-insert into tests.ids select 'T9', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[19], '{}', '{"19": false}'));
+insert into tests.ids select 'T9', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[19], '{}', '{"19": false}'), tests.loc());
 select is((select total_fils from public.subscriptions where id = tests.s('T9')), 25000, 'a coach cannot waive the T-shirt fee (the override is ignored)');
 
 select tests.act_as(tests.u(1));
-insert into tests.ids select 'T8', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[18], '{}', '{"18": false}'));
+insert into tests.ids select 'T8', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[18], '{}', '{"18": false}'), tests.loc());
 select is((select total_fils from public.subscriptions where id = tests.s('T8')), 20000, 'an admin can waive the T-shirt fee for a first-time player');
-insert into tests.ids select 'T8b', public.create_subscription(public.today_bh() + 200, public.today_bh() + 229, tests.pj(array[12], '{}', '{"12": true}'));
+insert into tests.ids select 'T8b', public.create_subscription(public.today_bh() + 200, public.today_bh() + 229, tests.pj(array[12], '{}', '{"12": true}'), tests.loc());
 select is((select total_fils from public.subscriptions where id = tests.s('T8b')), 25000, 'and charge it to a returning one');
 
-insert into tests.ids select 'Q', public.create_subscription(public.today_bh() + 100, public.today_bh() + 129, tests.pj(array[11, 12, 21, 22], array[11, 21]), null, 'percent', 1500, 'Sibling promo');
+insert into tests.ids select 'Q', public.create_subscription(public.today_bh() + 100, public.today_bh() + 129, tests.pj(array[11, 12, 21, 22], array[11, 21]), tests.loc(), null, 'percent', 1500, 'Sibling promo');
 select is((select plan_code || '/' || discount_fils || '/' || total_fils from public.subscription_overview where id = tests.s('Q')), 'quad/12000/68000', '#6 an admin can mix any coaches'' players: quad, 15%, two with transport');
 select is((select count(*)::int from public.subscription_players where subscription_id = tests.s('Q')), 4, 'all four players are stored');
 
-insert into tests.ids select 'T6', public.create_subscription(public.today_bh() + 300, public.today_bh() + 329, tests.pj(array[12]), null, 'fixed', 30000, 'Free month', 0);
+insert into tests.ids select 'T6', public.create_subscription(public.today_bh() + 300, public.today_bh() + 329, tests.pj(array[12]), tests.loc(), null, 'fixed', 30000, 'Free month', 0);
 select is((select discount_fils || '/' || total_fils from public.subscriptions where id = tests.s('T6')), '20000/0', '#5 the discount is capped: a total of zero, never negative');
 select is((select count(*)::int from public.payments where subscription_id = tests.s('T6')), 0, 'a fully discounted subscription creates no payment');
 
@@ -198,23 +201,23 @@ update public.plans set price_fils = 20000 where code = 'solo';
 -- create_subscription: who and what is refused
 -- ---------------------------------------------------------------------------
 select tests.act_as(tests.u(2));
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[21]))$$, 'P0002', 'ajyal:player_not_found', 'a coach cannot use another coach''s player');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[13, 21]))$$, 'P0002', 'ajyal:player_not_found', 'not even in a mix with their own');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[31]))$$, 'P0002', 'ajyal:player_not_found', 'a removed player cannot be subscribed');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, '[]'::jsonb)$$, '22023', 'ajyal:invalid_players', 'at least one player');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[11, 12, 13, 14, 15]))$$, '22023', 'ajyal:invalid_players', 'at most four players');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[13, 13]))$$, '22023', 'ajyal:invalid_players', 'the same player twice');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, '[{"player_id": "nope"}]'::jsonb)$$, '22023', 'ajyal:invalid_players', 'a malformed player id');
-select throws_ok($$select public.create_subscription(public.today_bh() + 529, public.today_bh() + 500, tests.pj(array[13]))$$, '22023', 'ajyal:invalid_dates', 'the end cannot precede the start');
-select throws_ok($$select public.create_subscription(public.today_bh() + 10, public.today_bh() + 20, tests.pj(array[13]))$$, '23P01', 'ajyal:overlap', 'overlapping the same player''s subscription is refused');
-select is(tests.err_detail($$select public.create_subscription(public.today_bh() + 10, public.today_bh() + 20, tests.pj(array[13, 19]))$$), tests.u(13)::text || ',' || tests.u(19)::text, 'and the conflicting players are named in the error detail');
-select throws_ok($$select public.create_subscription(public.today_bh() + 29, public.today_bh() + 40, tests.pj(array[17]))$$, '23P01', 'ajyal:overlap', 'the last day is inclusive: starting on it still overlaps');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[21]), tests.loc())$$, 'P0002', 'ajyal:player_not_found', 'a coach cannot use another coach''s player');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[13, 21]), tests.loc())$$, 'P0002', 'ajyal:player_not_found', 'not even in a mix with their own');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[31]), tests.loc())$$, 'P0002', 'ajyal:player_not_found', 'a removed player cannot be subscribed');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, '[]'::jsonb, tests.loc())$$, '22023', 'ajyal:invalid_players', 'at least one player');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[11, 12, 13, 14, 15]), tests.loc())$$, '22023', 'ajyal:invalid_players', 'at most four players');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[13, 13]), tests.loc())$$, '22023', 'ajyal:invalid_players', 'the same player twice');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, '[{"player_id": "nope"}]'::jsonb, tests.loc())$$, '22023', 'ajyal:invalid_players', 'a malformed player id');
+select throws_ok($$select public.create_subscription(public.today_bh() + 529, public.today_bh() + 500, tests.pj(array[13]), tests.loc())$$, '22023', 'ajyal:invalid_dates', 'the end cannot precede the start');
+select throws_ok($$select public.create_subscription(public.today_bh() + 10, public.today_bh() + 20, tests.pj(array[13]), tests.loc())$$, '23P01', 'ajyal:overlap', 'overlapping the same player''s subscription is refused');
+select is(tests.err_detail($$select public.create_subscription(public.today_bh() + 10, public.today_bh() + 20, tests.pj(array[13, 19]), tests.loc())$$), tests.u(13)::text || ',' || tests.u(19)::text, 'and the conflicting players are named in the error detail');
+select throws_ok($$select public.create_subscription(public.today_bh() + 29, public.today_bh() + 40, tests.pj(array[17]), tests.loc())$$, '23P01', 'ajyal:overlap', 'the last day is inclusive: starting on it still overlaps');
 select is((select count(*)::int from public.subscription_players where player_id = tests.u(13)), 2, 'refused calls wrote nothing');
 
 select tests.reset();
 update public.plans set active = false where code = 'solo';
 select tests.act_as(tests.u(2));
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[20]))$$, '22023', 'ajyal:plan_unavailable', 'an inactive plan cannot be sold');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[20]), tests.loc())$$, '22023', 'ajyal:plan_unavailable', 'an inactive plan cannot be sold');
 select tests.reset();
 update public.plans set active = true where code = 'solo';
 
@@ -222,31 +225,31 @@ update public.plans set active = true where code = 'solo';
 -- discounts
 -- ---------------------------------------------------------------------------
 select tests.act_as(tests.u(1));
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), 'NOPE')$$, 'P0002', 'ajyal:discount_not_found', 'an unknown code');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), 'ZOFF')$$, '22023', 'ajyal:discount_inactive', 'an inactive code');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), 'ZOLD')$$, '22023', 'ajyal:discount_expired', 'an expired code');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), 'ZFUT')$$, '22023', 'ajyal:discount_not_started', 'a code that has not started');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), 'ZTEN', 'fixed', 1000, 'r')$$, '22023', 'ajyal:discount_conflict', 'a code and a manual discount cannot be combined');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), null, 'percent', 1000, '   ')$$, '22023', 'ajyal:manual_discount_reason_required', 'a manual discount needs a reason');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), null, 'percent', 10001, 'r')$$, '22023', 'ajyal:manual_discount_invalid', 'a percentage above 100%');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), null, 'fixed', 0, 'r')$$, '22023', 'ajyal:manual_discount_invalid', 'a zero fixed discount');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), null, null, 1000, 'r')$$, '22023', 'ajyal:manual_discount_invalid', 'a value without a type');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), 'NOPE')$$, 'P0002', 'ajyal:discount_not_found', 'an unknown code');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), 'ZOFF')$$, '22023', 'ajyal:discount_inactive', 'an inactive code');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), 'ZOLD')$$, '22023', 'ajyal:discount_expired', 'an expired code');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), 'ZFUT')$$, '22023', 'ajyal:discount_not_started', 'a code that has not started');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), 'ZTEN', 'fixed', 1000, 'r')$$, '22023', 'ajyal:discount_conflict', 'a code and a manual discount cannot be combined');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), null, 'percent', 1000, '   ')$$, '22023', 'ajyal:manual_discount_reason_required', 'a manual discount needs a reason');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), null, 'percent', 10001, 'r')$$, '22023', 'ajyal:manual_discount_invalid', 'a percentage above 100%');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), null, 'fixed', 0, 'r')$$, '22023', 'ajyal:manual_discount_invalid', 'a zero fixed discount');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), null, null, 1000, 'r')$$, '22023', 'ajyal:manual_discount_invalid', 'a value without a type');
 select is((select count(*)::int from public.subscription_players where player_id = tests.u(23)), 0, 'none of the refused discounts left a subscription behind');
 
-insert into tests.ids select 'TC', public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), '  zten ');
+insert into tests.ids select 'TC', public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[23]), tests.loc(), '  zten ');
 select is((select discount_fils || '/' || total_fils from public.subscriptions where id = tests.s('TC')), '2500/22500', 'codes are case-insensitive and trimmed: 10% of 25.000');
 
-insert into tests.ids select 'TONE', public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[24]), 'ZONE');
-select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[21]), 'ZONE')$$, '22023', 'ajyal:discount_exhausted', 'a code past its max uses');
+insert into tests.ids select 'TONE', public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[24]), tests.loc(), 'ZONE');
+select throws_ok($$select public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[21]), tests.loc(), 'ZONE')$$, '22023', 'ajyal:discount_exhausted', 'a code past its max uses');
 select public.cancel_subscription(tests.s('TONE'), 'test');
-insert into tests.ids select 'TONE2', public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[21]), 'ZONE');
+insert into tests.ids select 'TONE2', public.create_subscription(public.today_bh() + 500, public.today_bh() + 529, tests.pj(array[21]), tests.loc(), 'ZONE');
 select is((select total_fils from public.subscriptions where id = tests.s('TONE2')), 15000, 'a cancelled subscription frees its use of the code');
 
 -- ---------------------------------------------------------------------------
 -- create_subscription is all-or-nothing
 -- ---------------------------------------------------------------------------
 select tests.act_as(tests.u(2));
-select throws_ok($$select public.create_subscription(public.today_bh() + 700, public.today_bh() + 729, tests.pj(array[20]), null, null, null, null, 25001)$$, '22003', 'ajyal:overpayment', 'an initial payment above the total is refused');
+select throws_ok($$select public.create_subscription(public.today_bh() + 700, public.today_bh() + 729, tests.pj(array[20]), tests.loc(), null, null, null, null, 25001)$$, '22003', 'ajyal:overpayment', 'an initial payment above the total is refused');
 select tests.reset();
 select is((select count(*)::int from public.subscription_players where player_id = tests.u(20)), 0, 'and nothing was created (no subscription, no fees)');
 select is((select count(*)::int from public.activity_log where (summary -> 'player_names') = '["sp-A10"]'::jsonb), 0, 'nor logged');

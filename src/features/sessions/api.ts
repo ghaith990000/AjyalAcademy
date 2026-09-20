@@ -10,25 +10,29 @@ export interface SessionRow {
   start_time: string
   end_time: string
   coach_id: string
-  location: string | null
+  location_id: string | null
   notes: string | null
   cancelled_at: string | null
   created_by: string | null
   created_at: string
   coach: { full_name: string } | null
+  location: { name: string } | null
 }
 
 export interface SessionFilters {
   status: 'all' | SessionStatus
   /** Admin only: '' = every coach. (A coach's RLS already limits them to their own.) */
   coachId: string
+  /** '' = every location. */
+  locationId: string
 }
 
-export const DEFAULT_SESSION_FILTERS: SessionFilters = { status: 'upcoming', coachId: '' }
+export const DEFAULT_SESSION_FILTERS: SessionFilters = { status: 'upcoming', coachId: '', locationId: '' }
 export const SESSIONS_PAGE_SIZE = 20
 
 // `created_by` is a second foreign key to `profiles`, so the embed needs the constraint name.
-const SESSION_COLUMNS = '*, coach:profiles!training_sessions_coach_id_fkey(full_name)'
+const SESSION_COLUMNS =
+  '*, coach:profiles!training_sessions_coach_id_fkey(full_name), location:locations(name)'
 
 /**
  * Sessions, soonest first for "upcoming" and most recent first otherwise. "Upcoming" means from today on,
@@ -41,6 +45,7 @@ export async function listSessions(
 ): Promise<{ rows: SessionRow[]; total: number }> {
   let query = supabase.from('training_sessions').select(SESSION_COLUMNS, { count: 'exact' })
   if (filters.coachId) query = query.eq('coach_id', filters.coachId)
+  if (filters.locationId) query = query.eq('location_id', filters.locationId)
   if (filters.status === 'cancelled') {
     query = query.not('cancelled_at', 'is', null)
   } else if (filters.status === 'upcoming') {

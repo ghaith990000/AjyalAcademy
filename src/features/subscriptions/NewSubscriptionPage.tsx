@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/toast-context'
 import { useAuth } from '@/features/auth/useAuth'
+import { useLocations } from '@/features/locations/hooks'
 import { usePlayer } from '@/features/players/hooks'
 import type { PlayerRow } from '@/features/players/api'
 import { usePlans, useSettings } from '@/features/settings/hooks'
@@ -63,6 +64,7 @@ function Wizard({ initialPlayer }: { initialPlayer: PlayerRow | null }) {
   const plans = usePlans()
   const settings = useSettings()
   const discounts = useApplicableDiscounts()
+  const locations = useLocations()
   const create = useCreateSubscription()
 
   const [draft, setDraft] = useState<Draft>(() => {
@@ -80,6 +82,7 @@ function Wizard({ initialPlayer }: { initialPlayer: PlayerRow | null }) {
     isAdmin,
     discounts: discounts.data ?? [],
     today: todayISO(),
+    locations: locations.data ?? [],
   }
 
   const step: Step = STEPS[stepIndex]!
@@ -118,7 +121,9 @@ function Wizard({ initialPlayer }: { initialPlayer: PlayerRow | null }) {
       toast({ title: t('errors:title'), description: errorMessage(failure, names), tone: 'error' })
       // Send the user to where they can fix it.
       const code = ajyalCodeOf(failure)
-      if (code === 'overlap' || code === 'invalid_dates') go(STEPS.indexOf('dates'))
+      if (code === 'overlap' || code === 'invalid_dates' || code === 'location_required' || code === 'invalid_location') {
+        go(STEPS.indexOf('dates'))
+      }
       else if (code === 'player_not_found' || code === 'invalid_players') go(0)
     }
   }

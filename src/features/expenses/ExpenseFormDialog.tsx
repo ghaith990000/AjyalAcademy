@@ -11,6 +11,7 @@ import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/toast-context'
 import { useCoaches } from '@/features/coaches/hooks'
+import { LocationField } from '@/features/locations/LocationField'
 import { todayISO } from '@/lib/dates'
 import { toBD } from '@/lib/money'
 import type { ExpenseRow } from './api'
@@ -59,6 +60,7 @@ export function ExpenseFormDialog({
       expense_date: expense?.expense_date ?? defaultDate ?? todayISO(),
       coach_id: expense?.coach_id ?? '',
       description: expense?.description ?? '',
+      location_id: expense?.location_id ?? '',
     },
   })
   const category = useWatch({ control, name: 'category' })
@@ -165,6 +167,14 @@ export function ExpenseFormDialog({
         >
           {(c) => <Input {...c} {...register('expense_date')} type="date" max={todayISO()} ltr />}
         </Field>
+
+        <LocationField
+          select={register('location_id')}
+          currentId={expense?.location_id}
+          emptyLabel={t('expenses:form.location.none')}
+          hint={t('expenses:form.location.hint')}
+          error={message(errors.location_id?.message)}
+        />
 
         <Field
           label={t('expenses:form.description.label')}

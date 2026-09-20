@@ -7,6 +7,7 @@ const valid = {
   expense_date: '2026-09-10',
   coach_id: '',
   description: '',
+  location_id: '',
 }
 
 const messagesOf = (input: unknown) => {
@@ -70,7 +71,15 @@ describe('toExpenseInput', () => {
       expense_date: '2026-09-10',
       coach_id: null,
       description: 'Pitch',
+      location_id: null,
     })
+  })
+
+  it('stores no location as null (academy-wide) and keeps a chosen one', () => {
+    expect(toExpenseInput(expenseSchema.parse(valid)).location_id).toBeNull()
+    expect(
+      toExpenseInput(expenseSchema.parse({ ...valid, location_id: 'loc-1' })).location_id,
+    ).toBe('loc-1')
   })
 
   it('stores an empty note as null', () => {

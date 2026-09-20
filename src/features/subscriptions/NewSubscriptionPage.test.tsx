@@ -198,6 +198,73 @@ describe('NewSubscriptionPage', () => {
     })
   })
 
+  describe('step 2 — location', () => {
+    const drifter = fakePlayer({
+      id: 'p9',
+      full_name: 'Nour Drifter',
+      cpr: '190101019',
+      location_id: null,
+    })
+
+    it('offers the location the chosen player already trains at', async () => {
+      renderWizard()
+      await choose('Yousef Al Mahmood')
+      await screen.findByRole('option', { name: 'Hamad City' })
+      expect(screen.getByLabelText(/^Location/)).toHaveValue('loc-1')
+      // a switched-off location is not offered
+      expect(screen.queryByRole('option', { name: 'Old Field' })).not.toBeInTheDocument()
+    })
+
+    it('will not continue without a location when the player has none, then sends the one chosen', async () => {
+      vi.mocked(playersApi.listPlayers).mockResolvedValue({ rows: [drifter], total: 1 })
+      renderWizard()
+      await choose('Nour Drifter')
+      await screen.findByRole('option', { name: 'Hamad City' })
+      expect(screen.getByLabelText(/^Location/)).toHaveValue('')
+
+      await next()
+      expect(await screen.findByRole('alert')).toHaveTextContent('Choose a location.')
+      expect(screen.getByText('Step 2 of 6', { exact: false })).toBeInTheDocument()
+
+      await userEvent.selectOptions(screen.getByLabelText(/^Location/), 'loc-2')
+      await next() // options
+      await next() // discount
+      await next() // summary
+      expect(await screen.findByText('Hamad City')).toBeInTheDocument()
+      await next() // payment
+      await userEvent.click(await screen.findByRole('button', { name: 'Create subscription' }))
+      await waitFor(() => expect(api.createSubscription).toHaveBeenCalled())
+      expect(vi.mocked(api.createSubscription).mock.calls[0]![0]).toMatchObject({
+        p_location_id: 'loc-2',
+      })
+    })
+
+    it('keeps a location chosen by hand when the players are changed afterwards', async () => {
+      renderWizard()
+      await choose('Yousef Al Mahmood')
+      await screen.findByRole('option', { name: 'Hamad City' })
+      await userEvent.selectOptions(screen.getByLabelText(/^Location/), 'loc-2')
+      expect(screen.getByLabelText(/^Location/)).toHaveValue('loc-2')
+    })
+
+    it('goes back to the period step when the database refuses the location', async () => {
+      vi.mocked(api.createSubscription).mockRejectedValue(new Error('ajyal:invalid_location'))
+      renderWizard()
+      await choose('Yousef Al Mahmood')
+      await next()
+      await next()
+      await next()
+      await next()
+      await userEvent.click(await screen.findByRole('button', { name: 'Create subscription' }))
+      expect(
+        await screen.findByText(
+          "That location is switched off or doesn't exist. Choose another one.",
+        ),
+      ).toBeInTheDocument()
+      expect(await screen.findByLabelText(/^Location/)).toBeInTheDocument()
+    })
+  })
+
   describe('step 3 — options and the live total', () => {
     it('charges a first-time player the T-shirt, which a coach cannot waive', async () => {
       renderWizard('coach')
@@ -316,6 +383,7 @@ describe('NewSubscriptionPage', () => {
       expect(vi.mocked(api.createSubscription).mock.calls[0]![0]).toEqual({
         p_start_date: todayISO(),
         p_end_date: defaultEndDate(todayISO()),
+        p_location_id: 'loc-1',
         p_players: [{ player_id: 'p1', transport: false }],
         p_initial_payment_fils: 25000,
         p_payment_method: 'cash',

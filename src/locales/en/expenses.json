@@ -63,7 +63,11 @@
       "label": "Note",
       "tooLong": "The note is too long (200 characters at most)"
     },
-    "delete": "Delete this expense"
+    "delete": "Delete this expense",
+    "location": {
+      "none": "Academy-wide (no location)",
+      "hint": "Leave it empty for a cost shared by every location, such as salaries."
+    }
   },
   "toast": {
     "created": "Expense added",
@@ -98,6 +102,8 @@
     "future_date": "The date can't be in the future.",
     "invalid_coach": "Choose a coach for the salary.",
     "invalid_period": "That month can't be used.",
-    "expense_not_found": "This expense no longer exists."
-  }
+    "expense_not_found": "This expense no longer exists.",
+    "invalid_location": "That location is switched off or doesn't exist. Choose another one."
+  },
+  "academyWide": "Academy-wide"
 }

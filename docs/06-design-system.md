@@ -123,3 +123,8 @@ No new `components/ui` component. The **attendance screen** (`features/attendanc
 - **Semantics the audit (axe, WCAG 2.1 A/AA) enforces:** one `h1` per screen (`EmptyState titleAs="h1"` for the not-found and crash screens), a `main` landmark on the login screen, `dl` rows as direct `div`s of `dt`/`dd`, a keyboard-focusable and named region around anything that scrolls sideways (the months table), and single-choice filters as `aria-pressed` buttons (`FilterChips`), not orphaned `tab`s.
 - **Feedback strips:** `OfflineBanner` (warning tint, at the top of the shells and the login screen), `UpdatePrompt` (a card above the phone tab bar), `InstallHint` (a card on the home screen, phones only, dismissible).
 - **Reduced motion** was already honoured globally (`prefers-reduced-motion` in `index.css`). **Dark mode** was not requested and is not built; the tokens are all in one place if it is wanted later.
+
+## As built (Phase 9)
+
+- **`LocationField` / `LocationSelect`** (`src/features/locations/LocationField.tsx`) wrap the native `Select` — the OS picker on phones, RTL-safe. Use `LocationField` (label, hint, error wired through `Field`) in forms and `LocationSelect` inside a `Field` for filters. Location names are data in either script: show them in `<bdi>` so a Latin name inside Arabic text (or the reverse) keeps its own direction.
+- **Location tables** (`LocationBreakdown`) follow the months table: four columns that fit 390px, amounts in LTR islands, a focusable named region, a total row that equals the all-locations figures, a negative profit in the danger colour _and_ signed.

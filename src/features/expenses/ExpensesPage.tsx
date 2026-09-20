@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { DataList, type Column } from '@/components/ui/DataList'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Field } from '@/components/ui/Field'
 import { Money } from '@/components/ui/Money'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { LocationSelect } from '@/features/locations/LocationField'
 import { PeriodSwitcher } from '@/features/reports/PeriodSwitcher'
 import { useExpensesByCategory } from '@/features/reports/hooks'
 import { formatDate, formatMonthYear, todayISO } from '@/lib/dates'
@@ -21,10 +23,11 @@ import { GenerateSalariesDialog } from './GenerateSalariesDialog'
 import { useExpensesList } from './hooks'
 
 export default function ExpensesPage() {
-  const { t } = useTranslation(['expenses', 'nav', 'common'])
+  const { t } = useTranslation(['expenses', 'nav', 'common', 'locations'])
   const { language } = useLanguage()
   const [period, setPeriod] = useState<Period>(() => currentPeriod('month'))
   const [category, setCategory] = useState<ExpenseCategory | 'all'>('all')
+  const [locationId, setLocationId] = useState('')
   const [creating, setCreating] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [editing, setEditing] = useState<ExpenseRow | null>(null)
@@ -33,8 +36,8 @@ export default function ExpensesPage() {
   const range = periodRange(period)
   const monthName =
     period.kind === 'month' ? formatMonthYear(period.year, period.month, language) : ''
-  const list = useExpensesList({ range, category })
-  const totals = useExpensesByCategory(range)
+  const list = useExpensesList({ range, category, locationId })
+  const totals = useExpensesByCategory(range, locationId || undefined)
   const monthTotal = totals.data?.reduce((sum, entry) => sum + entry.totalFils, 0)
   const categoryTotal =
     category === 'all'
@@ -54,11 +57,15 @@ export default function ExpensesPage() {
             {t(`expenses:category.${expense.category}`)}
             {expense.coach && <> · {expense.coach.full_name}</>}
           </span>
-          {expense.description && (
-            <span dir="auto" className="block truncate text-[13px] font-normal text-ink-muted">
-              {expense.description}
-            </span>
-          )}
+          <span className="block truncate text-[13px] font-normal text-ink-muted">
+            <bdi>{expense.location?.name ?? t('expenses:academyWide')}</bdi>
+            {expense.description && (
+              <>
+                {' · '}
+                <bdi>{expense.description}</bdi>
+              </>
+            )}
+          </span>
         </span>
       ),
     },
@@ -126,6 +133,20 @@ export default function ExpensesPage() {
         </Card>
 
         <CategoryChips value={category} onChange={setCategory} />
+
+        <Card>
+          <Field label={t('locations:filter.label')}>
+            {(c) => (
+              <LocationSelect
+                {...c}
+                value={locationId}
+                currentId={locationId}
+                emptyLabel={t('locations:select.all')}
+                onChange={(event) => setLocationId(event.target.value)}
+              />
+            )}
+          </Field>
+        </Card>
 
         {list.isError ? (
           <Card>

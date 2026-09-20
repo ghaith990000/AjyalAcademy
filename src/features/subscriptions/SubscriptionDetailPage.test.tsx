@@ -19,6 +19,7 @@ vi.mock('./api', async (importOriginal) => ({
   getDiscountLabel: vi.fn(),
   recordPayment: vi.fn(),
   cancelSubscription: vi.fn(),
+  setSubscriptionLocation: vi.fn(),
 }))
 
 // 20 plan + 5 T-shirt + 10 transport = 35, 10% code = 3.5 → 31.5; paid 10.
@@ -266,6 +267,60 @@ describe('SubscriptionDetailPage', () => {
       await userEvent.click(within(dialog).getByRole('button', { name: 'Keep it' }))
       expect(api.cancelSubscription).not.toHaveBeenCalled()
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('the location', () => {
+    it('shows where the money counts, and offers an admin a way to change it', async () => {
+      renderDetail()
+      expect(await screen.findByText('Al-Rifa')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Change location' })).toBeInTheDocument()
+    })
+
+    it('says so for an older subscription that has none yet', async () => {
+      vi.mocked(api.getSubscription).mockResolvedValue({
+        ...partlyPaid,
+        location_id: null,
+        location_name: null,
+      })
+      renderDetail()
+      expect(await screen.findByText('No location yet')).toBeInTheDocument()
+    })
+
+    it('lets an admin move it to another location that is in use', async () => {
+      vi.mocked(api.setSubscriptionLocation).mockResolvedValue()
+      renderDetail()
+      await userEvent.click(await screen.findByRole('button', { name: 'Change location' }))
+      const dialog = await screen.findByRole('dialog')
+      await within(dialog).findByRole('option', { name: 'Hamad City' })
+      expect(within(dialog).getByLabelText(/^Location/)).toHaveValue('loc-1')
+      expect(within(dialog).queryByRole('option', { name: 'Old Field' })).not.toBeInTheDocument()
+
+      await userEvent.selectOptions(within(dialog).getByLabelText(/^Location/), 'loc-2')
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+      await waitFor(() => expect(api.setSubscriptionLocation).toHaveBeenCalledWith('sub', 'loc-2'))
+      expect(await screen.findByText('Location saved')).toBeInTheDocument()
+    })
+
+    it('shows the translated message when the database refuses', async () => {
+      vi.mocked(api.setSubscriptionLocation).mockRejectedValue(new Error('ajyal:invalid_location'))
+      renderDetail()
+      await userEvent.click(await screen.findByRole('button', { name: 'Change location' }))
+      const dialog = await screen.findByRole('dialog')
+      await within(dialog).findByRole('option', { name: 'Hamad City' })
+      await userEvent.selectOptions(within(dialog).getByLabelText(/^Location/), 'loc-2')
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+      expect(
+        await screen.findByText(
+          "That location is switched off or doesn't exist. Choose another one.",
+        ),
+      ).toBeInTheDocument()
+    })
+
+    it('does not offer a coach the change (only the admin moves money between locations)', async () => {
+      renderDetail('sub', 'coach')
+      expect(await screen.findByText('Al-Rifa')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Change location' })).not.toBeInTheDocument()
     })
   })
 

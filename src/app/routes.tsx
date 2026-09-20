@@ -71,6 +71,7 @@ export const routes: RouteObject[] = [
               { path: 'sessions/:id', ...sessionDetail },
               { path: 'sessions/:id/attendance', ...attendance },
               { path: 'coaches', ...page(() => import('@/features/coaches/CoachesPage')) },
+              { path: 'locations', ...page(() => import('@/features/locations/LocationsPage')) },
               { path: 'discounts', ...page(() => import('@/features/discounts/DiscountsPage')) },
               { path: 'expenses', ...page(() => import('@/features/expenses/ExpensesPage')) },
               { path: 'reports', ...page(() => import('@/features/reports/ReportsPage')) },

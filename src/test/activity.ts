@@ -36,6 +36,12 @@ export const SAMPLE_SUMMARIES: Record<KnownAction, Record<string, unknown>> = {
     plan: 'duo',
     total_fils: 35_000,
     discount_fils: 0,
+    location_name: 'Al-Rifa',
+  },
+  'subscription.location_changed': {
+    player_names: ['Ali Hassan'],
+    from_location_name: 'Al-Rifa',
+    to_location_name: 'Hamad City',
   },
   'subscription.cancelled': {
     player_names: ['Ali Hassan'],
@@ -61,6 +67,7 @@ export const SAMPLE_SUMMARIES: Record<KnownAction, Record<string, unknown>> = {
     start_time: '16:00:00',
     end_time: '17:30:00',
     coach_name: 'Khalid Al Dosari',
+    location_name: 'Al-Rifa',
   },
   'session.cancelled': { session_date: '2026-09-19', coach_name: 'Khalid Al Dosari' },
   'attendance.saved': {
@@ -79,4 +86,6 @@ export const SAMPLE_SUMMARIES: Record<KnownAction, Record<string, unknown>> = {
   },
   'expense.salaries_generated': { month: '2026-10-01', created_count: 2, created_fils: 250_000 },
   'coach.created': { coach_name: 'Sara Al Khalifa' },
+  'location.created': { location_name: 'Al-Rifa' },
+  'location.updated': { location_name: 'Hamad City', previous_name: 'Hamad', active: true },
 }

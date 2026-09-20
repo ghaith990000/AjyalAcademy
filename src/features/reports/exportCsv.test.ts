@@ -10,13 +10,13 @@ import {
 const BOM = String.fromCharCode(0xfeff)
 
 const paymentLabels: PaymentsCsvLabels = {
-  headers: ['Date', 'Amount (BD)', 'Method', 'Players', 'Plan', 'Note', 'Received by'],
+  headers: ['Date', 'Amount (BD)', 'Method', 'Players', 'Plan', 'Location', 'Note', 'Received by'],
   method: (method) =>
     ({ cash: 'Cash', benefit: 'Benefit', bank_transfer: 'Bank', other: 'Other' })[method],
   plan: (code) => code.toUpperCase(),
 }
 const expenseLabels: ExpensesCsvLabels = {
-  headers: ['Date', 'Category', 'Amount (BD)', 'Coach', 'Note'],
+  headers: ['Date', 'Category', 'Amount (BD)', 'Location', 'Coach', 'Note'],
   category: (category) => `cat:${category}`,
 }
 
@@ -28,6 +28,7 @@ const payment = (overrides: Partial<PaymentExportRow> = {}): PaymentExportRow =>
   received_by: { full_name: 'Demo Admin' },
   subscription: {
     plan: { code: 'duo' },
+    location: { name: 'Al-Rifa' },
     subscription_players: [
       { player: { full_name: 'Ali Hassan' } },
       { player: { full_name: 'Omar Hassan' } },
@@ -40,13 +41,13 @@ describe('buildPaymentsCsv', () => {
   it('starts with the byte-order mark and the translated header row', () => {
     const csv = buildPaymentsCsv([], paymentLabels)
     expect(csv.startsWith(BOM)).toBe(true)
-    expect(csv.slice(1)).toBe('Date,Amount (BD),Method,Players,Plan,Note,Received by\r\n')
+    expect(csv.slice(1)).toBe('Date,Amount (BD),Method,Players,Plan,Location,Note,Received by\r\n')
   })
 
   it('writes one row per payment: ISO date, plain BD amount, players joined, plan, receiver', () => {
     const csv = buildPaymentsCsv([payment()], paymentLabels)
     expect(csv.split('\r\n')[1]).toBe(
-      '2026-10-01,200.000,Cash,Ali Hassan; Omar Hassan,DUO,,Demo Admin',
+      '2026-10-01,200.000,Cash,Ali Hassan; Omar Hassan,DUO,Al-Rifa,,Demo Admin',
     )
   })
 
@@ -56,6 +57,7 @@ describe('buildPaymentsCsv', () => {
         payment({
           subscription: {
             plan: { code: 'solo' },
+            location: { name: 'ملعب حديقة الرفاع' },
             subscription_players: [{ player: { full_name: 'محمد علي' } }],
           },
         }),
@@ -63,6 +65,7 @@ describe('buildPaymentsCsv', () => {
       paymentLabels,
     )
     expect(csv).toContain('محمد علي')
+    expect(csv).toContain('ملعب حديقة الرفاع')
   })
 
   it('copes with a payment whose subscription, plan, players or receiver are not readable', () => {
@@ -70,7 +73,7 @@ describe('buildPaymentsCsv', () => {
       [payment({ subscription: null, received_by: null, method: 'benefit' })],
       paymentLabels,
     )
-    expect(csv.split('\r\n')[1]).toBe('2026-10-01,200.000,Benefit,,,,')
+    expect(csv.split('\r\n')[1]).toBe('2026-10-01,200.000,Benefit,,,,,')
   })
 
   it('does not let a note run as a spreadsheet formula, and quotes commas', () => {
@@ -91,6 +94,7 @@ describe('buildExpensesCsv', () => {
     amount_fils: 50_000,
     description: 'Pitch, hall A',
     coach: null,
+    location: { name: 'Al-Rifa' },
     ...overrides,
   })
 
@@ -103,15 +107,16 @@ describe('buildExpensesCsv', () => {
           amount_fils: 150_000,
           description: null,
           coach: { full_name: 'Khalid' },
+          location: null,
         }),
       ],
       expenseLabels,
     )
     expect(csv.startsWith(BOM)).toBe(true)
     expect(csv.slice(1).split('\r\n')).toEqual([
-      'Date,Category,Amount (BD),Coach,Note',
-      '2026-10-15,cat:field_rent,50.000,,"Pitch, hall A"',
-      '2026-10-15,cat:coach_salary,150.000,Khalid,',
+      'Date,Category,Amount (BD),Location,Coach,Note',
+      '2026-10-15,cat:field_rent,50.000,Al-Rifa,,"Pitch, hall A"',
+      '2026-10-15,cat:coach_salary,150.000,,Khalid,',
       '',
     ])
   })

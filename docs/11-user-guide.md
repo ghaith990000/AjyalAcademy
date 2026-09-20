@@ -28,14 +28,14 @@ A short guide for the people who use Ajyal Academy every day: **coaches** and **
 
 ### Who can do what
 
-|                                                 | Coach             | Admin            |
-| ----------------------------------------------- | ----------------- | ---------------- |
-| See and edit **their own players**              | ✅                | ✅ (all players) |
-| Create subscriptions, add payments              | ✅ (own players)  | ✅               |
-| Schedule sessions and take attendance           | ✅ (own sessions) | ✅ (all)         |
-| Coaches, Discounts, Expenses, Reports, Settings | —                 | ✅               |
-| Assign players to coaches, change prices        | —                 | ✅               |
-| See the activity feed                           | their own actions | everyone's       |
+|                                                            | Coach             | Admin            |
+| ---------------------------------------------------------- | ----------------- | ---------------- |
+| See and edit **their own players**                         | ✅                | ✅ (all players) |
+| Create subscriptions, add payments                         | ✅ (own players)  | ✅               |
+| Schedule sessions and take attendance                      | ✅ (own sessions) | ✅ (all)         |
+| Coaches, Locations, Discounts, Expenses, Reports, Settings | —                 | ✅               |
+| Assign players to coaches, change prices                   | —                 | ✅               |
+| See the activity feed                                      | their own actions | everyone's       |
 
 ## 2. For coaches
 
@@ -52,13 +52,13 @@ The Home screen is your daily panel: how many players you have, today's sessions
 
 ### Subscriptions
 
-Tap **New subscription** (on the Home screen, the Billing tab, or a player's page). The steps are: **players** (1–4 players; the plan and price follow the number of players) → **dates** (the end date is filled in for one month; the period can't overlap another subscription of the same player) → **options** (the T-shirt fee applies to a player's first-ever subscription; transport is optional) → **discount** (none, a code such as SIBLING10, or a manual discount with a reason) → **summary** (check the total) → **payment** (paid in full today, part paid, or unpaid). Tap **Create subscription**.
+Tap **New subscription** (on the Home screen, the Billing tab, or a player's page). The steps are: **players** (1–4 players; the plan and price follow the number of players) → **location and period** (the location the money counts for — filled in from the players' location when they share one — then the dates; the end date is filled in for one month; the period can't overlap another subscription of the same player) → **options** (the T-shirt fee applies to a player's first-ever subscription; transport is optional) → **discount** (none, a code such as SIBLING10, or a manual discount with a reason) → **summary** (check the total) → **payment** (paid in full today, part paid, or unpaid). Tap **Create subscription**.
 
 Later, open the subscription and tap **Add payment** for each payment received (cash, Benefit, bank transfer or other). A payment can't be more than the balance and can't be dated in the future. **Cancel subscription** needs a reason; payments already received stay on record.
 
 ### Sessions and attendance
 
-**Sessions** shows today and what is coming. **Schedule session** asks for the date, start and end time and location; switch on _Repeat weekly_ to create up to 26 weekly sessions at once. If you already have a session at that time the app **warns** you but lets you continue.
+**Sessions** shows today and what is coming. **Schedule session** asks for the date, start and end time and the **location** (choose from the list; an admin adds locations); switch on _Repeat weekly_ to create up to 26 weekly sessions at once. If you already have a session at that time the app **warns** you but lets you continue.
 
 To take attendance, open **Sessions**, find today's session and tap **Take attendance** (or **Take attendance** on the Home screen). Every one of your players is listed, all marked _Absent_:
 
@@ -84,19 +84,23 @@ Four numbers — **Active players**, **Active subscriptions**, **Collected this 
 
 As a coach, but you see everyone. Select players (checkboxes) and tap **Assign to coach**, or choose no coach to unassign; a single player's edit form also has a Coach field.
 
+### Locations
+
+**More → Locations** lists where the academy trains and collects fees. **Add location:** a name (and, if you like, an address). Tap a location to rename it or **switch it off** when you stop using it — it stays on past sessions, subscriptions and reports, but can't be chosen for new ones. Locations are never deleted. Every session and every new subscription belongs to a location; an older subscription that has none shows **No location yet** and an admin can give it one with **Change location** on its page (all its payments move with it).
+
 ### Discounts and Settings
 
 **Discounts → Add discount:** a code (letters and digits), a percentage or a fixed amount, optional dates and a use limit. **Settings:** the prices of the four plans (1, 2, 3 or 4 players), the **T-shirt** and **transport** fees, and how many days before the end a subscription counts as _expiring soon_. Changing a price never changes subscriptions already created.
 
 ### Expenses and salaries
 
-**Expenses** lists a month at a time (use the arrows; filter with the category chips). **Add expense:** category, amount (in BD, for example `12.500`), date (not in the future), an optional note; a salary also needs the coach. Tap an expense to edit or delete it — deletions are recorded in the activity feed.
+**Expenses** lists a month at a time (use the arrows; filter with the category chips). **Add expense:** category, amount (in BD, for example `12.500`), date (not in the future), an optional **location** (leave it empty for costs shared by the whole academy, such as salaries), an optional note; a salary also needs the coach. The list can be filtered by location. Tap an expense to edit or delete it — deletions are recorded in the activity feed.
 
 **Generate salaries** adds one salary expense for every _active_ coach with a monthly salary, dated the 1st of the chosen month. It is safe to press twice: a coach who already has a salary that month is skipped, and the app tells you how many were created and skipped.
 
 ### Reports
 
-Choose **Month** or **Year**, and step with the arrows. You see **Collected**, **Expenses**, **Profit** and **Margin** (a loss is shown in red with a minus sign; the margin is "—" when nothing was collected), a chart of the year, expenses by category, and a month-by-month table. **Payments (CSV)** and **Expenses (CSV)** download the period as spreadsheet files that open in Excel (Arabic names included).
+Choose **Month** or **Year**, and step with the arrows. You see **Collected**, **Expenses**, **Profit** and **Margin** (a loss is shown in red with a minus sign; the margin is "—" when nothing was collected), a chart of the year, expenses by category, and a month-by-month table. Choose a **Location** to see only that location's figures (expenses for the whole academy are not included in them); with all locations a **By location** table splits the period — its "No location" row holds older subscriptions without a location and academy-wide expenses. **Payments (CSV)** and **Expenses (CSV)** download the period as spreadsheet files that open in Excel (Arabic names included).
 
 _Collected_ counts payments **by the date they were received**, including payments on subscriptions that were later cancelled.
 
@@ -131,14 +135,14 @@ _Collected_ counts payments **by the date they were received**, including paymen
 
 ### من يستطيع فعل ماذا
 
-|                                                    | المدرب       | المدير           |
-| -------------------------------------------------- | ------------ | ---------------- |
-| رؤية وتعديل **لاعبيه**                             | ✅           | ✅ (كل اللاعبين) |
-| إنشاء الاشتراكات وإضافة الدفعات                    | ✅ (للاعبيه) | ✅               |
-| جدولة الحصص وتسجيل الحضور                          | ✅ (حصصه)    | ✅ (الكل)        |
-| المدربون، الخصومات، المصروفات، التقارير، الإعدادات | —            | ✅               |
-| إسناد اللاعبين إلى المدربين وتغيير الأسعار         | —            | ✅               |
-| رؤية سجل النشاطات                                  | نشاطاته هو   | نشاطات الجميع    |
+|                                                             | المدرب       | المدير           |
+| ----------------------------------------------------------- | ------------ | ---------------- |
+| رؤية وتعديل **لاعبيه**                                      | ✅           | ✅ (كل اللاعبين) |
+| إنشاء الاشتراكات وإضافة الدفعات                             | ✅ (للاعبيه) | ✅               |
+| جدولة الحصص وتسجيل الحضور                                   | ✅ (حصصه)    | ✅ (الكل)        |
+| المدربون، المواقع، الخصومات، المصروفات، التقارير، الإعدادات | —            | ✅               |
+| إسناد اللاعبين إلى المدربين وتغيير الأسعار                  | —            | ✅               |
+| رؤية سجل النشاطات                                           | نشاطاته هو   | نشاطات الجميع    |
 
 ## ٢. للمدربين
 
@@ -155,13 +159,13 @@ _Collected_ counts payments **by the date they were received**, including paymen
 
 ### الاشتراكات
 
-اضغط **اشتراك جديد** (من الرئيسية أو تبويب الاشتراكات أو صفحة لاعب). الخطوات: **اللاعبون** (من 1 إلى 4 لاعبين؛ تتحدد الباقة والسعر بعدد اللاعبين) ← **التواريخ** (يُملأ تاريخ الانتهاء بعد شهر؛ ولا يجوز أن تتداخل الفترة مع اشتراك آخر للاعب نفسه) ← **الخيارات** (رسوم القميص لأول اشتراك للاعب فقط؛ والمواصلات اختيارية) ← **الخصم** (بلا خصم، أو كود مثل SIBLING10، أو خصم يدوي مع السبب) ← **الملخص** (راجع الإجمالي) ← **الدفع** (مدفوع بالكامل اليوم، أو جزء منه، أو غير مدفوع). ثم اضغط **إنشاء الاشتراك**.
+اضغط **اشتراك جديد** (من الرئيسية أو تبويب الاشتراكات أو صفحة لاعب). الخطوات: **اللاعبون** (من 1 إلى 4 لاعبين؛ تتحدد الباقة والسعر بعدد اللاعبين) ← **الموقع والفترة** (الموقع الذي تُحتسب له المبالغ، ويُملأ من موقع اللاعبين إذا اشتركوا فيه، ثم التواريخ؛ يُملأ تاريخ الانتهاء بعد شهر؛ ولا يجوز أن تتداخل الفترة مع اشتراك آخر للاعب نفسه) ← **الخيارات** (رسوم القميص لأول اشتراك للاعب فقط؛ والمواصلات اختيارية) ← **الخصم** (بلا خصم، أو كود مثل SIBLING10، أو خصم يدوي مع السبب) ← **الملخص** (راجع الإجمالي) ← **الدفع** (مدفوع بالكامل اليوم، أو جزء منه، أو غير مدفوع). ثم اضغط **إنشاء الاشتراك**.
 
 لاحقاً افتح الاشتراك واضغط **إضافة دفعة** لكل مبلغ يُستلم (نقداً أو بنفت أو تحويل بنكي أو غير ذلك). لا يجوز أن تزيد الدفعة عن المتبقي ولا أن تكون بتاريخ مستقبلي. **إلغاء الاشتراك** يتطلب سبباً، وتبقى الدفعات المستلمة مسجّلة.
 
 ### الحصص والحضور
 
-**الحصص** تعرض اليوم وما هو قادم. **جدولة حصة** تطلب التاريخ ووقت البداية والنهاية والموقع؛ فعّل _تكرار أسبوعي_ لإنشاء حتى 26 حصة أسبوعية دفعة واحدة. إذا كان لديك حصة في الوقت نفسه **ينبّهك** التطبيق لكنه يسمح لك بالمتابعة.
+**الحصص** تعرض اليوم وما هو قادم. **جدولة حصة** تطلب التاريخ ووقت البداية والنهاية و**الموقع** (اختره من القائمة؛ والمسؤول هو من يضيف المواقع)؛ فعّل _تكرار أسبوعي_ لإنشاء حتى 26 حصة أسبوعية دفعة واحدة. إذا كان لديك حصة في الوقت نفسه **ينبّهك** التطبيق لكنه يسمح لك بالمتابعة.
 
 لتسجيل الحضور افتح **الحصص** وابحث عن حصة اليوم واضغط **تسجيل الحضور** (أو الزر نفسه في الرئيسية). تظهر قائمة بكل لاعبيك وكلهم _غائب_ في البداية:
 
@@ -187,19 +191,23 @@ _Collected_ counts payments **by the date they were received**, including paymen
 
 كما للمدرب، لكنك ترى الجميع. حدّد لاعبين بمربعات الاختيار ثم اضغط **تعيين لمدرب**، أو اختر «بلا مدرب» لإلغاء التعيين؛ ولنموذج تعديل اللاعب حقل المدرب أيضاً.
 
+### المواقع
+
+**المزيد ← المواقع** تعرض الأماكن التي تتدرّب فيها الأكاديمية وتحصّل الرسوم. **إضافة موقع:** الاسم (والعنوان إن شئت). اضغط على موقع لتغيير اسمه أو **إيقافه** عندما تتوقفون عن استخدامه — يبقى ظاهرًا في الحصص والاشتراكات والتقارير السابقة، لكن لا يمكن اختياره لأي جديد. لا تُحذف المواقع أبدًا. كل حصة وكل اشتراك جديد يتبع موقعًا؛ والاشتراك القديم الذي لا موقع له يظهر عليه **لم يُحدَّد موقع بعد**، ويستطيع المسؤول تحديده بزر **تغيير الموقع** في صفحته (وتنتقل معه كل مدفوعاته).
+
 ### الخصومات والإعدادات
 
 **الخصومات ← إضافة خصم:** كود (أحرف وأرقام)، ونسبة مئوية أو مبلغ ثابت، وتواريخ اختيارية وحد للاستخدام. **الإعدادات:** أسعار الباقات الأربع (1 أو 2 أو 3 أو 4 لاعبين)، ورسوم **القميص** و**المواصلات**، وعدد الأيام قبل النهاية التي يُعدّ فيها الاشتراك _ينتهي قريباً_. تغيير سعر لا يغيّر اشتراكات أُنشئت سابقاً.
 
 ### المصروفات والرواتب
 
-**المصروفات** تعرض شهراً واحداً في كل مرة (استخدم الأسهم، وصفِّ بأزرار الفئات). **إضافة مصروف:** الفئة والمبلغ (بالدينار، مثل `12.500`) والتاريخ (ليس في المستقبل) وملاحظة اختيارية؛ وراتب المدرب يتطلب اختيار المدرب. اضغط على مصروف لتعديله أو حذفه — يُسجَّل الحذف في سجل النشاطات.
+**المصروفات** تعرض شهراً واحداً في كل مرة (استخدم الأسهم، وصفِّ بأزرار الفئات). **إضافة مصروف:** الفئة والمبلغ (بالدينار، مثل `12.500`) والتاريخ (ليس في المستقبل) و**موقع** اختياري (اتركه فارغًا للتكاليف المشتركة بين الأكاديمية كلها، مثل الرواتب) وملاحظة اختيارية؛ وراتب المدرب يتطلب اختيار المدرب. يمكن تصفية القائمة حسب الموقع. اضغط على مصروف لتعديله أو حذفه — يُسجَّل الحذف في سجل النشاطات.
 
 **إنشاء الرواتب** يضيف مصروف راتب لكل مدرب _نشط_ له راتب شهري، بتاريخ اليوم الأول من الشهر المختار. لا ضرر من الضغط مرتين: المدرب الذي لديه راتب في ذلك الشهر يُتخطّى، ويخبرك التطبيق بعدد ما أُنشئ وما تُخطّي.
 
 ### التقارير
 
-اختر **شهر** أو **سنة** وتنقّل بالأسهم. تظهر **المحصّل** و**المصروفات** و**الربح** و**الهامش** (الخسارة بالأحمر وبعلامة ناقص، والهامش «—» إذا لم يُحصَّل شيء)، ورسم بياني للسنة، والمصروفات حسب الفئة، وجدول شهراً بشهر. **المدفوعات (CSV)** و**المصروفات (CSV)** تنزّلان الفترة كملفات جداول تُفتح في Excel (مع الأسماء العربية).
+اختر **شهر** أو **سنة** وتنقّل بالأسهم. تظهر **المحصّل** و**المصروفات** و**الربح** و**الهامش** (الخسارة بالأحمر وبعلامة ناقص، والهامش «—» إذا لم يُحصَّل شيء)، ورسم بياني للسنة، والمصروفات حسب الفئة، وجدول شهراً بشهر. اختر **الموقع** لترى أرقامه وحده (ولا تشمل مصروفات الأكاديمية كلها)؛ وعند عرض كل المواقع يقسّم جدول **حسب الموقع** الفترة — وصفّه «بدون موقع» فيه الاشتراكات القديمة التي لا موقع لها ومصروفات الأكاديمية كلها. **المدفوعات (CSV)** و**المصروفات (CSV)** تنزّلان الفترة كملفات جداول تُفتح في Excel (مع الأسماء العربية).
 
 _المحصّل_ يحسب الدفعات **بتاريخ استلامها**، بما فيها دفعات اشتراكات أُلغيت لاحقاً.
 

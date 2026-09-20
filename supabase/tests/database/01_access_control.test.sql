@@ -152,6 +152,10 @@ select throws_ok($$insert into public.subscriptions (plan_id, start_date, end_da
 -- ---------------------------------------------------------------------------
 -- training sessions and attendance
 -- ---------------------------------------------------------------------------
+select tests.reset();
+insert into public.locations (id, name) values ('f4000000-0000-0000-0000-000000000001', 'ac-Location');
+-- Sessions need a location: every session in this file gets this one by default (rolled back with the rest).
+alter table public.training_sessions alter column location_id set default 'f4000000-0000-0000-0000-000000000001';
 select tests.act_as('f0000000-0000-0000-0000-0000000000c1');
 select lives_ok($$insert into public.training_sessions (session_date, start_time, end_time, coach_id) values ('2026-10-05', '16:00', '17:30', 'f0000000-0000-0000-0000-0000000000c1')$$, 'coach schedules their own session');
 select tests.act_as('f0000000-0000-0000-0000-0000000000c2');

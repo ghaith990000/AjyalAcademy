@@ -187,7 +187,7 @@ export default function AttendancePage() {
           {session.location && (
             <>
               {' · '}
-              <span dir="auto">{session.location}</span>
+              <span dir="auto">{session.location.name}</span>
             </>
           )}
         </p>

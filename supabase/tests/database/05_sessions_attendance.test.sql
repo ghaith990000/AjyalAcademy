@@ -67,6 +67,10 @@ insert into public.players (id, full_name, cpr, date_of_birth, phone, coach_id) 
   (tests.u(21), 'sa-B1', '920000021', '2015-01-01', '39000000', tests.u(3));
 update public.players set deleted_at = now() where id = tests.u(14);
 
+-- Sessions need a location: give every session in this file a default one (rolled back with the rest).
+insert into public.locations (id, name) values (tests.u(900), 'sa-Location');
+alter table public.training_sessions alter column location_id set default tests.u(900);
+
 delete from public.activity_log; -- exact counts below (rolled back with everything else)
 
 -- ---------------------------------------------------------------------------
@@ -84,8 +88,8 @@ select throws_ok($$insert into public.training_sessions (session_date, start_tim
   values (public.today_bh(), '16:00', '16:00', tests.u(2))$$, '23514', null, 'an empty time range is refused too');
 
 select tests.act_as(tests.u(1));
-select lives_ok($$insert into public.training_sessions (id, session_date, start_time, end_time, coach_id, location, cancelled_at)
-  values (tests.u(102), public.today_bh(), '18:00', '19:00', tests.u(2), 'Field 2', now())$$, 'an admin schedules for a coach');
+select lives_ok($$insert into public.training_sessions (id, session_date, start_time, end_time, coach_id, location_id, cancelled_at)
+  values (tests.u(102), public.today_bh(), '18:00', '19:00', tests.u(2), tests.u(900), now())$$, 'an admin schedules for a coach');
 select is((select cancelled_at is null from public.training_sessions where id = tests.u(102)), true, 'a session cannot be created already cancelled');
 select is((select created_by from public.training_sessions where id = tests.u(102)), tests.u(1), 'created_by is the admin');
 select throws_ok($$insert into public.training_sessions (session_date, start_time, end_time, coach_id)
@@ -109,7 +113,7 @@ select is((select count(*)::int from public.activity_log where action = 'session
 -- ---------------------------------------------------------------------------
 select tests.act_as(tests.u(3));
 select is_empty($$select id from public.training_sessions where id in (tests.u(101), tests.u(102))$$, 'coach 2 cannot see coach 1''s sessions');
-select is(tests.affected($$update public.training_sessions set location = 'x' where id = tests.u(101)$$), 0, 'nor edit them');
+select is(tests.affected($$update public.training_sessions set notes = 'x' where id = tests.u(101)$$), 0, 'nor edit them');
 select tests.act_as(tests.u(2));
 select throws_ok($$update public.training_sessions set coach_id = tests.u(3) where id = tests.u(101)$$, '42501', null, 'a coach cannot hand a session to another coach');
 select is((select count(*)::int from public.training_sessions where id between tests.u(101) and tests.u(107)), 7, 'a coach sees their own');
@@ -123,7 +127,7 @@ select tests.reset();
 select tests.act_as(tests.u(2));
 select lives_ok($$update public.training_sessions set cancelled_at = '2000-01-01' where id = tests.u(101)$$, 'a coach cancels their session');
 select is((select cancelled_at = now() from public.training_sessions where id = tests.u(101)), true, 'the time is the server''s, not the client''s');
-select throws_ok($$update public.training_sessions set location = 'x' where id = tests.u(101)$$, '55000', 'ajyal:session_cancelled', 'a cancelled session is read-only');
+select throws_ok($$update public.training_sessions set notes = 'x' where id = tests.u(101)$$, '55000', 'ajyal:session_cancelled', 'a cancelled session is read-only');
 select throws_ok($$update public.training_sessions set cancelled_at = null where id = tests.u(101)$$, '55000', 'ajyal:session_cancelled', 'and cannot be revived');
 select tests.reset();
 select is((select count(*)::int from public.activity_log where action = 'session.cancelled' and entity_id = tests.u(101) and actor_id = tests.u(2)), 1, 'the cancellation is logged once, by the coach');

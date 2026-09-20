@@ -123,7 +123,7 @@ export default function SessionDetailPage() {
               </InfoRow>
             )}
             <InfoRow label={t('sessions:detail.location')}>
-              {session.location ? <span dir="auto">{session.location}</span> : notProvided}
+              {session.location ? <span dir="auto">{session.location.name}</span> : notProvided}
             </InfoRow>
             <InfoRow label={t('sessions:detail.notes')}>
               {session.notes ? (

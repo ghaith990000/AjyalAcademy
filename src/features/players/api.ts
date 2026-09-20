@@ -2,13 +2,18 @@ import type { Tables } from '@/lib/database.types'
 import { supabase } from '@/lib/supabase'
 import type { PlayerInput } from './schema'
 
-export type PlayerRow = Tables<'players'> & { coach: { full_name: string } | null }
+export type PlayerRow = Tables<'players'> & {
+  coach: { full_name: string } | null
+  location: { name: string } | null
+}
 
 export interface PlayerFilters {
   search: string
   /** 'all' | 'unassigned' | a coach's profile id (admin only; RLS already scopes coaches). */
   coach: string
   hasCondition: boolean
+  /** '' = every location, 'none' = players without one, or a location id. */
+  location: string
   sort: 'name' | 'newest'
 }
 
@@ -16,13 +21,14 @@ export const DEFAULT_FILTERS: PlayerFilters = {
   search: '',
   coach: 'all',
   hasCondition: false,
+  location: '',
   sort: 'name',
 }
 
 export const PAGE_SIZE = 20
 
 // Three foreign keys point at profiles (coach, creator, remover), so the embed names the one we want.
-const SELECT = '*, coach:profiles!players_coach_id_fkey(full_name)'
+const SELECT = '*, coach:profiles!players_coach_id_fkey(full_name), location:locations(name)'
 
 /** Remove characters that have meaning inside a PostgREST `or(...)` filter or an ILIKE pattern. */
 export function cleanSearch(search: string): string {
@@ -49,6 +55,8 @@ export async function listPlayers(
   if (filters.coach === 'unassigned') query = query.is('coach_id', null)
   else if (filters.coach !== 'all') query = query.eq('coach_id', filters.coach)
   if (filters.hasCondition) query = query.eq('has_disease', true)
+  if (filters.location === 'none') query = query.is('location_id', null)
+  else if (filters.location) query = query.eq('location_id', filters.location)
 
   query =
     filters.sort === 'newest'

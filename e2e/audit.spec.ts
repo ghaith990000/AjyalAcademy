@@ -18,6 +18,7 @@ const ADMIN_ROUTES = [
   '/admin/sessions/se2',
   '/admin/sessions/se2/attendance',
   '/admin/coaches',
+  '/admin/locations',
   '/admin/discounts',
   '/admin/expenses',
   '/admin/reports',
@@ -110,6 +111,7 @@ for (const lang of LANGS) {
       [ADMIN, '/admin/players', 'players:add', 'add player (admin)'],
       [ADMIN, '/admin/sessions', 'sessions:add', 'schedule a session'],
       [ADMIN, '/admin/expenses', 'expenses:add', 'add an expense'],
+      [ADMIN, '/admin/locations', 'locations:add', 'add a location'],
       [ADMIN, '/admin/discounts', 'discounts:add', 'add a discount'],
       [ADMIN, '/admin/coaches', 'coaches:add', 'add a coach'],
     ]

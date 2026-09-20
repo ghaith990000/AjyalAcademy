@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/toast-context'
 import { useAuth } from '@/features/auth/useAuth'
 import { useCoaches } from '@/features/coaches/hooks'
+import { LocationField } from '@/features/locations/LocationField'
 import { formatDate, formatTimeRange, todayISO } from '@/lib/dates'
 import { useLanguage } from '@/lib/useLanguage'
 import type { SessionRow } from './api'
@@ -60,7 +61,7 @@ export function SessionFormDialog({ session, onClose }: SessionFormDialogProps) 
       end_time: session ? hhmm(session.end_time) : '',
       // A coach only ever schedules for themself; an admin picks.
       coach_id: session?.coach_id ?? (isAdmin ? '' : (profile?.id ?? '')),
-      location: session?.location ?? '',
+      location_id: session?.location_id ?? '',
       notes: session?.notes ?? '',
       repeat: false,
       repeat_weeks: '4',
@@ -70,7 +71,11 @@ export function SessionFormDialog({ session, onClose }: SessionFormDialogProps) 
   const repeat = values.repeat === true
 
   // Overlap warning: never blocks, just tells the person before they save.
-  const parsed = sessionSchema.safeParse(values)
+  // The warning does not depend on the location, so a form still missing it gets the warning too.
+  const parsed = sessionSchema.safeParse({
+    ...values,
+    location_id: values.location_id || 'pending',
+  })
   const candidates = parsed.success ? toSessionInputs(parsed.data) : []
   const coachForCheck = parsed.success ? parsed.data.coach_id : ''
   const existing = useCoachSessionsBetween(
@@ -180,17 +185,12 @@ export function SessionFormDialog({ session, onClose }: SessionFormDialogProps) 
           </Field>
         )}
 
-        <Field label={t('sessions:form.location.label')} error={message(errors.location?.message)}>
-          {(c) => (
-            <Input
-              {...c}
-              {...register('location')}
-              dir="auto"
-              autoComplete="off"
-              placeholder={t('sessions:form.location.placeholder')}
-            />
-          )}
-        </Field>
+        <LocationField
+          required
+          select={register('location_id')}
+          currentId={session?.location_id}
+          error={message(errors.location_id?.message)}
+        />
 
         <Field label={t('sessions:form.notes.label')} error={message(errors.notes?.message)}>
           {(c) => <Textarea {...c} {...register('notes')} rows={3} />}

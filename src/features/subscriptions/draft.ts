@@ -1,3 +1,4 @@
+import type { LocationRow } from '@/features/locations/api'
 import type { PlayerRow } from '@/features/players/api'
 import type { Plan, Settings } from '@/features/settings/api'
 import { defaultEndDate, isValidISODate } from '@/lib/dates'
@@ -30,6 +31,8 @@ export interface Draft {
   end: string
   /** Once the user edits the end date, changing the start no longer moves it. */
   endTouched: boolean
+  /** The location picked by hand; '' = not chosen yet (then the players' shared location is offered). */
+  locationId: string
   transport: Record<string, boolean>
   /** Admin-only T-shirt overrides; a missing key means "automatic" (first subscription ⇒ charged). */
   tshirt: Record<string, boolean>
@@ -49,6 +52,7 @@ export function initialDraft(today: string): Draft {
     start: today,
     end: defaultEndDate(today),
     endTouched: false,
+    locationId: '',
     transport: {},
     tshirt: {},
     discountMode: 'none',
@@ -72,6 +76,8 @@ export interface DraftContext {
   discounts: readonly Discount[]
   /** "yyyy-MM-dd" — the code's validity is checked against it. */
   today: string
+  /** Every location (switched-off ones too); only active ones can be chosen. */
+  locations: readonly LocationRow[]
 }
 
 // ---- edits -----------------------------------------------------------------------------------------------
@@ -83,6 +89,26 @@ export function withStart(draft: Draft, start: string): Draft {
 
 export function withEnd(draft: Draft, end: string): Draft {
   return { ...draft, end, endTouched: true }
+}
+
+export function withLocation(draft: Draft, locationId: string): Draft {
+  return { ...draft, locationId }
+}
+
+/**
+ * The location the wizard offers before the user picks one: the one every selected player shares, if it is
+ * still in use. Players in different locations (or none) offer nothing — the user chooses.
+ */
+export function sharedPlayerLocation(draft: Draft, ctx: DraftContext): string {
+  const ids = new Set(draft.players.map((player) => player.location_id))
+  const [only] = ids
+  if (ids.size !== 1 || !only) return ''
+  return ctx.locations.some((location) => location.id === only && location.active) ? only : ''
+}
+
+/** The location that will be sent: the user's choice, else the players' shared one. */
+export function effectiveLocationId(draft: Draft, ctx: DraftContext): string {
+  return draft.locationId !== '' ? draft.locationId : sharedPlayerLocation(draft, ctx)
 }
 
 /** Add or remove a player (max four); options of removed players are dropped. */
@@ -192,6 +218,7 @@ export type StepError =
   | 'start_invalid'
   | 'end_invalid'
   | 'end_before_start'
+  | 'location_required'
   | DiscountError
   | 'amount_invalid'
 
@@ -204,7 +231,8 @@ export function validateStep(step: Step, draft: Draft, ctx: DraftContext): StepE
     case 'dates':
       if (!isValidISODate(draft.start)) return 'start_invalid'
       if (!isValidISODate(draft.end)) return 'end_invalid'
-      return draft.end < draft.start ? 'end_before_start' : null
+      if (draft.end < draft.start) return 'end_before_start'
+      return effectiveLocationId(draft, ctx) === '' ? 'location_required' : null
     case 'discount': {
       const check = checkDiscount(draft, ctx)
       return check.kind === 'error' ? check.error : null
@@ -229,6 +257,7 @@ export function buildParams(draft: Draft, ctx: DraftContext): CreateSubscription
   const params: CreateSubscriptionParams = {
     p_start_date: draft.start,
     p_end_date: draft.end,
+    p_location_id: effectiveLocationId(draft, ctx),
     p_players: draft.players.map((player) => ({
       player_id: player.id,
       transport: draft.transport[player.id] === true,

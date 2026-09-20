@@ -15,6 +15,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/features/auth/useAuth'
 import { useCoaches } from '@/features/coaches/hooks'
+import { LocationSelect } from '@/features/locations/LocationField'
 import { usePlayerStatuses } from '@/features/subscriptions/hooks'
 import { SubscriptionStatusBadge } from '@/features/subscriptions/SubscriptionStatusBadge'
 import { ageInYears } from '@/lib/dates'
@@ -42,7 +43,7 @@ const isolate = {
 }
 
 export default function PlayersPage() {
-  const { t } = useTranslation(['players', 'nav', 'common', 'subscriptions'])
+  const { t } = useTranslation(['players', 'nav', 'common', 'subscriptions', 'locations'])
   const { profile } = useAuth()
   const isAdmin = profile?.role === 'admin'
   const base = usePlayersBasePath()
@@ -71,7 +72,8 @@ export default function PlayersPage() {
   const [assigning, setAssigning] = useState(false)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
 
-  const filtered = search !== '' || filters.coach !== 'all' || filters.hasCondition
+  const filtered =
+    search !== '' || filters.coach !== 'all' || filters.hasCondition || filters.location !== ''
   const shownIds = rows.map((row) => row.id)
   const allShownSelected = shownIds.length > 0 && shownIds.every((id) => selected.has(id))
 
@@ -91,7 +93,7 @@ export default function PlayersPage() {
   }
   function clearFilters() {
     setSearchText('')
-    changeFilters({ coach: 'all', hasCondition: false })
+    changeFilters({ coach: 'all', hasCondition: false, location: '' })
   }
 
   const selectBox = (player: PlayerRow) => (
@@ -359,6 +361,18 @@ export default function PlayersPage() {
             )}
           </Field>
         )}
+        <Field label={t('locations:filter.label')}>
+          {(c) => (
+            <LocationSelect
+              {...c}
+              value={filters.location}
+              currentId={filters.location}
+              emptyLabel={t('locations:select.all')}
+              extraOptions={[{ value: 'none', label: t('locations:select.none') }]}
+              onChange={(event) => changeFilters({ location: event.target.value })}
+            />
+          )}
+        </Field>
         <div className="flex items-center sm:col-span-2 lg:col-span-4">
           <CheckboxField
             label={t('players:filters.condition')}

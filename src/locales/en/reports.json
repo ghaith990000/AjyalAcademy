@@ -59,11 +59,21 @@
       "receivedBy": "Received by",
       "category": "Category",
       "coach": "Coach",
-      "description": "Note"
+      "description": "Note",
+      "location": "Location"
     }
   },
   "loadError": {
     "title": "Couldn't load the report",
     "description": "Check your connection and try again."
-  }
+  },
+  "locations": {
+    "title": "By location",
+    "caption": "Collected, expenses and profit for each location",
+    "location": "Location",
+    "none": "No location",
+    "total": "All",
+    "note": "\"No location\" holds payments on older subscriptions that have no location yet, and expenses for the whole academy. Amounts in BD."
+  },
+  "locationNote": "These figures cover this location only: its subscriptions' payments and its own expenses. Expenses for the whole academy are not included."
 }

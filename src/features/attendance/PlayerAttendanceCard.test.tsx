@@ -19,7 +19,8 @@ const record = (n: number, status: 'present' | 'absent'): api.PlayerAttendanceRo
   session_date: `2026-09-${String(30 - n).padStart(2, '0')}`,
   start_time: '16:00:00',
   end_time: '17:30:00',
-  location: null,
+  location_id: null,
+  location_name: null,
 })
 
 function renderCard() {

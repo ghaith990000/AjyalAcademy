@@ -37,14 +37,16 @@ const EXPECTED: Record<'en' | 'ar', Record<KnownAction | 'player.created (no coa
     'player.reassigned':
       'Demo Admin moved Yousef Al Mahmood from Khalid Al Dosari to Sara Al Khalifa',
     'subscription.created':
-      'Demo Admin created a Duo subscription for Ali Hassan and Omar Hassan (35.000 BD)',
+      'Demo Admin created a Duo subscription for Ali Hassan and Omar Hassan (35.000 BD) Location: Al-Rifa',
+    'subscription.location_changed':
+      'Demo Admin moved the subscription of Ali Hassan to Hamad City It was: Al-Rifa',
     'subscription.cancelled':
       'Demo Admin cancelled the subscription of Ali Hassan Reason: Moved away',
     'payment.recorded':
       'Demo Admin recorded a payment of 20.000 BD for Ali Hassan Balance left: 15.000 BD',
     'discount.created': 'Demo Admin added the discount Sibling discount (12.5%)',
     'session.created':
-      'Demo Admin scheduled a session for Khalid Al Dosari on 19/09/2026 at 4:00 PM',
+      'Demo Admin scheduled a session for Khalid Al Dosari on 19/09/2026 at 4:00 PM Location: Al-Rifa',
     'session.cancelled': 'Demo Admin cancelled the session of Khalid Al Dosari on 19/09/2026',
     'attendance.saved':
       'Demo Admin took attendance for the session of Khalid Al Dosari on 19/09/2026: 6 of 8 present',
@@ -54,6 +56,8 @@ const EXPECTED: Record<'en' | 'ar', Record<KnownAction | 'player.created (no coa
     'expense.salaries_generated':
       'Demo Admin generated the salaries for October 2026: 2 created, 250.000 BD in total',
     'coach.created': 'Demo Admin added the coach Sara Al Khalifa',
+    'location.created': 'Demo Admin added the location Al-Rifa',
+    'location.updated': 'Demo Admin updated the location Hamad City Renamed from Hamad',
   },
   ar: {
     'player.created':
@@ -64,13 +68,15 @@ const EXPECTED: Record<'en' | 'ar', Record<KnownAction | 'player.created (no coa
     'player.reassigned':
       'نُقل اللاعب Yousef Al Mahmood من Khalid Al Dosari إلى Sara Al Khalifa بواسطة Demo Admin',
     'subscription.created':
-      'أُنشئ اشتراك ثنائية لـ Ali Hassan وOmar Hassan (35.000 د.ب) بواسطة Demo Admin',
+      'أُنشئ اشتراك ثنائية لـ Ali Hassan وOmar Hassan (35.000 د.ب) بواسطة Demo Admin الموقع: Al-Rifa',
+    'subscription.location_changed':
+      'نُقل اشتراك Ali Hassan إلى الموقع Hamad City بواسطة Demo Admin كان: Al-Rifa',
     'subscription.cancelled': 'أُلغي اشتراك Ali Hassan بواسطة Demo Admin السبب: Moved away',
     'payment.recorded':
       'سُجّلت دفعة بقيمة 20.000 د.ب عن Ali Hassan بواسطة Demo Admin المتبقي: 15.000 د.ب',
     'discount.created': 'أُضيف الخصم Sibling discount (12.5%) بواسطة Demo Admin',
     'session.created':
-      'جُدولت حصة للمدرب Khalid Al Dosari بتاريخ 19/09/2026 الساعة 4:00 م بواسطة Demo Admin',
+      'جُدولت حصة للمدرب Khalid Al Dosari بتاريخ 19/09/2026 الساعة 4:00 م بواسطة Demo Admin الموقع: Al-Rifa',
     'session.cancelled': 'أُلغيت حصة المدرب Khalid Al Dosari بتاريخ 19/09/2026 بواسطة Demo Admin',
     'attendance.saved':
       'سُجّل حضور حصة المدرب Khalid Al Dosari بتاريخ 19/09/2026: حضر 6 من 8 — بواسطة Demo Admin',
@@ -80,6 +86,8 @@ const EXPECTED: Record<'en' | 'ar', Record<KnownAction | 'player.created (no coa
     'expense.salaries_generated':
       'أُنشئت رواتب أكتوبر 2026: 2 — الإجمالي 250.000 د.ب بواسطة Demo Admin',
     'coach.created': 'أُضيف المدرب Sara Al Khalifa بواسطة Demo Admin',
+    'location.created': 'أُضيف الموقع Al-Rifa بواسطة Demo Admin',
+    'location.updated': 'عُدّل الموقع Hamad City بواسطة Demo Admin كان اسمه Hamad',
   },
 }
 

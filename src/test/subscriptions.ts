@@ -29,6 +29,8 @@ export function fakeSubscription(overrides: Partial<SubscriptionRow> = {}): Subs
     status: 'active',
     player_names: 'Yousef Al Mahmood',
     player_count: 1,
+    location_id: 'loc-1',
+    location_name: 'Al-Rifa',
     ...overrides,
   }
 }

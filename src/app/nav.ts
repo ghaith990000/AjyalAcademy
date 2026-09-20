@@ -5,6 +5,7 @@ import {
   CreditCard,
   House,
   type LucideIcon,
+  MapPin,
   Percent,
   Receipt,
   Settings,
@@ -44,6 +45,7 @@ export const adminNav: NavConfig = {
   ],
   more: [
     { to: '/admin/coaches', icon: UserCog, label: 'coaches' },
+    { to: '/admin/locations', icon: MapPin, label: 'locations' },
     { to: '/admin/discounts', icon: Percent, label: 'discounts' },
     { to: '/admin/expenses', icon: Receipt, label: 'expenses' },
     { to: '/admin/reports', icon: ChartColumn, label: 'reports' },

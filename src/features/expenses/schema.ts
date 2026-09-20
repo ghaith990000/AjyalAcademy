@@ -12,6 +12,8 @@ export interface ExpenseInput {
   expense_date: string
   coach_id: string | null
   description: string | null
+  /** null = academy-wide (not tied to one location). */
+  location_id: string | null
 }
 
 // Messages are `expenses` namespace keys, translated where they are rendered.
@@ -32,6 +34,8 @@ export const expenseSchema = z
     /** Only meaningful for a salary; ignored (and cleared) for every other category. */
     coach_id: z.string(),
     description: z.string().trim().max(200, 'form.description.tooLong'),
+    /** '' = academy-wide. */
+    location_id: z.string(),
   })
   .superRefine((values, ctx) => {
     if (values.category === 'coach_salary' && values.coach_id === '') {
@@ -49,5 +53,6 @@ export function toExpenseInput(values: ExpenseFormValues): ExpenseInput {
     expense_date: values.expense_date,
     coach_id: values.category === 'coach_salary' ? values.coach_id : null,
     description: values.description === '' ? null : values.description,
+    location_id: values.location_id === '' ? null : values.location_id,
   }
 }

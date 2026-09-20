@@ -4,6 +4,8 @@ import { ajyalCodeOf, errorKeyOf } from '@/lib/errors'
 /** The `ajyal:<code>` values the sessions guard trigger and `save_attendance` raise (`sessions:error.*`). */
 const KNOWN_CODES = [
   'invalid_coach',
+  'location_required',
+  'invalid_location',
   'session_cancelled',
   'session_has_attendance',
   'session_in_future',

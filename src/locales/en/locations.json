@@ -1,0 +1,63 @@
+{
+  "description": "The places where you train and collect fees. Sessions, subscriptions and expenses are arranged by location.",
+  "add": "Add location",
+  "caption": "Locations",
+  "columns": {
+    "name": "Location",
+    "status": "Status"
+  },
+  "status": {
+    "active": "In use",
+    "inactive": "Switched off"
+  },
+  "empty": {
+    "title": "No locations yet",
+    "description": "Add the places where you train, such as a field or a branch. Every session and subscription then belongs to one."
+  },
+  "loadError": {
+    "title": "Couldn't load locations",
+    "description": "Check your connection and try again."
+  },
+  "form": {
+    "createTitle": "Add location",
+    "editTitle": "Edit location",
+    "submitCreate": "Add location",
+    "submitEdit": "Save changes",
+    "name": {
+      "label": "Name",
+      "required": "Enter a name",
+      "tooLong": "The name is too long",
+      "taken": "A location with this name already exists"
+    },
+    "address": {
+      "label": "Address",
+      "hint": "Optional. An area or landmark helps coaches find it.",
+      "tooLong": "The address is too long"
+    },
+    "active": {
+      "label": "In use",
+      "hint": "Switch it off when you stop using this location. Past sessions, subscriptions and reports keep it, but it can't be chosen for new ones."
+    }
+  },
+  "toast": {
+    "created": "Location added",
+    "updated": "Location saved"
+  },
+  "field": {
+    "label": "Location",
+    "noneYet": "There are no locations yet. An admin can add one under More → Locations."
+  },
+  "select": {
+    "placeholder": "Choose a location",
+    "none": "No location",
+    "all": "All locations",
+    "inactiveOption": "{{name}} (switched off)"
+  },
+  "filter": {
+    "label": "Location"
+  },
+  "error": {
+    "location_required": "Choose a location.",
+    "invalid_location": "That location is switched off or doesn't exist. Choose another one."
+  }
+}

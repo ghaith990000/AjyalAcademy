@@ -12,6 +12,7 @@ export interface PaymentsCsvLabels {
     method: string,
     players: string,
     plan: string,
+    location: string,
     note: string,
     receivedBy: string,
   ]
@@ -24,6 +25,7 @@ export interface ExpensesCsvLabels {
     date: string,
     category: string,
     amount: string,
+    location: string,
     coach: string,
     description: string,
   ]
@@ -47,6 +49,7 @@ export function buildPaymentsCsv(
       .filter((name): name is string => Boolean(name))
       .join(NAME_SEPARATOR),
     row.subscription?.plan ? labels.plan(row.subscription.plan.code) : '',
+    row.subscription?.location?.name ?? null,
     row.note,
     row.received_by?.full_name ?? null,
   ])
@@ -61,6 +64,7 @@ export function buildExpensesCsv(
     row.expense_date,
     labels.category(row.category),
     formatBDAmount(row.amount_fils),
+    row.location?.name ?? null,
     row.coach?.full_name ?? null,
     row.description,
   ])

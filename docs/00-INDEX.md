@@ -26,6 +26,6 @@ Ajyal Academy Management System. This folder is the **source of truth** for what
 | [10-deployment.md](10-deployment.md)         | Deploying: Supabase project, Edge Function, hosting, first admin, backups.   |
 | [11-user-guide.md](11-user-guide.md)         | Short guide for coaches and admins, in English and Arabic.                   |
 | [ROADMAP.md](ROADMAP.md)                     | Phase status table — single source of progress.                              |
-| [phases/](phases/)                           | One file per build phase (PHASE-0 … PHASE-8).                                |
+| [phases/](phases/)                           | One file per build phase (PHASE-0 … PHASE-10).                               |
 
 Root file [../CLAUDE.md](../CLAUDE.md) holds the short list of hard rules and commands.

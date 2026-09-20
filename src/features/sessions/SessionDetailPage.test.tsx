@@ -33,7 +33,8 @@ const session = fakeSession({
   session_date: FUTURE,
   start_time: '16:00:00',
   end_time: '17:30:00',
-  location: 'Field 2',
+  location_id: 'loc-1',
+  location: { name: 'Field 2' },
   notes: 'Bring bibs',
 })
 

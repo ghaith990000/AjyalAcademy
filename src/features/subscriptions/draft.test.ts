@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { Plan, Settings } from '@/features/settings/api'
+import { LOCATIONS } from '@/test/locations'
 import { fakePlayer } from '@/test/players'
 import type { Discount } from './api'
 import {
   buildParams,
   checkDiscount,
   computePricing,
+  effectiveLocationId,
   initialDraft,
   paymentAmount,
   planFor,
@@ -61,11 +63,14 @@ const ctx = (overrides: Partial<DraftContext> = {}): DraftContext => ({
   isAdmin: false,
   discounts: [discount({})],
   today: TODAY,
+  locations: LOCATIONS,
   ...overrides,
 })
 const draftWith = (players: (typeof A)[], overrides: Partial<Draft> = {}): Draft => ({
   ...initialDraft(TODAY),
   players,
+  // A location is required; the tests that are not about it pick one.
+  locationId: 'loc-1',
   ...overrides,
 })
 
@@ -315,6 +320,13 @@ describe('step validation', () => {
       validateStep('dates', draftWith([A], { start: '2026-10-05', end: '2026-10-05' }), ctx()),
     ).toBeNull()
     expect(
+      validateStep(
+        'dates',
+        draftWith([fakePlayer({ location_id: null })], { locationId: '' }),
+        ctx(),
+      ),
+    ).toBe('location_required')
+    expect(
       validateStep('discount', draftWith([A], { discountMode: 'code', code: 'x' }), ctx()),
     ).toBe('code_not_found')
     expect(
@@ -331,6 +343,7 @@ describe('buildParams (arguments for create_subscription)', () => {
     expect(buildParams(draft, ctx())).toEqual({
       p_start_date: '2026-10-01',
       p_end_date: '2026-10-31',
+      p_location_id: 'loc-1',
       p_players: [{ player_id: 'a', transport: false }],
       p_initial_payment_fils: 25000,
       p_payment_method: 'cash',
@@ -392,6 +405,42 @@ describe('buildParams (arguments for create_subscription)', () => {
     })
     expect(buildParams(draft, ctx({ returning: new Set(['a']) }))).not.toHaveProperty(
       'p_initial_payment_fils',
+    )
+  })
+})
+
+describe('the subscription location', () => {
+  const at = (id: string | null) => fakePlayer({ location_id: id })
+
+  it('offers the location every selected player shares, while it is in use', () => {
+    const draft = draftWith([at('loc-2'), at('loc-2')], { locationId: '' })
+    expect(effectiveLocationId(draft, ctx())).toBe('loc-2')
+  })
+
+  it('offers nothing when the players differ, have none, or share a location that is switched off', () => {
+    expect(
+      effectiveLocationId(draftWith([at('loc-1'), at('loc-2')], { locationId: '' }), ctx()),
+    ).toBe('')
+    expect(effectiveLocationId(draftWith([at(null)], { locationId: '' }), ctx())).toBe('')
+    expect(effectiveLocationId(draftWith([at('loc-1'), at(null)], { locationId: '' }), ctx())).toBe(
+      '',
+    )
+    expect(effectiveLocationId(draftWith([at('loc-3')], { locationId: '' }), ctx())).toBe('')
+    expect(effectiveLocationId(draftWith([], { locationId: '' }), ctx())).toBe('')
+  })
+
+  it("keeps the choice made by hand over the players' location", () => {
+    const draft = draftWith([at('loc-2')], { locationId: 'loc-1' })
+    expect(effectiveLocationId(draft, ctx())).toBe('loc-1')
+    expect(buildParams(draft, ctx()).p_location_id).toBe('loc-1')
+  })
+
+  it('sends the offered location when nothing was chosen, and blocks the step when there is none', () => {
+    const offered = draftWith([at('loc-2')], { locationId: '' })
+    expect(buildParams(offered, ctx()).p_location_id).toBe('loc-2')
+    expect(validateStep('dates', offered, ctx())).toBeNull()
+    expect(validateStep('dates', draftWith([at(null)], { locationId: '' }), ctx())).toBe(
+      'location_required',
     )
   })
 })

@@ -108,10 +108,10 @@ describe('HomePage', () => {
     it("reads the month's money from the same report the Reports page uses", async () => {
       renderHome('admin')
       await screen.findByText('540.000 BD')
-      expect(reportsApi.getReportSummary).toHaveBeenCalledWith({
-        from: '2026-10-01',
-        to: '2026-10-31',
-      })
+      expect(reportsApi.getReportSummary).toHaveBeenCalledWith(
+        { from: '2026-10-01', to: '2026-10-31' },
+        undefined,
+      )
     })
 
     it('shows a loss in the danger colour and no margin when nothing was collected', async () => {
@@ -153,7 +153,7 @@ describe('HomePage', () => {
           id: 's-1',
           start_time: '16:00:00',
           end_time: '17:30:00',
-          location: 'Field 2',
+          location: { name: 'Field 2' },
         }),
       ])
       renderHome('admin')

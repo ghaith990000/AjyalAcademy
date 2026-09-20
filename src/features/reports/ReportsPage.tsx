@@ -12,15 +12,24 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { Card, CardTitle } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Field } from '@/components/ui/Field'
 import { Money } from '@/components/ui/Money'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { LocationSelect } from '@/features/locations/LocationField'
+import { useLocations } from '@/features/locations/hooks'
 import { currentPeriod, formatMargin, periodRange, type Period } from '@/lib/reports'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/lib/useLanguage'
 import { CategoryBreakdown } from './CategoryBreakdown'
 import { ExportCard } from './ExportCard'
-import { useExpensesByCategory, useReportSummary, useRevenueByMonth } from './hooks'
+import {
+  useExpensesByCategory,
+  useReportByLocation,
+  useReportSummary,
+  useRevenueByMonth,
+} from './hooks'
+import { LocationBreakdown } from './LocationBreakdown'
 import { MonthsTable } from './MonthsTable'
 import { PeriodSwitcher } from './PeriodSwitcher'
 import { RevenueChart } from './RevenueChart'
@@ -56,13 +65,19 @@ function Kpi({
 }
 
 export default function ReportsPage() {
-  const { t } = useTranslation(['reports', 'nav', 'common'])
+  const { t } = useTranslation(['reports', 'nav', 'common', 'locations'])
   const { language } = useLanguage()
   const [period, setPeriod] = useState<Period>(() => currentPeriod('month'))
+  const [locationId, setLocationId] = useState('')
   const range = periodRange(period)
-  const summary = useReportSummary(range)
-  const months = useRevenueByMonth(period.year)
-  const categories = useExpensesByCategory(range)
+  const filter = locationId || undefined
+  const summary = useReportSummary(range, filter)
+  const months = useRevenueByMonth(period.year, filter)
+  const categories = useExpensesByCategory(range, filter)
+  const byLocation = useReportByLocation(range)
+  const locations = useLocations()
+  // The split is only worth showing when there is more than one place to compare.
+  const showSplit = filter === undefined && (byLocation.data?.length ?? 0) > 1
 
   const s = summary.data
   const yearHasData = months.data?.some((row) => row.collectedFils > 0 || row.expensesFils > 0)
@@ -72,6 +87,21 @@ export default function ReportsPage() {
       <PageHeader title={t('nav:reports')} description={t('reports:description')} />
       <div className="space-y-4">
         <PeriodSwitcher period={period} onChange={setPeriod} kinds />
+
+        <Card className="space-y-2">
+          <Field label={t('locations:filter.label')}>
+            {(c) => (
+              <LocationSelect
+                {...c}
+                value={locationId}
+                currentId={locationId}
+                emptyLabel={t('locations:select.all')}
+                onChange={(event) => setLocationId(event.target.value)}
+              />
+            )}
+          </Field>
+          {filter && <p className="text-[13px] text-ink-muted">{t('reports:locationNote')}</p>}
+        </Card>
 
         {summary.isError ? (
           <Card>
@@ -114,6 +144,13 @@ export default function ReportsPage() {
               ))
             )}
           </section>
+        )}
+
+        {showSplit && (
+          <Card className="space-y-3">
+            <CardTitle>{t('reports:locations.title')}</CardTitle>
+            <LocationBreakdown rows={byLocation.data ?? []} locations={locations.data ?? []} />
+          </Card>
         )}
 
         <Card className="space-y-3">
@@ -165,7 +202,7 @@ export default function ReportsPage() {
           )}
         </Card>
 
-        <ExportCard period={period} />
+        <ExportCard period={period} locationId={filter} />
       </div>
     </>
   )

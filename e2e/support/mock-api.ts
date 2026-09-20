@@ -114,7 +114,24 @@ export function sessionFor(person: Person) {
 let seq = 0
 const uid = (prefix: string) => `${prefix}-${++seq}`
 
+/** The academy's locations: an Arabic and a Latin name (both directions on one screen), and one switched off. */
+const LOC = {
+  rifa: { id: 'loc-1', name: 'ملعب حديقة الرفاع' },
+  hamad: { id: 'loc-2', name: 'Hamad City Field' },
+} as const
+
 function seedWorld() {
+  const locations: Row[] = [
+    { ...LOC.rifa, address: 'الرفاع', active: true, created_at: '2026-01-01T00:00:00Z' },
+    { ...LOC.hamad, address: null, active: true, created_at: '2026-01-02T00:00:00Z' },
+    {
+      id: 'loc-3',
+      name: 'Old Field',
+      address: null,
+      active: false,
+      created_at: '2025-01-01T00:00:00Z',
+    },
+  ]
   const coachOf = (id: string | null) =>
     id ? { full_name: PEOPLE.find((p) => p.id === id)!.full_name } : null
   const mkPlayer = (
@@ -133,11 +150,13 @@ function seedWorld() {
     has_disease: false,
     disease_description: null,
     coach_id,
+    location_id: LOC.rifa.id,
     created_by: coach_id,
     created_at: '2026-06-01T08:00:00Z',
     deleted_at: null,
     deleted_by: null,
     coach: coachOf(coach_id),
+    location: { name: LOC.rifa.name },
     ...extra,
   })
   const players = [
@@ -188,6 +207,8 @@ function seedWorld() {
     status,
     player_names: names,
     player_count: ids.length,
+    location_id: LOC.rifa.id,
+    location_name: LOC.rifa.name,
     _players: ids,
     ...extra,
   })
@@ -260,7 +281,7 @@ function seedWorld() {
     start: string,
     end: string,
     coach_id: string,
-    location: string | null,
+    location: { id: string; name: string },
     cancelled = false,
   ): Row => ({
     id,
@@ -268,7 +289,8 @@ function seedWorld() {
     start_time: start,
     end_time: end,
     coach_id,
-    location,
+    location_id: location.id,
+    location: { name: location.name },
     notes: null,
     cancelled_at: cancelled ? stamp(300) : null,
     created_by: null,
@@ -276,12 +298,12 @@ function seedWorld() {
     coach: coachOf(coach_id),
   })
   const sessions = [
-    mkSession('se1', TODAY, '00:10:00', '00:20:00', 'c-1', 'ملعب الرفاع الرئيسي'),
-    mkSession('se2', TODAY, '16:00:00', '17:30:00', 'c-1', 'Field 2'),
-    mkSession('se3', plusDays(1), '16:00:00', '17:30:00', 'c-1', 'Field 2'),
-    mkSession('se4', plusDays(1), '18:00:00', '19:00:00', 'c-2', 'Field 1'),
-    mkSession('se5', plusDays(-3), '16:00:00', '17:30:00', 'c-1', 'Field 2'),
-    mkSession('se6', plusDays(-2), '16:00:00', '17:30:00', 'c-1', 'Field 2', true),
+    mkSession('se1', TODAY, '00:10:00', '00:20:00', 'c-1', LOC.rifa),
+    mkSession('se2', TODAY, '16:00:00', '17:30:00', 'c-1', LOC.hamad),
+    mkSession('se3', plusDays(1), '16:00:00', '17:30:00', 'c-1', LOC.hamad),
+    mkSession('se4', plusDays(1), '18:00:00', '19:00:00', 'c-2', LOC.rifa),
+    mkSession('se5', plusDays(-3), '16:00:00', '17:30:00', 'c-1', LOC.hamad),
+    mkSession('se6', plusDays(-2), '16:00:00', '17:30:00', 'c-1', LOC.hamad, true),
   ]
   const attendance: Row[] = [
     {
@@ -310,7 +332,9 @@ function seedWorld() {
       description: 'Pitch, hall A',
       created_by: 'a-1',
       created_at: '2026-09-01T08:00:00Z',
+      location_id: LOC.rifa.id,
       coach: null,
+      location: { name: LOC.rifa.name },
     },
     {
       id: 'e2',
@@ -321,7 +345,9 @@ function seedWorld() {
       description: null,
       created_by: 'a-1',
       created_at: '2026-09-01T08:00:00Z',
+      location_id: null,
       coach: { full_name: 'Khalid Al Dosari' },
+      location: null,
     },
   ]
   const discounts: Row[] = [
@@ -385,6 +411,7 @@ function seedWorld() {
   ]
 
   return {
+    locations,
     players,
     subscriptions,
     payments,
@@ -618,6 +645,27 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
           return list(PEOPLE.filter((p) => p.role === 'coach').map((p) => profileRow(p, lang)))
       }
 
+      // ---- locations
+      if (path === 'locations') {
+        if (method === 'POST') {
+          world.locations.push({
+            id: uid('loc-new'),
+            address: null,
+            active: true,
+            created_at: stamp(0),
+            ...(body as Row),
+          })
+          return json(route, 201, null)
+        }
+        if (method === 'PATCH') {
+          const id = q.get('id')?.slice(3)
+          const row = world.locations.find((l) => l.id === id)
+          if (row) Object.assign(row, body)
+          return json(route, 200, [{ id }])
+        }
+        return list(applyFilters(world.locations, q))
+      }
+
       // ---- players
       if (path === 'players') {
         if (method === 'POST') {
@@ -634,6 +682,8 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
           row.coach = row.coach_id
             ? { full_name: PEOPLE.find((p) => p.id === row.coach_id)?.full_name }
             : null
+          const place = world.locations.find((l) => l.id === row.location_id)
+          row.location = place ? { name: place.name } : null
           world.players.unshift(row)
           return json(route, 201, wantsObject ? { id: row.id } : [{ id: row.id }])
         }
@@ -713,7 +763,9 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
           p_players: { player_id: string }[]
           p_end_date: string
           p_start_date: string
+          p_location_id: string
         }
+        const place = world.locations.find((l) => l.id === params.p_location_id)
         const ids = params.p_players.map((p) => p.player_id)
         const id = uid('s-new')
         world.subscriptions.unshift({
@@ -739,9 +791,22 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
           status: 'active',
           player_names: ids.map((i) => world.players.find((p) => p.id === i)?.full_name).join(', '),
           player_count: ids.length,
+          location_id: params.p_location_id,
+          location_name: place?.name ?? null,
           _players: ids,
         })
         return json(route, 200, id)
+      }
+      if (path === 'rpc/set_subscription_location') {
+        const { p_subscription_id, p_location_id } = body as {
+          p_subscription_id: string
+          p_location_id: string
+        }
+        const target = world.subscriptions.find((x) => x.id === p_subscription_id)
+        const place = world.locations.find((l) => l.id === p_location_id)
+        if (target && place)
+          Object.assign(target, { location_id: place.id, location_name: place.name })
+        return json(route, 200, null)
       }
       if (path.startsWith('rpc/record_payment') || path.startsWith('rpc/cancel_subscription'))
         return json(route, 200, uid('ok'))
@@ -765,7 +830,8 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
             session_date: s.session_date,
             start_time: s.start_time,
             end_time: s.end_time,
-            location: s.location,
+            location_id: s.location_id,
+            location_name: (s.location as { name: string } | null)?.name ?? null,
             coach_id: s.coach_id,
           }
         })
@@ -818,17 +884,58 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
       if (
         path === 'rpc/report_summary' ||
         path === 'rpc/revenue_by_month' ||
-        path === 'rpc/expenses_by_category'
+        path === 'rpc/expenses_by_category' ||
+        path === 'rpc/report_by_location'
       ) {
+        const where = (body as { p_location_id?: string | null }).p_location_id ?? null
         const inRange = (d: string, from: string, to: string) => d >= from && d <= to
+        // A payment belongs to its subscription's location; an expense has its own.
+        const locationOfPayment = (payment: Row) =>
+          (world.subscriptions.find((x) => x.id === payment.subscription_id)?.location_id ??
+            null) as string | null
+        const paymentsHere = world.payments.filter((x) => !where || locationOfPayment(x) === where)
+        const expensesHere = world.expenses.filter((x) => !where || x.location_id === where)
         const sum = (rows: Row[], from: string, to: string, key: string) =>
           rows
             .filter((r) => inRange(String(r[key]), from, to))
             .reduce((s, r) => s + Number(r.amount_fils), 0)
+        if (path === 'rpc/report_by_location') {
+          const { p_from, p_to } = body as { p_from: string; p_to: string }
+          const ids = new Set<string | null>(
+            world.locations.filter((l) => l.active).map((l) => String(l.id)),
+          )
+          for (const x of world.payments) ids.add(locationOfPayment(x))
+          for (const x of world.expenses) ids.add((x.location_id ?? null) as string | null)
+          return json(
+            route,
+            200,
+            [...ids].map((location_id) => {
+              const c = sum(
+                world.payments.filter((x) => locationOfPayment(x) === location_id),
+                p_from,
+                p_to,
+                'paid_at',
+              )
+              const e = sum(
+                world.expenses.filter((x) => (x.location_id ?? null) === location_id),
+                p_from,
+                p_to,
+                'expense_date',
+              )
+              return {
+                location_id,
+                collected_fils: c,
+                expenses_fils: e,
+                profit_fils: c - e,
+                margin_bps: c > 0 ? Math.round(((c - e) * 10_000) / c) : null,
+              }
+            }),
+          )
+        }
         if (path === 'rpc/report_summary') {
           const { p_from, p_to } = body as { p_from: string; p_to: string }
-          const collected = sum(world.payments, p_from, p_to, 'paid_at')
-          const spent = sum(world.expenses, p_from, p_to, 'expense_date')
+          const collected = sum(paymentsHere, p_from, p_to, 'paid_at')
+          const spent = sum(expensesHere, p_from, p_to, 'expense_date')
           const profit = collected - spent
           return json(route, 200, [
             {
@@ -847,15 +954,15 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
             Array.from({ length: 12 }, (_, i) => {
               const from = `${p_year}-${pad(i + 1)}-01`
               const to = `${p_year}-${pad(i + 1)}-31`
-              const c = sum(world.payments, from, to, 'paid_at')
-              const e = sum(world.expenses, from, to, 'expense_date')
+              const c = sum(paymentsHere, from, to, 'paid_at')
+              const e = sum(expensesHere, from, to, 'expense_date')
               return { month_start: from, collected_fils: c, expenses_fils: e, profit_fils: c - e }
             }),
           )
         }
         const { p_from, p_to } = body as { p_from: string; p_to: string }
         const totals = new Map<string, number>()
-        for (const e of world.expenses.filter((x) => inRange(String(x.expense_date), p_from, p_to)))
+        for (const e of expensesHere.filter((x) => inRange(String(x.expense_date), p_from, p_to)))
           totals.set(
             String(e.category),
             (totals.get(String(e.category)) ?? 0) + Number(e.amount_fils),

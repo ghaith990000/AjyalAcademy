@@ -72,7 +72,7 @@ _Fee values above assume the **placeholder** settings: T-shirt 5000 fils, transp
 
 - A `payment` is money actually received. `paid_fils = Σ payments`; `balance_fils = total_fils − paid_fils` (never negative; overpayment is rejected).
 - `create_subscription` accepts an optional initial payment; the UI defaults to **"paid in full today"** (creates a payment for `total_fils`, method cash by default). It can be unticked to leave the subscription unpaid, and further payments added later.
-- **Collected fees** for a period = `Σ payments.amount_fils` where `paid_at` is in that period (not subscription totals, not start dates).
+- **Collected fees** for a period = `Σ payments.amount_fils` where `paid_at` is in that period (not subscription totals, not start dates). A payment counts for its **subscription's location** (see Locations).
 - A fully discounted (total 0) subscription creates no payment.
 - A payment cannot be dated in the future, must be above zero, and cannot take `paid` above `total`. A cancelled subscription accepts no payments.
 - Cancelling a subscription does **not** delete or refund payments; refunds are out of scope (record a negative adjustment as an `other` expense if needed).
@@ -81,7 +81,7 @@ _Fee values above assume the **placeholder** settings: T-shirt 5000 fils, transp
 
 Expense categories: `coach_salary`, `field_rent`, `transportation`, `equipment`, `other`. Expenses are attributed to the period of `expense_date`.
 
-- An expense has a category, an amount above zero, a date, an optional note and — for a salary — the coach it is for (required for a salary, not allowed for anything else). **It cannot be dated in the future** (the academy's date); who created it is always recorded. Only admins can see or change expenses. Editing or deleting one is allowed and is written to the activity log (D-063).
+- An expense has a category, an amount above zero, a date, an optional **location** (none = academy-wide), an optional note and — for a salary — the coach it is for (required for a salary, not allowed for anything else). **It cannot be dated in the future** (the academy's date); who created it is always recorded. Only admins can see or change expenses. Editing or deleting one is allowed and is written to the activity log (D-063).
 - **Monthly salaries:** the "Generate monthly salaries" action (month picker) inserts one `coach_salary` expense per **active** coach with `monthly_salary_fils > 0`, dated the 1st of the month, and is **idempotent** (skips a coach who already has a salary expense dated anywhere in that month — including one entered by hand). It uses each coach's salary as it is on the day it runs, refuses a month that has not begun, and tells the admin how many were created and skipped (D-065).
 
 For a period (a calendar month, or a calendar year):
@@ -100,21 +100,31 @@ Example — October: collected 540.000 BD, expenses 210.000 (salaries 150 + fiel
 - Payments of a **cancelled** subscription and of a **removed** player still count as collected: the money was received (cancelling is not a refund).
 - Nothing is reported for a period that has not begun: the period switcher stops at the current month / year.
 
+**By location:** the page can be narrowed to one location (the figures, the chart, the categories and both CSV files then cover only that location's payments and expenses; expenses for the whole academy are not spread across locations and are not in a single location's figures). When comparing (all locations, more than one row) a **by-location table** splits the period; its last row, "No location", holds payments on older subscriptions that have none yet and academy-wide expenses, so the rows always add up to the all-locations totals. The generated salaries are academy-wide unless an admin edits the expense.
+
 Reports also show: collected vs expenses per month for the selected year (12 bars + a profit line, with the same numbers in a table below), expenses by category (amount and share), and CSV export of the period's payments and expenses.
 
-**CSV export** (admin): two separate files for the selected period — payments (date, amount, method, players, plan, note, received by) and expenses (date, category, amount, coach, note). Every row of the period is included, not just a screenful. Dates are `yyyy-MM-dd` and amounts plain BD with three decimals (`540.000`, no currency text) so a spreadsheet can sort and add them; column names and labels follow the language the admin is using. UTF-8 with a byte-order mark, so Arabic names open correctly in Excel. Text that starts with `=`, `+`, `-` or `@` gets a leading apostrophe so a spreadsheet cannot run it as a formula (D-066).
+**CSV export** (admin): two separate files for the selected period — payments (date, amount, method, players, plan, location, note, received by) and expenses (date, category, amount, location, coach, note); they follow the page's location filter. Every row of the period is included, not just a screenful. Dates are `yyyy-MM-dd` and amounts plain BD with three decimals (`540.000`, no currency text) so a spreadsheet can sort and add them; column names and labels follow the language the admin is using. UTF-8 with a byte-order mark, so Arabic names open correctly in Excel. Text that starts with `=`, `+`, `-` or `@` gets a leading apostrophe so a spreadsheet cannot run it as a formula (D-066).
+
+## Locations
+
+- A **location** is a place where the academy trains and collects money (a field, a branch). Admins add, rename and switch locations off; everyone signed in can see them. A location is **never deleted** — switching it off keeps its name on past sessions, subscriptions, expenses and reports, but it cannot be chosen for anything new (D-084, D-088). The word in the app is **Location** / **الموقع**.
+- **Sessions** need a location. **Subscriptions** need one when created (the wizard offers the players' shared location first); an admin can later give an older subscription a location or move one (all its payments move with it, and it is logged). **Expenses** may have one (none = academy-wide). A **player** may have one as a label; it is not a permission — coaches are not tied to locations and still see only their own players, sessions and subscriptions (D-087).
+- **Money follows the subscription** (D-085): collected fees for a location = payments on that location's subscriptions in the period; its expenses = expenses tagged with it.
+- Existing data: the free-text places typed on earlier sessions became locations (one per distinct name, trimmed, case-insensitive); earlier subscriptions and expenses have no location until an admin sets one (D-086).
 
 ## Player rules
 
 - **CPR:** exactly 9 digits, unique among non-removed players; a duplicate is blocked, with a link to the existing player when the user is allowed to see it (D-043).
 - **Disease:** `has_disease = true` ⇒ description required; `false` ⇒ description cleared.
 - **Removal is soft:** the player disappears from lists and rosters; subscriptions/payments/attendance history are kept; the removal is logged with who did it.
+- **Location:** optional. It pre-fills the subscription wizard's location when all the players chosen share one that is still in use.
 - **Ownership:** a coach who creates a player is automatically their coach. Only an admin can reassign (single or bulk). A player can have **one** coach.
 - **Roster for a session** = active (non-removed) players whose `coach_id` equals the session's coach. Players without an active subscription are flagged with a warning badge but can still be marked. "Active subscription" is judged on the **session's own date**: a non-cancelled subscription whose (inclusive) period covers that day (D-057).
 
 ## Sessions and attendance
 
-- A session has a date, a start and an end time (`end > start`), one **coach** (an active coach; a coach schedules only for themself, an admin picks), an optional location and notes. "Repeat weekly" creates 2–26 sessions a week apart, the first included. A clash with the same coach's other non-cancelled sessions (same day, overlapping times; touching ends do not clash) is a **warning**, never a block.
+- A session has a date, a start and an end time (`end > start`), one **coach** (an active coach; a coach schedules only for themself, an admin picks), a **location** (required, chosen from the academy's active locations) and notes. "Repeat weekly" creates 2–26 sessions a week apart, the first included. A clash with the same coach's other non-cancelled sessions (same day, overlapping times; touching ends do not clash) is a **warning**, never a block.
 - Session status: **cancelled** (final), else **done** once its end time has passed, else **upcoming**. The agenda's default filter "Today & upcoming" shows everything not cancelled from today on, whatever the time, so a session that has just ended can still be marked (D-058).
 - Attendance is **present / absent** only (D-023). The screen starts everyone absent; saving records the whole roster and can be repeated to correct marks. **Attendance can be taken from the session's day on** (D-062): a cancelled session or one dated after today (academy date) cannot be marked — the database refuses it and the screens don't offer it. Only the session's coach or an admin can save.
 - **Attendance rate** (player page) = sessions marked present ÷ sessions with a mark, as a whole percent (half up); "—" when there is nothing to divide; cancelled sessions are not counted (D-059).

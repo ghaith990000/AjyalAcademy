@@ -31,6 +31,9 @@ export interface SubscriptionRow {
   /** Only the players the caller may see (a coach sees their own in a mixed subscription). */
   player_names: string | null
   player_count: number
+  /** null for a subscription that pre-dates locations and has not been given one yet. */
+  location_id: string | null
+  location_name: string | null
 }
 
 export interface SubscriptionPlayerRow {
@@ -55,9 +58,11 @@ export interface PaymentRow {
 export interface SubscriptionFilters {
   status: 'all' | SubscriptionStatus
   search: string
+  /** '' = every location, 'none' = subscriptions without one, or a location id. */
+  locationId: string
 }
 
-export const DEFAULT_SUBSCRIPTION_FILTERS: SubscriptionFilters = { status: 'all', search: '' }
+export const DEFAULT_SUBSCRIPTION_FILTERS: SubscriptionFilters = { status: 'all', search: '', locationId: '' }
 export const SUBSCRIPTIONS_PAGE_SIZE = 20
 
 export async function listSubscriptions(
@@ -66,6 +71,8 @@ export async function listSubscriptions(
 ): Promise<{ rows: SubscriptionRow[]; total: number }> {
   let query = supabase.from('subscription_overview').select('*', { count: 'exact' })
   if (filters.status !== 'all') query = query.eq('status', filters.status)
+  if (filters.locationId === 'none') query = query.is('location_id', null)
+  else if (filters.locationId) query = query.eq('location_id', filters.locationId)
   const search = cleanSearch(filters.search)
   if (search) query = query.ilike('player_names', `%${search}%`)
   query = query
@@ -189,6 +196,15 @@ export async function recordPayment(params: RecordPaymentParams): Promise<string
   const { data, error } = await supabase.rpc('record_payment', params)
   if (error) throw error
   return data
+}
+
+/** Admin only: labels an older subscription or corrects a mistake (logged). Moves all its money to that location. */
+export async function setSubscriptionLocation(id: string, locationId: string): Promise<void> {
+  const { error } = await supabase.rpc('set_subscription_location', {
+    p_subscription_id: id,
+    p_location_id: locationId,
+  })
+  if (error) throw error
 }
 
 export async function cancelSubscription(id: string, reason: string): Promise<void> {

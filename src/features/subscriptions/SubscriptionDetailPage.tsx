@@ -1,10 +1,22 @@
-import { Ban, ChevronLeft, CloudOff, CreditCard, Plus, ReceiptText, Shirt, Bus } from 'lucide-react'
+import {
+  Ban,
+  ChevronLeft,
+  CloudOff,
+  CreditCard,
+  MapPin,
+  Pencil,
+  Plus,
+  ReceiptText,
+  Shirt,
+  Bus,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardTitle } from '@/components/ui/Card'
+import { useAuth } from '@/features/auth/useAuth'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Money } from '@/components/ui/Money'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -14,6 +26,7 @@ import { formatDiscountValue } from '@/lib/discounts'
 import { useLanguage } from '@/lib/useLanguage'
 import { AddPaymentDialog } from './AddPaymentDialog'
 import { CancelSubscriptionDialog } from './CancelSubscriptionDialog'
+import { SubscriptionLocationDialog } from './SubscriptionLocationDialog'
 import {
   useDiscountLabel,
   useSubscription,
@@ -30,6 +43,8 @@ export default function SubscriptionDetailPage() {
   const { id = '' } = useParams()
   const { t } = useTranslation(['subscriptions', 'common'])
   const { language } = useLanguage()
+  const { profile } = useAuth()
+  const isAdmin = profile?.role === 'admin'
   const base = useSubscriptionsBasePath()
   const playersBase = usePlayersBasePath()
   const subscription = useSubscription(id)
@@ -39,6 +54,7 @@ export default function SubscriptionDetailPage() {
   const discountLabel = useDiscountLabel(discountId)
   const [paying, setPaying] = useState(false)
   const [cancelling, setCancelling] = useState(false)
+  const [relocating, setRelocating] = useState(false)
 
   const back = (
     <Link
@@ -130,6 +146,20 @@ export default function SubscriptionDetailPage() {
               <bdi dir="ltr">
                 {formatDate(sub.start_date)} – {formatDate(sub.end_date)}
               </bdi>
+            </p>
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-ink-muted">
+              <MapPin className="size-4 shrink-0" aria-hidden />
+              {sub.location_name ? (
+                <bdi>{sub.location_name}</bdi>
+              ) : (
+                <span>{t('subscriptions:detail.noLocation')}</span>
+              )}
+              {isAdmin && (
+                <Button variant="ghost" onClick={() => setRelocating(true)}>
+                  <Pencil className="size-4" aria-hidden />
+                  {t('subscriptions:detail.changeLocation')}
+                </Button>
+              )}
             </p>
           </div>
           {!cancelled && (
@@ -263,6 +293,9 @@ export default function SubscriptionDetailPage() {
       </div>
 
       {paying && <AddPaymentDialog subscription={sub} onClose={() => setPaying(false)} />}
+      {relocating && (
+        <SubscriptionLocationDialog subscription={sub} onClose={() => setRelocating(false)} />
+      )}
       {cancelling && (
         <CancelSubscriptionDialog subscription={sub} onClose={() => setCancelling(false)} />
       )}

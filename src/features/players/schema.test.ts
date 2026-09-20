@@ -12,6 +12,7 @@ const valid: PlayerFormValues = {
   has_disease: false,
   disease_description: '',
   coach_id: '',
+  location_id: '',
 }
 
 /** The message key reported for each failing field. */
@@ -101,7 +102,15 @@ describe('toPlayerInput', () => {
       phone: '39111001',
       has_disease: false,
       disease_description: null,
+      location_id: null,
     })
+  })
+
+  it('sends the chosen location, or null for none', () => {
+    expect(
+      toPlayerInput({ ...valid, location_id: 'loc-1' }, { includeCoach: false }).location_id,
+    ).toBe('loc-1')
+    expect(toPlayerInput(valid, { includeCoach: false }).location_id).toBeNull()
   })
 
   it('drops a stale description when the condition switch is off', () => {

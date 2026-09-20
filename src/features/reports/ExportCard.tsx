@@ -11,8 +11,11 @@ import { buildExpensesCsv, buildPaymentsCsv, downloadCsv } from './exportCsv'
 
 type Kind = 'payments' | 'expenses'
 
-/** Two downloads for the selected period: every payment and every expense, as UTF-8 CSV that opens in Excel. */
-export function ExportCard({ period }: { period: Period }) {
+/**
+ * Two downloads for the selected period: every payment and every expense, as UTF-8 CSV that opens in Excel.
+ * They follow the page's location filter, so what is downloaded is what the figures above add up.
+ */
+export function ExportCard({ period, locationId }: { period: Period; locationId?: string }) {
   const { t, i18n } = useTranslation(['reports', 'expenses', 'subscriptions', 'errors'])
   const toast = useToast()
   const [busy, setBusy] = useState<Kind | null>(null)
@@ -23,13 +26,14 @@ export function ExportCard({ period }: { period: Period }) {
       const range = periodRange(period)
       const content =
         kind === 'payments'
-          ? buildPaymentsCsv(await listPaymentsForExport(range), {
+          ? buildPaymentsCsv(await listPaymentsForExport(range, locationId), {
               headers: [
                 t('reports:export.columns.date'),
                 t('reports:export.columns.amount'),
                 t('reports:export.columns.method'),
                 t('reports:export.columns.players'),
                 t('reports:export.columns.plan'),
+                t('reports:export.columns.location'),
                 t('reports:export.columns.note'),
                 t('reports:export.columns.receivedBy'),
               ],
@@ -40,11 +44,12 @@ export function ExportCard({ period }: { period: Period }) {
                   ? t(`subscriptions:plan.${code}` as 'subscriptions:plan.solo')
                   : code,
             })
-          : buildExpensesCsv(await listExpensesForExport(range), {
+          : buildExpensesCsv(await listExpensesForExport(range, locationId), {
               headers: [
                 t('reports:export.columns.date'),
                 t('reports:export.columns.category'),
                 t('reports:export.columns.amount'),
+                t('reports:export.columns.location'),
                 t('reports:export.columns.coach'),
                 t('reports:export.columns.description'),
               ],

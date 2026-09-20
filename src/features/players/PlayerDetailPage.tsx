@@ -205,6 +205,9 @@ export default function PlayerDetailPage() {
             </InfoRow>
             <InfoRow label={t('players:detail.school')}>{player.school ?? notProvided}</InfoRow>
             <InfoRow label={t('players:detail.address')}>{player.address ?? notProvided}</InfoRow>
+            <InfoRow label={t('players:detail.location')}>
+              {player.location ? <bdi>{player.location.name}</bdi> : notProvided}
+            </InfoRow>
             {isAdmin && (
               <InfoRow label={t('players:detail.coach')}>
                 {player.coach?.full_name ?? (

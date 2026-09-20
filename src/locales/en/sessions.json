@@ -69,9 +69,7 @@
       "required": "Choose a coach."
     },
     "location": {
-      "label": "Location",
-      "placeholder": "e.g. Field 2",
-      "tooLong": "Keep the location under 120 characters."
+      "required": "Choose a location."
     },
     "notes": {
       "label": "Notes",
@@ -135,6 +133,8 @@
     "not_on_roster": "One of the players isn't on this coach's roster any more. Reload and try again.",
     "invalid_records": "The attendance couldn't be read. Reload and try again.",
     "forbidden": "You don't have permission to do that.",
-    "session_in_future": "Attendance can only be taken from the day of the session."
+    "session_in_future": "Attendance can only be taken from the day of the session.",
+    "location_required": "Choose a location for the session.",
+    "invalid_location": "That location is switched off or doesn't exist. Choose another one."
   }
 }

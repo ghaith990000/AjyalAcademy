@@ -12,6 +12,7 @@ import { Select } from '@/components/ui/Select'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAuth } from '@/features/auth/useAuth'
 import { useCoaches } from '@/features/coaches/hooks'
+import { LocationSelect } from '@/features/locations/LocationField'
 import { formatDate, formatLongDate, formatTimeRange, todayISO } from '@/lib/dates'
 import type { Language } from '@/lib/i18n'
 import { useLanguage } from '@/lib/useLanguage'
@@ -51,7 +52,7 @@ function SessionCard({ session, showCoach }: { session: SessionRow; showCoach: b
           <span className="flex items-center gap-1.5 text-[15px] text-ink-muted">
             <MapPin className="size-4 shrink-0" aria-hidden />
             <span className="min-w-0 break-words" dir="auto">
-              {session.location}
+              {session.location.name}
             </span>
           </span>
         )}
@@ -78,7 +79,7 @@ function dayHeading(
 }
 
 export default function SessionsPage() {
-  const { t } = useTranslation(['sessions', 'nav', 'common'])
+  const { t } = useTranslation(['sessions', 'nav', 'common', 'locations'])
   const { language } = useLanguage()
   const { profile } = useAuth()
   const isAdmin = profile?.role === 'admin'
@@ -86,8 +87,9 @@ export default function SessionsPage() {
 
   const [status, setStatus] = useState<SessionFilters['status']>(DEFAULT_SESSION_FILTERS.status)
   const [coachId, setCoachId] = useState(DEFAULT_SESSION_FILTERS.coachId)
+  const [locationId, setLocationId] = useState(DEFAULT_SESSION_FILTERS.locationId)
   const [scheduling, setScheduling] = useState(false)
-  const filters: SessionFilters = { status, coachId }
+  const filters: SessionFilters = { status, coachId, locationId }
   const {
     rows,
     total,
@@ -99,11 +101,14 @@ export default function SessionsPage() {
     refetch,
   } = useSessionsList(filters)
   const filtered =
-    status !== DEFAULT_SESSION_FILTERS.status || coachId !== DEFAULT_SESSION_FILTERS.coachId
+    status !== DEFAULT_SESSION_FILTERS.status ||
+    coachId !== DEFAULT_SESSION_FILTERS.coachId ||
+    locationId !== DEFAULT_SESSION_FILTERS.locationId
 
   function clearFilters() {
     setStatus(DEFAULT_SESSION_FILTERS.status)
     setCoachId(DEFAULT_SESSION_FILTERS.coachId)
+    setLocationId(DEFAULT_SESSION_FILTERS.locationId)
   }
 
   const addButton = (
@@ -152,6 +157,17 @@ export default function SessionsPage() {
             )}
           </Field>
         )}
+        <Field label={t('locations:filter.label')}>
+          {(c) => (
+            <LocationSelect
+              {...c}
+              value={locationId}
+              currentId={locationId}
+              emptyLabel={t('locations:select.all')}
+              onChange={(event) => setLocationId(event.target.value)}
+            />
+          )}
+        </Field>
         {filtered && (
           <div className="sm:col-span-2">
             <Button variant="ghost" onClick={clearFilters}>

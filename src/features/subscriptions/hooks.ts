@@ -20,6 +20,7 @@ import {
   listReturningPlayers,
   listSubscriptions,
   recordPayment,
+  setSubscriptionLocation,
   type CreateSubscriptionParams,
   type RecordPaymentParams,
   type SubscriptionFilters,
@@ -149,6 +150,17 @@ export function useRecordPayment() {
     mutationFn: (params: RecordPaymentParams) => recordPayment(params),
     meta: { silent: true },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: KEY }),
+  })
+}
+
+export function useSetSubscriptionLocation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, locationId }: { id: string; locationId: string }) =>
+      setSubscriptionLocation(id, locationId),
+    meta: { silent: true },
+    // The location shows in the lists and moves the subscription's money between locations in the reports.
+    onSuccess: () => queryClient.invalidateQueries(),
   })
 }
 

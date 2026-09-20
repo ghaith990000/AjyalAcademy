@@ -104,7 +104,10 @@
     "addPayment": "Add payment",
     "cancel": "Cancel subscription",
     "cancelledOn": "Cancelled on {{date}}",
-    "cancelReason": "Reason: {{reason}}"
+    "cancelReason": "Reason: {{reason}}",
+    "location": "Location",
+    "noLocation": "No location yet",
+    "changeLocation": "Change location"
   },
   "payment": {
     "title": "Add payment",
@@ -147,7 +150,7 @@
     "total": "Total",
     "steps": {
       "players": "Players",
-      "dates": "Period",
+      "dates": "Location and period",
       "options": "Options",
       "discount": "Discount",
       "summary": "Summary",
@@ -165,10 +168,11 @@
       "remove": "Remove {{name}}"
     },
     "dates": {
-      "heading": "Subscription period",
+      "heading": "Location and period",
       "start": "Start date",
       "end": "End date",
-      "hint": "The end date defaults to one month after the start (inclusive). You can change it."
+      "hint": "The end date defaults to one month after the start (inclusive). You can change it.",
+      "location": "Location"
     },
     "options": {
       "heading": "Fees per player",
@@ -244,7 +248,17 @@
     "already_cancelled": "This subscription is already cancelled.",
     "invalid_amount": "Enter an amount above zero.",
     "invalid_date": "Enter a valid date, not in the future.",
-    "forbidden": "You don't have permission to do that."
+    "forbidden": "You don't have permission to do that.",
+    "location_required": "Choose a location.",
+    "invalid_location": "That location is switched off or doesn't exist. Choose another one."
   },
-  "hiddenPlayers": "+{{n}} with another coach"
+  "hiddenPlayers": "+{{n}} with another coach",
+  "locationDialog": {
+    "title": "Change location",
+    "description": "All of this subscription's payments count for the location you choose, including the ones already recorded.",
+    "save": "Save",
+    "toast": {
+      "saved": "Location saved"
+    }
+  }
 }

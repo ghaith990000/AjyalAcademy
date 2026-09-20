@@ -6,7 +6,7 @@ const valid: SessionFormValues = {
   start_time: '16:00',
   end_time: '17:30',
   coach_id: 'coach-1',
-  location: '',
+  location_id: 'loc-1',
   notes: '',
   repeat: false,
   repeat_weeks: '4',
@@ -47,8 +47,11 @@ describe('sessionSchema', () => {
     expect(messages({ coach_id: '' })).toEqual(['form.coach.required'])
   })
 
+  it('needs a location', () => {
+    expect(messages({ location_id: '' })).toEqual(['form.location.required'])
+  })
+
   it('limits the free text', () => {
-    expect(messages({ location: 'x'.repeat(121) })).toEqual(['form.location.tooLong'])
     expect(messages({ notes: 'x'.repeat(501) })).toEqual(['form.notes.tooLong'])
   })
 
@@ -66,14 +69,14 @@ describe('sessionSchema', () => {
 })
 
 describe('toSessionInputs', () => {
-  it('makes one row, turning blank optional fields into null', () => {
+  it('makes one row with the chosen location, turning blank notes into null', () => {
     expect(toSessionInputs(valid)).toEqual([
       {
         session_date: '2026-09-19',
         start_time: '16:00',
         end_time: '17:30',
         coach_id: 'coach-1',
-        location: null,
+        location_id: 'loc-1',
         notes: null,
       },
     ])
@@ -84,11 +87,13 @@ describe('toSessionInputs', () => {
       ...valid,
       repeat: true,
       repeat_weeks: '3',
-      location: 'Field 2',
+      location_id: 'loc-2',
       notes: 'Bring bibs',
     })
     expect(rows.map((row) => row.session_date)).toEqual(['2026-09-19', '2026-09-26', '2026-10-03'])
-    expect(rows.every((row) => row.location === 'Field 2' && row.notes === 'Bring bibs')).toBe(true)
+    expect(rows.every((row) => row.location_id === 'loc-2' && row.notes === 'Bring bibs')).toBe(
+      true,
+    )
     expect(sessionDates({ ...valid, repeat: true, repeat_weeks: '2' })).toHaveLength(2)
   })
 })

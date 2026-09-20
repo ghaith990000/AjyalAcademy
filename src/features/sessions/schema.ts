@@ -18,7 +18,8 @@ export const sessionSchema = z
     end_time: z.string().regex(TIME, 'form.endTime.required'),
     /** Admins pick; a coach's own id is filled in by the form. */
     coach_id: z.string().min(1, 'form.coach.required'),
-    location: z.string().trim().max(120, 'form.location.tooLong'),
+    /** An active location (the database refuses an unknown or switched-off one). */
+    location_id: z.string().min(1, 'form.location.required'),
     notes: z.string().trim().max(500, 'form.notes.tooLong'),
     repeat: z.boolean(),
     /** Typed as text; only read when `repeat` is on. */
@@ -56,7 +57,7 @@ export interface SessionInput {
   start_time: string
   end_time: string
   coach_id: string
-  location: string | null
+  location_id: string
   notes: string | null
 }
 
@@ -76,7 +77,7 @@ export function toSessionInputs(values: SessionFormValues): SessionInput[] {
     start_time: values.start_time,
     end_time: values.end_time,
     coach_id: values.coach_id,
-    location: orNull(values.location),
+    location_id: values.location_id,
     notes: orNull(values.notes),
   }))
 }

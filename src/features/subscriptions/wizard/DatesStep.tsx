@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
-import { withEnd, withStart } from '../draft'
+import { LocationField } from '@/features/locations/LocationField'
+import { effectiveLocationId, withEnd, withLocation, withStart } from '../draft'
 import type { StepProps } from './types'
 
-export function DatesStep({ draft, onChange, error }: StepProps) {
+export function DatesStep({ draft, onChange, ctx, error }: StepProps) {
   const { t } = useTranslation('subscriptions')
   const startError = error === 'start_invalid' ? t('error.start_invalid') : undefined
   const endError =
@@ -15,6 +16,16 @@ export function DatesStep({ draft, onChange, error }: StepProps) {
         : undefined
   return (
     <div className="space-y-4">
+      <LocationField
+        required
+        label={t('wizard.dates.location')}
+        select={{
+          value: effectiveLocationId(draft, ctx),
+          onChange: (event) => onChange(withLocation(draft, event.target.value)),
+        }}
+        currentId={effectiveLocationId(draft, ctx)}
+        error={error === 'location_required' ? t('error.location_required') : undefined}
+      />
       <p className="text-ink-muted">{t('wizard.dates.hint')}</p>
       <Field label={t('wizard.dates.start')} required error={startError}>
         {(c) => (

@@ -94,8 +94,11 @@ describe('ExpensesPage', () => {
     expect(screen.getByText('October 2026')).toBeInTheDocument()
     expect(screen.getByText('Total for October 2026')).toBeInTheDocument()
     expect(await screen.findByText('210.000 BD')).toBeInTheDocument()
-    expect(api.listExpenses).toHaveBeenCalledWith({ range: OCTOBER, category: 'all' }, 0)
-    expect(reportsApi.getExpensesByCategory).toHaveBeenCalledWith(OCTOBER)
+    expect(api.listExpenses).toHaveBeenCalledWith(
+      { range: OCTOBER, category: 'all', locationId: '' },
+      0,
+    )
+    expect(reportsApi.getExpensesByCategory).toHaveBeenCalledWith(OCTOBER, undefined)
   })
 
   it('filters by category chip and shows that category alongside the total', async () => {
@@ -115,7 +118,7 @@ describe('ExpensesPage', () => {
     )
     await waitFor(() =>
       expect(api.listExpenses).toHaveBeenLastCalledWith(
-        { range: OCTOBER, category: 'field_rent' },
+        { range: OCTOBER, category: 'field_rent', locationId: '' },
         0,
       ),
     )
@@ -132,7 +135,10 @@ describe('ExpensesPage', () => {
 
     expect(await screen.findByText('September 2026')).toBeInTheDocument()
     await waitFor(() =>
-      expect(api.listExpenses).toHaveBeenLastCalledWith({ range: SEPTEMBER, category: 'all' }, 0),
+      expect(api.listExpenses).toHaveBeenLastCalledWith(
+        { range: SEPTEMBER, category: 'all', locationId: '' },
+        0,
+      ),
     )
     expect(screen.getByRole('button', { name: 'Next month' })).toBeEnabled()
   })
@@ -167,7 +173,39 @@ describe('ExpensesPage', () => {
     expect(await screen.findByText('Showing 1 of 2')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Show more' }))
     expect(await screen.findByText('Showing 2 of 2')).toBeInTheDocument()
-    expect(api.listExpenses).toHaveBeenLastCalledWith({ range: OCTOBER, category: 'all' }, 1)
+    expect(api.listExpenses).toHaveBeenLastCalledWith(
+      { range: OCTOBER, category: 'all', locationId: '' },
+      1,
+    )
+  })
+
+  describe('by location', () => {
+    it("shows each expense's location, or that it is for the whole academy", async () => {
+      vi.mocked(api.listExpenses).mockResolvedValue({
+        rows: [
+          fakeExpense({ id: 'e-a', location_id: 'loc-1', location: { name: 'Al-Rifa' } }),
+          fakeExpense({ id: 'e-b', category: 'equipment' }),
+        ],
+        total: 2,
+      })
+      renderPage()
+      expect((await screen.findAllByText('Al-Rifa')).length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Academy-wide').length).toBeGreaterThan(0)
+    })
+
+    it('filters the list and the month total by location', async () => {
+      renderPage()
+      await screen.findAllByText('Pitch, hall A')
+      await screen.findByRole('option', { name: 'Hamad City' })
+      await userEvent.selectOptions(screen.getByLabelText('Location'), 'loc-2')
+      await waitFor(() =>
+        expect(api.listExpenses).toHaveBeenLastCalledWith(
+          { range: OCTOBER, category: 'all', locationId: 'loc-2' },
+          0,
+        ),
+      )
+      expect(reportsApi.getExpensesByCategory).toHaveBeenLastCalledWith(OCTOBER, 'loc-2')
+    })
   })
 
   describe('adding an expense', () => {
@@ -212,6 +250,7 @@ describe('ExpensesPage', () => {
           expense_date: '2026-10-19',
           coach_id: null,
           description: 'Bus hire',
+          location_id: null,
         }),
       )
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
@@ -316,6 +355,7 @@ describe('ExpensesPage', () => {
           expense_date: '2026-10-15',
           coach_id: null,
           description: 'Pitch, hall A',
+          location_id: null,
         }),
       )
       expect(await screen.findByText('Expense updated')).toBeInTheDocument()

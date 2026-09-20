@@ -3,7 +3,7 @@ import { Card, CardTitle } from '@/components/ui/Card'
 import { formatDate } from '@/lib/dates'
 import { formatDiscountValue } from '@/lib/discounts'
 import { useLanguage } from '@/lib/useLanguage'
-import { checkDiscount, computePricing, planFor } from '../draft'
+import { checkDiscount, computePricing, effectiveLocationId, planFor } from '../draft'
 import { PriceBreakdown } from '../PriceBreakdown'
 import type { StepProps } from './types'
 
@@ -14,6 +14,9 @@ export function SummaryStep({ draft, ctx }: StepProps) {
   const plan = planFor(draft, ctx)
   const discount = checkDiscount(draft, ctx)
   if (!pricing || !plan) return null
+  const locationName = ctx.locations.find(
+    (location) => location.id === effectiveLocationId(draft, ctx),
+  )?.name
 
   let discountLabel: string | undefined
   if (discount.kind === 'ok') {
@@ -34,6 +37,11 @@ export function SummaryStep({ draft, ctx }: StepProps) {
           {t('detail.title', { plan: t(`plan.${plan.code as 'solo' | 'duo' | 'trio' | 'quad'}`) })}
         </CardTitle>
         <p className="text-ink-muted">{draft.players.map((p) => p.full_name).join(', ')}</p>
+        {locationName && (
+          <p className="text-ink-muted">
+            {t('detail.location')}: <bdi>{locationName}</bdi>
+          </p>
+        )}
         <p className="text-ink-muted">
           <bdi dir="ltr">
             {formatDate(draft.start)} – {formatDate(draft.end)}

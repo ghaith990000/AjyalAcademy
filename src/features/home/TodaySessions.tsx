@@ -69,7 +69,7 @@ export function TodaySessions({
                 <span className="flex items-center gap-1.5 text-[15px] text-ink-muted">
                   <MapPin className="size-4 shrink-0" aria-hidden />
                   <span dir="auto" className="min-w-0 break-words">
-                    {session.location}
+                    {session.location.name}
                   </span>
                 </span>
               )}

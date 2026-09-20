@@ -6,6 +6,8 @@ const KNOWN_CODES = [
   'player_not_found',
   'invalid_players',
   'invalid_dates',
+  'location_required',
+  'invalid_location',
   'plan_unavailable',
   'discount_not_found',
   'discount_inactive',

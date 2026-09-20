@@ -24,7 +24,7 @@ src/
   app/             App, providers, routes (lazy pages), shells (layouts/), error screens, pwa/ (update, offline, install)
   components/ui/   design-system components (Button, Input, Select, Card, Dialog, Badge, DataList, FilterChips, Toast…)
   features/<x>/    auth, players, coaches, subscriptions, discounts, sessions, attendance, expenses, reports,
-                   activity, home, settings (+ dev, the component gallery — development only)
+                   activity, home, settings, locations (+ dev, the component gallery — development only)
                      api.ts            supabase queries/mutations (thin, typed)
                      hooks.ts          useXxx wrappers around TanStack Query
                      schema.ts         zod schema + inferred types (where the feature has forms)
@@ -130,3 +130,9 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - **Resilience:** `AppErrorBoundary` (rendering errors) and router `errorElement`s (`RouteErrorPage` — inside the shell, so the navigation stays) show `ErrorScreen`; a failed page download gets its own wording (`chunkError.ts`). `QueryProvider` ends the session when the server rejects the login (any query, silent or not, `endSession`) and `AuthProvider` remembers involuntary sign-outs (`sessionNotice.ts`) so the login screen explains.
 - **Security headers:** a strict Content-Security-Policy (`vite.config.ts` for `vite preview`; `vercel.json` / `netlify.toml` for hosting); zod runs without its JIT (`lib/zod-config.ts`) because the policy forbids `eval`.
 - **End-to-end tests** (`e2e/`, `playwright.config.ts`): see [09-conventions.md](09-conventions.md#end-to-end-tests).
+
+## As built (Phase 9)
+
+- **`src/features/locations`:** the admin page (`LocationsPage`, `LocationDialog`, `/admin/locations`, under _More_), `useLocations()` (all locations, kept fresh 5 minutes, `meta.silent`), and **`LocationField` / `LocationSelect`** — the one select every form and filter uses. It offers the locations in use plus the record's own current one, disables itself until the list has arrived and re-mounts then (so a form's default value lands on the finished list), takes `emptyLabel` ("No location", "All locations") and `extraOptions` (a filter's "No location" choice), and — when a location is required but none exists — says what to do about it.
+- **Where locations show up:** the session form and agenda (with a filter), the subscription wizard's _Location and period_ step (default = the players' shared location, `sharedPlayerLocation` in `draft.ts`), the subscription list (filter) and detail (admin: _Change location_ → `set_subscription_location`), the expense form and list (filter), the player form and list (filter), the reports page (filter + `LocationBreakdown`), both CSV files, and the activity feed.
+- **Tests:** `src/test/setup.ts` mocks the locations API for every test (three locations: Al-Rifa, Hamad City, and a switched-off Old Field; `src/test/locations.ts`) — a test that cares overrides `listLocations`. The e2e mock knows `locations`, the two new RPCs and location-aware report functions.

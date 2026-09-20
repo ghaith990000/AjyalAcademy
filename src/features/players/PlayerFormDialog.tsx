@@ -14,7 +14,8 @@ import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/toast-context'
 import { useAuth } from '@/features/auth/useAuth'
 import { useCoaches } from '@/features/coaches/hooks'
-import { errorKeyOf } from '@/lib/errors'
+import { LocationField } from '@/features/locations/LocationField'
+import { ajyalCodeOf, errorKeyOf } from '@/lib/errors'
 import { DuplicateCprError, type PlayerRow } from './api'
 import { useCreatePlayer, usePlayersBasePath, useUpdatePlayer } from './hooks'
 import { playerSchema, toPlayerInput, type PlayerFormValues } from './schema'
@@ -30,7 +31,7 @@ interface PlayerFormDialogProps {
 }
 
 export function PlayerFormDialog({ player, onClose, onSaved }: PlayerFormDialogProps) {
-  const { t } = useTranslation(['players', 'common', 'errors'])
+  const { t } = useTranslation(['players', 'common', 'errors', 'locations'])
   const toast = useToast()
   const { profile } = useAuth()
   const isAdmin = profile?.role === 'admin'
@@ -54,6 +55,7 @@ export function PlayerFormDialog({ player, onClose, onSaved }: PlayerFormDialogP
       date_of_birth: player?.date_of_birth ?? '',
       address: player?.address ?? '',
       school: player?.school ?? '',
+      location_id: player?.location_id ?? '',
       phone: player?.phone ?? '',
       has_disease: player?.has_disease ?? false,
       disease_description: player?.disease_description ?? '',
@@ -85,6 +87,8 @@ export function PlayerFormDialog({ player, onClose, onSaved }: PlayerFormDialogP
       if (error instanceof DuplicateCprError) {
         setDuplicate(error)
         setError('cpr', { message: 'form.duplicate.taken' })
+      } else if (ajyalCodeOf(error) === 'invalid_location') {
+        setError('location_id', { message: 'form.location.invalid' })
       } else {
         toast({
           title: t('errors:title'),
@@ -195,6 +199,13 @@ export function PlayerFormDialog({ player, onClose, onSaved }: PlayerFormDialogP
         <Field label={t('players:form.address.label')} error={message(errors.address?.message)}>
           {(c) => <Input {...c} {...register('address')} dir="auto" autoComplete="off" />}
         </Field>
+
+        <LocationField
+          select={register('location_id')}
+          currentId={player?.location_id}
+          emptyLabel={t('locations:select.none')}
+          error={message(errors.location_id?.message)}
+        />
 
         <div className="space-y-3 rounded-card border border-line bg-page p-3.5">
           <Controller

@@ -34,6 +34,8 @@ export const playerSchema = z
     disease_description: z.string().trim().max(500, 'form.diseaseDescription.tooLong'),
     /** Admin only: '' = unassigned. Coaches never send it (the database forces their own id). */
     coach_id: z.string(),
+    /** '' = no location; otherwise an active location (the database refuses a switched-off one). */
+    location_id: z.string(),
   })
   .superRefine((values, ctx) => {
     if (values.has_disease && values.disease_description === '') {
@@ -57,6 +59,7 @@ export interface PlayerInput {
   phone: string
   has_disease: boolean
   disease_description: string | null
+  location_id: string | null
   coach_id?: string | null
 }
 
@@ -80,6 +83,7 @@ export function toPlayerInput(
     phone: values.phone,
     has_disease: values.has_disease,
     disease_description: values.has_disease ? values.disease_description : null,
+    location_id: orNull(values.location_id),
   }
   if (options.includeCoach) input.coach_id = orNull(values.coach_id)
   return input

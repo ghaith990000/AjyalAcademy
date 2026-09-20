@@ -13,12 +13,13 @@ export function fakeSession(overrides: Partial<SessionRow> = {}): SessionRow {
     start_time: '16:00:00',
     end_time: '17:30:00',
     coach_id: 'coach-1',
-    location: 'Field 2',
+    location_id: 'loc-1',
     notes: null,
     cancelled_at: null,
     created_by: null,
     created_at: '2026-09-01T08:00:00Z',
     coach: { full_name: 'Khalid Al Dosari' },
+    location: { name: 'Field 2' },
     ...overrides,
   }
 }

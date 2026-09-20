@@ -1,6 +1,6 @@
 # Data model (Postgres / Supabase)
 
-Status: **migrated in Phase 2** — tables, constraints, RLS, guard/activity triggers and `remove_player` exist (`supabase/migrations/`). Other RPCs are implemented in the phase that uses them (see the RPC table). This doc is the contract; migrations must match it. Update both together.
+Status: **migrated in Phase 2; extended in Phase 9 (locations)** — tables, constraints, RLS, guard/activity triggers and `remove_player` exist (`supabase/migrations/`). Other RPCs are implemented in the phase that uses them (see the RPC table). This doc is the contract; migrations must match it. Update both together.
 
 ## Conventions
 
@@ -39,21 +39,32 @@ Status: **migrated in Phase 2** — tables, constraints, RLS, guard/activity tri
 
 ### `players`
 
-| Column                | Type            | Notes                                                             |
-| --------------------- | --------------- | ----------------------------------------------------------------- |
-| `full_name`           | text not null   |                                                                   |
-| `cpr`                 | text not null   | **unique** (among non-deleted), check `^[0-9]{9}$`                |
-| `date_of_birth`       | date not null   | must be in the past                                               |
-| `address`             | text            |                                                                   |
-| `school`              | text            |                                                                   |
-| `phone`               | text not null   | guardian/contact number                                           |
-| `has_disease`         | bool not null   | default false                                                     |
-| `disease_description` | text            | **check:** required (non-empty) when `has_disease`, null when not |
-| `coach_id`            | uuid → profiles | nullable (unassigned); admin assigns; coach-created ⇒ that coach  |
-| `created_by`          | uuid → profiles |                                                                   |
-| `deleted_at`          | timestamptz     | soft delete; `deleted_by uuid` also stored                        |
+| Column                | Type             | Notes                                                                                                 |
+| --------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
+| `full_name`           | text not null    |                                                                                                       |
+| `cpr`                 | text not null    | **unique** (among non-deleted), check `^[0-9]{9}$`                                                    |
+| `date_of_birth`       | date not null    | must be in the past                                                                                   |
+| `address`             | text             |                                                                                                       |
+| `school`              | text             |                                                                                                       |
+| `phone`               | text not null    | guardian/contact number                                                                               |
+| `has_disease`         | bool not null    | default false                                                                                         |
+| `disease_description` | text             | **check:** required (non-empty) when `has_disease`, null when not                                     |
+| `coach_id`            | uuid → profiles  | nullable (unassigned); admin assigns; coach-created ⇒ that coach                                      |
+| `location_id`         | uuid → locations | optional label: where the player trains; must be an **active** location when set or changed (Phase 9) |
+| `created_by`          | uuid → profiles  |                                                                                                       |
+| `deleted_at`          | timestamptz      | soft delete; `deleted_by uuid` also stored                                                            |
 
 Indexes: `(coach_id) where deleted_at is null`, trigram/`ilike` search on `full_name`, unique partial index on `cpr where deleted_at is null`.
+
+### `locations` (Phase 9)
+
+| Column    | Type | Notes                                                                          |
+| --------- | ---- | ------------------------------------------------------------------------------ |
+| `name`    | text | 1–120 characters, **unique** ignoring case and surrounding spaces              |
+| `address` | text | optional, ≤ 200 characters                                                     |
+| `active`  | bool | default true; switched off instead of deleted — history keeps the name (D-084) |
+
+Every signed-in active user may read (inactive ones too); only admins insert or update (column grants: `name`, `address`, `active`); there is no delete. Insert / change is logged (`location.created` / `location.updated`).
 
 ### `plans` (seeded, admin-editable prices)
 
@@ -74,22 +85,23 @@ Indexes: `(coach_id) where deleted_at is null`, trigram/`ilike` search on `full_
 
 ### `subscriptions`
 
-| Column                          | Type               | Notes                                                         |
-| ------------------------------- | ------------------ | ------------------------------------------------------------- |
-| `plan_id`                       | uuid → plans       |                                                               |
-| `start_date`                    | date not null      |                                                               |
-| `end_date`                      | date not null      | inclusive; check `end_date >= start_date`                     |
-| `plan_price_fils`               | int not null       | **snapshot** of plan price at creation                        |
-| `tshirt_total_fils`             | int not null       | sum of `subscription_players.tshirt_fee_fils`                 |
-| `transport_total_fils`          | int not null       | sum of `subscription_players.transport_fee_fils`              |
-| `discount_id`                   | uuid → discounts   | nullable (null for manual or none)                            |
-| `discount_type`                 | discount_type      | nullable (snapshot)                                           |
-| `discount_value`                | int                | nullable; bps for percent, fils for fixed                     |
-| `discount_reason`               | text               | required when a manual discount is used                       |
-| `discount_fils`                 | int not null       | default 0; the computed discount amount                       |
-| `total_fils`                    | int not null       | `plan_price + tshirt + transport − discount`, server-computed |
-| `cancelled_at` / `cancelled_by` | timestamptz / uuid | soft cancel                                                   |
-| `created_by`                    | uuid → profiles    |                                                               |
+| Column                          | Type               | Notes                                                                                                                               |
+| ------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `plan_id`                       | uuid → plans       |                                                                                                                                     |
+| `start_date`                    | date not null      |                                                                                                                                     |
+| `end_date`                      | date not null      | inclusive; check `end_date >= start_date`                                                                                           |
+| `plan_price_fils`               | int not null       | **snapshot** of plan price at creation                                                                                              |
+| `tshirt_total_fils`             | int not null       | sum of `subscription_players.tshirt_fee_fils`                                                                                       |
+| `transport_total_fils`          | int not null       | sum of `subscription_players.transport_fee_fils`                                                                                    |
+| `discount_id`                   | uuid → discounts   | nullable (null for manual or none)                                                                                                  |
+| `discount_type`                 | discount_type      | nullable (snapshot)                                                                                                                 |
+| `discount_value`                | int                | nullable; bps for percent, fils for fixed                                                                                           |
+| `discount_reason`               | text               | required when a manual discount is used                                                                                             |
+| `discount_fils`                 | int not null       | default 0; the computed discount amount                                                                                             |
+| `total_fils`                    | int not null       | `plan_price + tshirt + transport − discount`, server-computed                                                                       |
+| `cancelled_at` / `cancelled_by` | timestamptz / uuid | soft cancel                                                                                                                         |
+| `location_id`                   | uuid → locations   | where the subscription's money counts; **required for new subscriptions**, null on older ones until an admin sets it (D-085, D-086) |
+| `created_by`                    | uuid → profiles    |                                                                                                                                     |
 
 Derived status (view/computed in SQL and TS): `upcoming`, `active`, `expiring_soon`, `expired`, `cancelled`, plus `paid_fils` and `balance_fils`.
 
@@ -129,16 +141,16 @@ Rules (enforced in `create_subscription` RPC): row count = `plans.player_count`;
 
 ### `training_sessions`
 
-| Column         | Type            | Notes                                                 |
-| -------------- | --------------- | ----------------------------------------------------- |
-| `session_date` | date not null   |                                                       |
-| `start_time`   | time not null   |                                                       |
-| `end_time`     | time not null   | check `end_time > start_time`                         |
-| `coach_id`     | uuid → profiles | who runs it; its roster = that coach's active players |
-| `location`     | text            | e.g. field name                                       |
-| `notes`        | text            |                                                       |
-| `cancelled_at` | timestamptz     |                                                       |
-| `created_by`   | uuid → profiles |                                                       |
+| Column         | Type             | Notes                                                                                                                 |
+| -------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `session_date` | date not null    |                                                                                                                       |
+| `start_time`   | time not null    |                                                                                                                       |
+| `end_time`     | time not null    | check `end_time > start_time`                                                                                         |
+| `coach_id`     | uuid → profiles  | who runs it; its roster = that coach's active players                                                                 |
+| `location_id`  | uuid → locations | required for new sessions, and an **active** location (the old free-text `location` was migrated and dropped — D-086) |
+| `notes`        | text             |                                                                                                                       |
+| `cancelled_at` | timestamptz      |                                                                                                                       |
+| `created_by`   | uuid → profiles  |                                                                                                                       |
 
 ### `attendance`
 
@@ -152,42 +164,45 @@ Rules (enforced in `create_subscription` RPC): row count = `plans.player_count`;
 
 ### `expenses`
 
-| Column         | Type             | Notes                                 |
-| -------------- | ---------------- | ------------------------------------- |
-| `category`     | expense_category |                                       |
-| `amount_fils`  | int (> 0)        |                                       |
-| `expense_date` | date not null    | date used for monthly/yearly expenses |
-| `coach_id`     | uuid → profiles  | only for `coach_salary`               |
-| `description`  | text             |                                       |
-| `created_by`   | uuid → profiles  |                                       |
+| Column         | Type             | Notes                                                                 |
+| -------------- | ---------------- | --------------------------------------------------------------------- |
+| `category`     | expense_category |                                                                       |
+| `amount_fils`  | int (> 0)        |                                                                       |
+| `expense_date` | date not null    | date used for monthly/yearly expenses                                 |
+| `coach_id`     | uuid → profiles  | only for `coach_salary`                                               |
+| `description`  | text             |                                                                       |
+| `location_id`  | uuid → locations | optional: none = academy-wide; an active location when set or changed |
+| `created_by`   | uuid → profiles  |                                                                       |
 
 ### `activity_log`
 
-| Column        | Type            | Notes                                                                                                  |
-| ------------- | --------------- | ------------------------------------------------------------------------------------------------------ |
-| `actor_id`    | uuid → profiles | who did it                                                                                             |
-| `action`      | text            | dotted key, see list below                                                                             |
-| `entity_type` | text            | `player`, `subscription`, `payment`, `session`, `attendance`, `discount`, `expense`, `coach`           |
-| `entity_id`   | uuid            |                                                                                                        |
-| `summary`     | jsonb           | **snapshot** for display (e.g. `{ "player_name": "Ali", "plan": "duo" }`) so removed rows still render |
-| `created_at`  | timestamptz     | indexed desc; table is in the `supabase_realtime` publication                                          |
+| Column        | Type            | Notes                                                                                                    |
+| ------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
+| `actor_id`    | uuid → profiles | who did it                                                                                               |
+| `action`      | text            | dotted key, see list below                                                                               |
+| `entity_type` | text            | `player`, `subscription`, `payment`, `session`, `attendance`, `discount`, `expense`, `coach`, `location` |
+| `entity_id`   | uuid            |                                                                                                          |
+| `summary`     | jsonb           | **snapshot** for display (e.g. `{ "player_name": "Ali", "plan": "duo" }`) so removed rows still render   |
+| `created_at`  | timestamptz     | indexed desc; table is in the `supabase_realtime` publication                                            |
 
-Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigned`, `subscription.created`, `subscription.cancelled`, `payment.recorded`, `discount.created`, `session.created`, `session.cancelled`, `attendance.saved`, `expense.created`, `expense.updated`, `expense.deleted`, `expense.salaries_generated`, `coach.created`. UI maps each to a translated sentence with the `summary` values.
+Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigned`, `subscription.created`, `subscription.cancelled`, `payment.recorded`, `discount.created`, `session.created`, `session.cancelled`, `attendance.saved`, `expense.created`, `expense.updated`, `expense.deleted`, `expense.salaries_generated`, `coach.created`, `location.created`, `location.updated`, `subscription.location_changed`. UI maps each to a translated sentence with the `summary` values.
 
 ## RPCs and SQL functions
 
-| Function                                 | Who                        | Purpose                                                                                                        |
-| ---------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `calc_subscription_total(...)`           | internal                   | Authoritative total calculation (mirrors `src/lib/pricing.ts`).                                                |
-| `create_subscription(...)`               | admin, coach (own players) | Validates, recomputes fees/discount/total, inserts subscription + players (+ optional payment), logs activity. |
-| `record_payment(subscription_id, ...)`   | admin, coach (own)         | Adds a payment, guards overpayment, logs activity.                                                             |
-| `cancel_subscription(id, reason)`        | admin, coach (own)         | Sets `cancelled_at`, logs activity.                                                                            |
-| `save_attendance(session_id, records)`   | admin, session coach       | Upserts attendance rows (records = JSON array), logs one `attendance.saved`.                                   |
-| `assign_players(player_ids[], coach_id)` | admin                      | Bulk (re)assignment, logs `player.reassigned`.                                                                 |
-| `generate_monthly_salaries(month date)`  | admin                      | Idempotently inserts a `coach_salary` expense per active coach with a salary (created / skipped counts).       |
-| `report_summary(from, to)`               | admin                      | `{ collected_fils, expenses_fils, profit_fils, margin_bps }`.                                                  |
-| `revenue_by_month(year)`                 | admin                      | 12 rows: `month_start`, collected, expenses, profit.                                                           |
-| `expenses_by_category(from, to)`         | admin                      | category, total.                                                                                               |
+| Function                                     | Who                        | Purpose                                                                                                                                                        |
+| -------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `calc_subscription_total(...)`               | internal                   | Authoritative total calculation (mirrors `src/lib/pricing.ts`).                                                                                                |
+| `create_subscription(...)`                   | admin, coach (own players) | Validates (incl. a **required active location**, Phase 9), recomputes fees/discount/total, inserts subscription + players (+ optional payment), logs activity. |
+| `set_subscription_location(id, location)`    | admin                      | Labels an older subscription or corrects one; moves all its payments to that location; logged with both names (Phase 9).                                       |
+| `record_payment(subscription_id, ...)`       | admin, coach (own)         | Adds a payment, guards overpayment, logs activity.                                                                                                             |
+| `cancel_subscription(id, reason)`            | admin, coach (own)         | Sets `cancelled_at`, logs activity.                                                                                                                            |
+| `save_attendance(session_id, records)`       | admin, session coach       | Upserts attendance rows (records = JSON array), logs one `attendance.saved`.                                                                                   |
+| `assign_players(player_ids[], coach_id)`     | admin                      | Bulk (re)assignment, logs `player.reassigned`.                                                                                                                 |
+| `generate_monthly_salaries(month date)`      | admin                      | Idempotently inserts a `coach_salary` expense per active coach with a salary (created / skipped counts).                                                       |
+| `report_summary(from, to[, location])`       | admin                      | `{ collected_fils, expenses_fils, profit_fils, margin_bps }`; with a location, only its payments and expenses.                                                 |
+| `revenue_by_month(year[, location])`         | admin                      | 12 rows: `month_start`, collected, expenses, profit.                                                                                                           |
+| `expenses_by_category(from, to[, location])` | admin                      | category, total.                                                                                                                                               |
+| `report_by_location(from, to)`               | admin                      | One row per location that is active or has money in the period, plus a `null` location_id row (Phase 9).                                                       |
 
 ### As built (Phase 4)
 
@@ -221,8 +236,20 @@ Player create/update use plain table access + triggers (RLS-scoped); **removal i
 
 No schema change. The home feed reads `activity_log` as the caller — row-level security decides whose entries these are (an admin all, a coach only `actor_id = auth.uid()`) — newest first, paged by **cursor** (`created_at`, `id`) rather than by offset, so an entry arriving live at the top never shifts the next page; entries written in one transaction share a timestamp, hence the `id` tie-break. The table is in the `supabase_realtime` publication (Phase 2); the app subscribes to `INSERT`s, which Realtime filters by the same policy. The chips filter on `entity_type`: players `player` · subscriptions `subscription` · payments `payment` · sessions `session`, `attendance` · expenses `expense` · other `discount`, `coach`. Every action listed above has a translated sentence (`activity` namespace).
 
+### As built (Phase 9)
+
+- **Migration** `20260920100000_locations.sql`. It creates `locations`, adds `location_id` to `training_sessions`, `players`, `expenses` and `subscriptions`, **backfills** sessions from the old free text (one location per distinct name compared trimmed and case-insensitively; a cancelled session's guard is switched off for that one `UPDATE`, inside the migration's transaction), drops `training_sessions.location`, and rebuilds the views that exposed it (`player_attendance`: `location_id`, `location_name` instead of `location`; `subscription_overview`: + `location_id`, `location_name` — the view reads `s.*`, so it had to be recreated).
+- **`create_subscription`** got a **required** `p_location_id` right after `p_players` (`ajyal:location_required` when null, `ajyal:invalid_location` when unknown or switched off); the `subscription.created` log entry names the location.
+- **`set_subscription_location(p_subscription_id, p_location_id)`** — admin only, allowed on any subscription (even cancelled or expired); a no-op when nothing changes; logs `subscription.location_changed` with `player_names`, `from_location_name` (null when it had none) and `to_location_name`.
+- **Reports:** `report_summary`, `revenue_by_month` and `expenses_by_category` take an optional `p_location_id` (null = everything); a payment belongs to its subscription's location, an expense to its own, so a location's figures **exclude academy-wide expenses** (D-085). `report_by_location(from, to)` returns each location that is active or has money in the period plus one row with a null `location_id` for what has none yet; its rows add up to `report_summary` (pgTAP). All four remain `SECURITY DEFINER` with an admin check.
+- **Feed summaries:** `session.created` and `subscription.created` carry `location_name`; `location.created` (`location_name`), `location.updated` (`location_name`, `previous_name`, `active`).
+- **Error codes** (`ajyal:<code>`): `location_required`, `invalid_location`, plus the existing `forbidden`, `subscription_not_found`, `invalid_period`.
+- pgTAP: `supabase/tests/database/07_locations.test.sql` (86 assertions); `01`, `04` and `05` were adapted (a default location for sessions, `create_subscription` takes a location).
+
 ## Triggers
 
+- `locations` AFTER INSERT/UPDATE → `location.created` / `location.updated` (an update that changes nothing is not logged).
+- `trg_sessions_guard`, `trg_players_guard`, `trg_expenses_guard`: a location, when set or changed, must be an **active** location (`ajyal:invalid_location`); a session also requires one on insert and cannot lose it (`ajyal:location_required`).
 - `on_auth_user_created` → nothing (profiles are inserted by the `create-coach` Edge Function / seed, never self-signup).
 - `players` AFTER INSERT → `player.created`; AFTER UPDATE of `deleted_at` (null → not null) → `player.removed`; AFTER UPDATE of `coach_id` → `player.reassigned`.
 - `training_sessions` BEFORE INSERT/UPDATE → `trg_sessions_guard` (see Phase 5 above).
@@ -243,6 +270,7 @@ No schema change. The home feed reads `activity_log` as the caller — row-level
 | `subscription_players` | as subscriptions                           | via RPC only                      | none                                       | none                          |
 | `payments`             | as subscriptions                           | via RPC only                      | none                                       | none                          |
 | `training_sessions`    | A: all · C: own (`coach_id = uid`)         | A · C (forced own)                | A · C own                                  | none (cancel)                 |
+| `locations`            | A, C read (inactive too)                   | A                                 | A (`name`, `address`, `active`)            | none (switch off)             |
 | `attendance`           | A: all · C: sessions they run              | via RPC only                      | via RPC only                               | none                          |
 | `expenses`             | A                                          | A                                 | A                                          | A                             |
 | `activity_log`         | A: all · C: `actor_id = uid`               | none (definer functions only)     | none                                       | none                          |

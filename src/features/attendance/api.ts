@@ -20,7 +20,8 @@ export interface PlayerAttendanceRow {
   session_date: string
   start_time: string
   end_time: string
-  location: string | null
+  location_id: string | null
+  location_name: string | null
 }
 
 export const PLAYER_ATTENDANCE_PAGE_SIZE = 10

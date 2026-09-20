@@ -27,7 +27,8 @@ const morning = fakeSession({
   session_date: FUTURE,
   start_time: '16:00:00',
   end_time: '17:30:00',
-  location: 'Field 2',
+  location_id: 'loc-1',
+  location: { name: 'Field 2' },
 })
 const evening = fakeSession({
   id: 'b',
@@ -107,7 +108,7 @@ describe('SessionsPage', () => {
   it('opens on "Today & upcoming" and filters by status and coach', async () => {
     renderPage()
     await screen.findAllByRole('heading', { level: 2 })
-    expect(lastFilters()).toEqual({ status: 'upcoming', coachId: '' })
+    expect(lastFilters()).toEqual({ status: 'upcoming', coachId: '', locationId: '' })
 
     const status = screen.getByLabelText('Show')
     expect([...status.querySelectorAll('option')].map((o) => o.textContent)).toEqual([
@@ -120,7 +121,15 @@ describe('SessionsPage', () => {
     await waitFor(() => expect(lastFilters().status).toBe('done'))
 
     await userEvent.selectOptions(screen.getByLabelText('Coach'), 'coach-2')
-    await waitFor(() => expect(lastFilters()).toEqual({ status: 'done', coachId: 'coach-2' }))
+    await waitFor(() =>
+      expect(lastFilters()).toEqual({ status: 'done', coachId: 'coach-2', locationId: '' }),
+    )
+
+    await screen.findByRole('option', { name: 'Al-Rifa' })
+    await userEvent.selectOptions(screen.getByLabelText('Location'), 'loc-2')
+    await waitFor(() =>
+      expect(lastFilters()).toEqual({ status: 'done', coachId: 'coach-2', locationId: 'loc-2' }),
+    )
   })
 
   it('offers attendance for sessions that have started, not for future or cancelled ones', async () => {

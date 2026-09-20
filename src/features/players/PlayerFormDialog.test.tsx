@@ -174,11 +174,26 @@ describe('PlayerFormDialog', () => {
           phone: '39111001',
           has_disease: false,
           disease_description: null,
+          location_id: null,
         }),
       )
       expect(await screen.findByText('Player added')).toBeInTheDocument()
       expect(onSaved).toHaveBeenCalledWith('new-id')
       expect(onClose).toHaveBeenCalled()
+    })
+
+    it('sends the chosen location, and none by default', async () => {
+      vi.mocked(api.createPlayer).mockResolvedValue({ id: 'new' })
+      const dialog = await renderForm('coach')
+      await fillValid(dialog)
+      await within(dialog).findByRole('option', { name: 'Hamad City' })
+      await userEvent.selectOptions(within(dialog).getByLabelText('Location'), 'loc-2')
+      await submit(dialog)
+      await waitFor(() =>
+        expect(api.createPlayer).toHaveBeenCalledWith(
+          expect.objectContaining({ location_id: 'loc-2' }),
+        ),
+      )
     })
 
     it('as an admin: offers active coaches and sends the chosen one', async () => {
