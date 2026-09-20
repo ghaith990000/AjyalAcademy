@@ -28,14 +28,14 @@ A short guide for the people who use Ajyal Academy every day: **coaches** and **
 
 ### Who can do what
 
-|                                                            | Coach             | Admin            |
-| ---------------------------------------------------------- | ----------------- | ---------------- |
-| See and edit **their own players**                         | ✅                | ✅ (all players) |
-| Create subscriptions, add payments                         | ✅ (own players)  | ✅               |
-| Schedule sessions and take attendance                      | ✅ (own sessions) | ✅ (all)         |
-| Coaches, Locations, Discounts, Expenses, Reports, Settings | —                 | ✅               |
-| Assign players to coaches, change prices                   | —                 | ✅               |
-| See the activity feed                                      | their own actions | everyone's       |
+|                                                                           | Coach             | Admin            |
+| ------------------------------------------------------------------------- | ----------------- | ---------------- |
+| See and edit **their own players**                                        | ✅                | ✅ (all players) |
+| Create subscriptions, add payments                                        | ✅ (own players)  | ✅               |
+| Schedule sessions and take attendance                                     | ✅ (own sessions) | ✅ (all)         |
+| Coaches, Locations, Registrations, Discounts, Expenses, Reports, Settings | —                 | ✅               |
+| Assign players to coaches, change prices                                  | —                 | ✅               |
+| See the activity feed                                                     | their own actions | everyone's       |
 
 ## 2. For coaches
 
@@ -83,6 +83,18 @@ Four numbers — **Active players**, **Active subscriptions**, **Collected this 
 ### Players
 
 As a coach, but you see everyone. Select players (checkboxes) and tap **Assign to coach**, or choose no coach to unassign; a single player's edit form also has a Coach field.
+
+### Registration requests
+
+Parents register their children **without an account**: send them the registration link and they fill in one short form (their name and phone, and up to four children). To get the link, open **More → Registrations** and tap **Copy registration link**, then paste it into a WhatsApp message or group. (The sign-in page has a link to the form too.)
+
+When a parent sends the form, **Registrations** shows a pink number on **More** (and a card on the home screen). Open a request to see the child and the parent. If a player with the same CPR already exists, or another waiting request has it, a yellow **Check before accepting** box says so.
+
+- **Accept** adds the child as a player, with the parent's name. Choose a coach now or leave it and assign one later, and confirm the location the parent asked for. A CPR that already belongs to a player cannot be accepted.
+- **Reject** keeps the request, with an optional note only admins see.
+- Each child is decided on its own, and a decision is final. A parent whose child was rejected can send the form again.
+
+The app does **not** message the parent. After you decide, the request page shows a ready message in the language the parent used, and a **Message on WhatsApp** button that opens WhatsApp with it — you can edit it before you send. If the number can't be used for WhatsApp, call the parent instead. Rejected requests are kept (they cannot be deleted).
 
 ### Locations
 
@@ -135,14 +147,14 @@ _Collected_ counts payments **by the date they were received**, including paymen
 
 ### من يستطيع فعل ماذا
 
-|                                                             | المدرب       | المدير           |
-| ----------------------------------------------------------- | ------------ | ---------------- |
-| رؤية وتعديل **لاعبيه**                                      | ✅           | ✅ (كل اللاعبين) |
-| إنشاء الاشتراكات وإضافة الدفعات                             | ✅ (للاعبيه) | ✅               |
-| جدولة الحصص وتسجيل الحضور                                   | ✅ (حصصه)    | ✅ (الكل)        |
-| المدربون، المواقع، الخصومات، المصروفات، التقارير، الإعدادات | —            | ✅               |
-| إسناد اللاعبين إلى المدربين وتغيير الأسعار                  | —            | ✅               |
-| رؤية سجل النشاطات                                           | نشاطاته هو   | نشاطات الجميع    |
+|                                                                        | المدرب       | المدير           |
+| ---------------------------------------------------------------------- | ------------ | ---------------- |
+| رؤية وتعديل **لاعبيه**                                                 | ✅           | ✅ (كل اللاعبين) |
+| إنشاء الاشتراكات وإضافة الدفعات                                        | ✅ (للاعبيه) | ✅               |
+| جدولة الحصص وتسجيل الحضور                                              | ✅ (حصصه)    | ✅ (الكل)        |
+| المدربون، المواقع، التسجيلات، الخصومات، المصروفات، التقارير، الإعدادات | —            | ✅               |
+| إسناد اللاعبين إلى المدربين وتغيير الأسعار                             | —            | ✅               |
+| رؤية سجل النشاطات                                                      | نشاطاته هو   | نشاطات الجميع    |
 
 ## ٢. للمدربين
 
@@ -190,6 +202,18 @@ _Collected_ counts payments **by the date they were received**, including paymen
 ### اللاعبون
 
 كما للمدرب، لكنك ترى الجميع. حدّد لاعبين بمربعات الاختيار ثم اضغط **تعيين لمدرب**، أو اختر «بلا مدرب» لإلغاء التعيين؛ ولنموذج تعديل اللاعب حقل المدرب أيضاً.
+
+### طلبات التسجيل
+
+يسجّل أولياء الأمور أبناءهم **دون حساب**: أرسل لهم رابط التسجيل فيعبّئون نموذجاً قصيراً واحداً (اسمهم ورقم هاتفهم، وحتى أربعة أطفال). للحصول على الرابط افتح **المزيد ← التسجيلات** واضغط **نسخ رابط التسجيل**، ثم الصقه في رسالة أو مجموعة واتساب. (وفي صفحة تسجيل الدخول رابط إلى النموذج أيضاً.)
+
+عندما يرسل ولي أمر النموذج يظهر رقم وردي على **المزيد** عند **التسجيلات** (وبطاقة في الرئيسية). افتح الطلب لترى الطفل وولي الأمر. وإذا كان هناك لاعب بالرقم الشخصي نفسه، أو طلب آخر قيد الانتظار به، يظهر مربع أصفر **تحقّق قبل القبول** يخبرك بذلك.
+
+- **قبول** يضيف الطفل لاعباً مع اسم ولي الأمر. اختر مدرباً الآن أو اتركه وعيّنه لاحقاً، وأكّد الموقع الذي طلبه ولي الأمر. لا يمكن قبول رقم شخصي يملكه لاعب موجود.
+- **رفض** يُبقي الطلب محفوظاً، مع ملاحظة اختيارية يراها المديرون فقط.
+- يُبَتّ في كل طفل على حدة، والقرار نهائي. ويستطيع ولي أمر طفل مرفوض إرسال النموذج مرة أخرى.
+
+التطبيق **لا** يراسل ولي الأمر. بعد قرارك تعرض صفحة الطلب رسالة جاهزة بلغة ولي الأمر وزر **مراسلة على واتساب** يفتح واتساب بها — ويمكنك تعديلها قبل الإرسال. وإن تعذّر استخدام الرقم في واتساب فاتصل بولي الأمر. الطلبات المرفوضة تبقى محفوظة (ولا يمكن حذفها).
 
 ### المواقع
 

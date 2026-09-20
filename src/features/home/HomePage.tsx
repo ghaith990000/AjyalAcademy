@@ -16,6 +16,7 @@ import { currentPeriod, formatMargin, periodRange } from '@/lib/reports'
 import { useLanguage } from '@/lib/useLanguage'
 import { ExpiringSubscriptions } from './ExpiringSubscriptions'
 import { useActiveSubscriptionsCount, usePlayersCount } from './hooks'
+import { PendingApplicationsCard } from './PendingApplicationsCard'
 import { QuickActions } from './QuickActions'
 import { TodaySessions } from './TodaySessions'
 
@@ -124,6 +125,8 @@ export default function HomePage({ role }: { role: 'admin' | 'coach' }) {
       </HeroCard>
 
       <InstallHint />
+
+      {role === 'admin' && <PendingApplicationsCard />}
 
       <QuickActions base={base} />
 

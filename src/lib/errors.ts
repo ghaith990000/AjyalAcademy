@@ -19,7 +19,10 @@ export function errorKeyOf(error: unknown): ErrorKey {
   if (
     error instanceof TypeError || // fetch() rejects with TypeError when offline
     e.name === 'AuthRetryableFetchError' ||
-    e.name === 'FunctionsFetchError'
+    e.name === 'FunctionsFetchError' ||
+    // supabase-js (PostgREST) does not throw a failed fetch: it returns it as an error object whose message is
+    // "TypeError: Failed to fetch" (Chrome), "TypeError: Load failed" (Safari), "TypeError: NetworkError …" (Firefox).
+    /^(TypeError|FetchError): /.test(message)
   ) {
     return 'network'
   }

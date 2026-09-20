@@ -113,11 +113,20 @@ Reports also show: collected vs expenses per month for the selected year (12 bar
 - **Money follows the subscription** (D-085): collected fees for a location = payments on that location's subscriptions in the period; its expenses = expenses tagged with it.
 - Existing data: the free-text places typed on earlier sessions became locations (one per distinct name, trimmed, case-insensitive); earlier subscriptions and expenses have no location until an admin sets one (D-086).
 
+## Registration requests (Phase 10)
+
+- **Who:** a parent with no account opens `/register` and asks for a place: their name and phone (the academy contacts them on it, by WhatsApp), the location they prefer (when the academy has any), and **1–4 children** (name, CPR, date of birth, school and address optional, a medical condition with its description). They confirm the details are correct. Nothing is shown back about what the academy already knows (D-091).
+- **Each child is a request** with three states: _waiting_, _accepted_, _rejected_. Only admins see them (a badge on **More** and a card on the home screen count the waiting ones).
+- **Accept** creates the player with everything the parent typed and their name as `guardian_name`; the admin may pick a coach now (or leave the player unassigned) and confirm or change the location. A CPR that already belongs to a player (not removed) is refused — the request page warns about it beforehand, and about another waiting request with the same CPR. **Reject** keeps the request with an optional note for the team. A decision is final; a rejected parent can submit again (D-092).
+- **The parent is told by the admin**, not by the app: after a decision the request page offers a WhatsApp message in the language the parent used (D-093).
+- **Limits** against abuse: 5 submissions per phone number per day, 60 an hour and 300 a day for everyone, plus a hidden field bots fill (D-090).
+
 ## Player rules
 
 - **CPR:** exactly 9 digits, unique among non-removed players; a duplicate is blocked, with a link to the existing player when the user is allowed to see it (D-043).
 - **Disease:** `has_disease = true` ⇒ description required; `false` ⇒ description cleared.
 - **Removal is soft:** the player disappears from lists and rosters; subscriptions/payments/attendance history are kept; the removal is logged with who did it.
+- **Parent's name:** optional (`guardian_name`); filled when the player came from a registration request, editable on the player form.
 - **Location:** optional. It pre-fills the subscription wizard's location when all the players chosen share one that is still in use.
 - **Ownership:** a coach who creates a player is automatically their coach. Only an admin can reassign (single or bulk). A player can have **one** coach.
 - **Roster for a session** = active (non-removed) players whose `coach_id` equals the session's coach. Players without an active subscription are flagged with a warning badge but can still be marked. "Active subscription" is judged on the **session's own date**: a non-cancelled subscription whose (inclusive) period covers that day (D-057).

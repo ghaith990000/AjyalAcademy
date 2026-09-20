@@ -74,6 +74,12 @@
     "location": {
       "created": "<b>{{actor}}</b> added the location <b>{{location}}</b>",
       "updated": "<b>{{actor}}</b> updated the location <b>{{location}}</b>"
+    },
+    "application": {
+      "submitted": "<b>{{guardian}}</b> asked to register <b>{{children}}</b>",
+      "accepted": "<b>{{actor}}</b> accepted the registration of <b>{{player}}</b>",
+      "acceptedCoach": "<b>{{actor}}</b> accepted the registration of <b>{{player}}</b> into the team of <b>{{coach}}</b>",
+      "rejected": "<b>{{actor}}</b> rejected the registration of <b>{{player}}</b>"
     }
   },
   "detail": {

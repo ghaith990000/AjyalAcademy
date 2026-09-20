@@ -10,13 +10,31 @@ import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { cn } from '@/lib/utils'
 import { OfflineBanner } from '@/app/pwa/OfflineBanner'
 import type { NavConfig, NavItem } from '@/app/nav'
+import { useNavBadges } from '@/app/useNavBadges'
 
 interface AppShellProps {
   nav: NavConfig
   role: 'admin' | 'coach'
 }
 
-function SidebarLink({ item }: { item: NavItem }) {
+/** How many things wait for the person. The number is for the eye; a screen reader hears what it means. */
+function CountBadge({ count, className }: { count: number; className?: string }) {
+  const { t } = useTranslation('nav')
+  if (count <= 0) return null
+  return (
+    <span
+      className={cn(
+        'inline-flex min-w-5 items-center justify-center rounded-full bg-brand-pink px-1.5 text-[12px] font-bold leading-5 text-white',
+        className,
+      )}
+    >
+      <span aria-hidden>{count > 99 ? '99+' : count}</span>
+      <span className="sr-only">{t('waiting', { n: count })}</span>
+    </span>
+  )
+}
+
+function SidebarLink({ item, count }: { item: NavItem; count: number }) {
   const { t } = useTranslation('nav')
   const Icon = item.icon
   return (
@@ -40,6 +58,8 @@ function SidebarLink({ item }: { item: NavItem }) {
           )}
           <Icon className="size-5" aria-hidden />
           {t(item.label)}
+          {/* a real space, so the name reads "Registrations 3 waiting" (flex items alone add none in every engine) */}{' '}
+          <CountBadge count={count} className="ms-auto" />
         </>
       )}
     </NavLink>
@@ -85,6 +105,10 @@ export function AppShell({ nav, role }: AppShellProps) {
   const { pathname } = useLocation()
   const { profile, signOut } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
+  const badges = useNavBadges(role)
+  const countOf = (item: NavItem) => (item.badge ? badges[item.badge] : 0)
+  // On a phone the entries behind "More" are one tap away, so the tab carries what waits inside them.
+  const moreCount = nav.more.reduce((sum, item) => sum + countOf(item), 0)
 
   const allItems = [...nav.primary, ...nav.more]
   const current = allItems
@@ -110,7 +134,7 @@ export function AppShell({ nav, role }: AppShellProps) {
         </div>
         <nav aria-label={t('ui:mainNavigation')} className="flex-1 space-y-1 overflow-y-auto px-3">
           {allItems.map((item) => (
-            <SidebarLink key={item.to} item={item} />
+            <SidebarLink key={item.to} item={item} count={countOf(item)} />
           ))}
         </nav>
         <div className="space-y-3 border-t border-white/10 p-4">
@@ -179,7 +203,10 @@ export function AppShell({ nav, role }: AppShellProps) {
               className="absolute inset-x-3 top-0 h-[3px] rounded-b-full bg-brand-pink"
             />
           )}
-          <Ellipsis className="size-6" aria-hidden />
+          <span className="relative">
+            <Ellipsis className="size-6" aria-hidden />
+            <CountBadge count={moreCount} className="absolute -end-3 -top-2" />
+          </span>{' '}
           <span className="max-w-full truncate">{t('nav:more')}</span>
         </button>
       </nav>
@@ -205,7 +232,8 @@ export function AppShell({ nav, role }: AppShellProps) {
                   <span className="flex size-10 items-center justify-center rounded-control bg-brand-blue-50 text-brand-blue">
                     <Icon className="size-5" aria-hidden />
                   </span>
-                  <span className="flex-1">{t(item.label)}</span>
+                  <span className="flex-1">{t(item.label)}</span>{' '}
+                  <CountBadge count={countOf(item)} />
                   <ChevronRight className="size-5 text-ink-muted rtl:-scale-x-100" aria-hidden />
                 </Link>
               </li>

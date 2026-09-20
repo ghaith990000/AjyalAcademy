@@ -118,6 +118,10 @@
     "submitEdit": "Save changes",
     "location": {
       "invalid": "That location is switched off or doesn't exist. Choose another one."
+    },
+    "guardianName": {
+      "label": "Parent or guardian name",
+      "tooLong": "The name is too long (120 characters at most)"
     }
   },
   "detail": {
@@ -148,7 +152,8 @@
       "title": "Subscriptions",
       "soon": "Subscriptions and payments will appear here."
     },
-    "location": "Location"
+    "location": "Location",
+    "guardian": "Parent or guardian"
   },
   "assign": {
     "title": "Assign to coach",

@@ -37,7 +37,7 @@ export function useActivityRealtime(): boolean {
     const channel = supabase
       .channel(`activity-feed-${++channelCounter}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, () => {
-        for (const key of [ACTIVITY_KEY, ['home'], ['reports'], ['sessions']]) {
+        for (const key of [ACTIVITY_KEY, ['home'], ['reports'], ['sessions'], ['applications']]) {
           void queryClient.invalidateQueries({ queryKey: key })
         }
       })

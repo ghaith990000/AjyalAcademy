@@ -172,6 +172,7 @@ describe('PlayerFormDialog', () => {
           address: null,
           school: null,
           phone: '39111001',
+          guardian_name: null,
           has_disease: false,
           disease_description: null,
           location_id: null,
@@ -180,6 +181,22 @@ describe('PlayerFormDialog', () => {
       expect(await screen.findByText('Player added')).toBeInTheDocument()
       expect(onSaved).toHaveBeenCalledWith('new-id')
       expect(onClose).toHaveBeenCalled()
+    })
+
+    it("sends the parent's name when it is given (trimmed)", async () => {
+      vi.mocked(api.createPlayer).mockResolvedValue({ id: 'new' })
+      const dialog = await renderForm('coach')
+      await fillValid(dialog)
+      await userEvent.type(
+        within(dialog).getByLabelText('Parent or guardian name'),
+        '  Mona Al Mahmood ',
+      )
+      await submit(dialog)
+      await waitFor(() =>
+        expect(api.createPlayer).toHaveBeenCalledWith(
+          expect.objectContaining({ guardian_name: 'Mona Al Mahmood' }),
+        ),
+      )
     })
 
     it('sends the chosen location, and none by default', async () => {

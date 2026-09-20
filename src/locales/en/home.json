@@ -36,5 +36,10 @@
       "description": "Subscriptions close to their end date will be listed here."
     },
     "loadError": "Couldn't load the subscriptions."
+  },
+  "applications": {
+    "title": "Registration requests",
+    "waiting": "Waiting for your decision: {{n}}",
+    "review": "Review requests"
   }
 }

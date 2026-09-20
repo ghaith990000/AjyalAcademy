@@ -1,4 +1,5 @@
 import arActivity from '@/locales/ar/activity.json'
+import arApplications from '@/locales/ar/applications.json'
 import arAttendance from '@/locales/ar/attendance.json'
 import arAuth from '@/locales/ar/auth.json'
 import arCommon from '@/locales/ar/common.json'
@@ -12,12 +13,14 @@ import arLocations from '@/locales/ar/locations.json'
 import arNav from '@/locales/ar/nav.json'
 import arPlayers from '@/locales/ar/players.json'
 import arPwa from '@/locales/ar/pwa.json'
+import arRegister from '@/locales/ar/register.json'
 import arReports from '@/locales/ar/reports.json'
 import arSessions from '@/locales/ar/sessions.json'
 import arSettings from '@/locales/ar/settings.json'
 import arSubscriptions from '@/locales/ar/subscriptions.json'
 import arUi from '@/locales/ar/ui.json'
 import enActivity from '@/locales/en/activity.json'
+import enApplications from '@/locales/en/applications.json'
 import enAttendance from '@/locales/en/attendance.json'
 import enAuth from '@/locales/en/auth.json'
 import enCommon from '@/locales/en/common.json'
@@ -31,6 +34,7 @@ import enLocations from '@/locales/en/locations.json'
 import enNav from '@/locales/en/nav.json'
 import enPlayers from '@/locales/en/players.json'
 import enPwa from '@/locales/en/pwa.json'
+import enRegister from '@/locales/en/register.json'
 import enReports from '@/locales/en/reports.json'
 import enSessions from '@/locales/en/sessions.json'
 import enSettings from '@/locales/en/settings.json'
@@ -57,6 +61,8 @@ export const resources = {
     attendance: enAttendance,
     expenses: enExpenses,
     reports: enReports,
+    applications: enApplications,
+    register: enRegister,
     activity: enActivity,
     pwa: enPwa,
   },
@@ -78,6 +84,8 @@ export const resources = {
     attendance: arAttendance,
     expenses: arExpenses,
     reports: arReports,
+    applications: arApplications,
+    register: arRegister,
     activity: arActivity,
     pwa: arPwa,
   },

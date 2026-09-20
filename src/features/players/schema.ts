@@ -1,10 +1,10 @@
 import { z } from 'zod'
 import { isValidISODate, todayISO } from '@/lib/dates'
 
-const CPR = /^\d{9}$/
+export const CPR = /^\d{9}$/
 /** Bahrain numbers are 8 digits; allow an optional +973 style prefix and spaces as typed. */
-const PHONE = /^\+?\d{8,15}$/
-const OLDEST_BIRTH_DATE = '1990-01-01'
+export const PHONE = /^\+?\d{8,15}$/
+export const OLDEST_BIRTH_DATE = '1990-01-01'
 
 // Messages are `players` namespace keys, translated where they are rendered.
 export const playerSchema = z
@@ -22,6 +22,7 @@ export const playerSchema = z
     }),
     address: z.string().trim().max(200, 'form.address.tooLong'),
     school: z.string().trim().max(120, 'form.school.tooLong'),
+    guardian_name: z.string().trim().max(120, 'form.guardianName.tooLong'),
     phone: z
       .string()
       .trim()
@@ -57,6 +58,7 @@ export interface PlayerInput {
   address: string | null
   school: string | null
   phone: string
+  guardian_name: string | null
   has_disease: boolean
   disease_description: string | null
   location_id: string | null
@@ -81,6 +83,7 @@ export function toPlayerInput(
     address: orNull(values.address),
     school: orNull(values.school),
     phone: values.phone,
+    guardian_name: orNull(values.guardian_name),
     has_disease: values.has_disease,
     disease_description: values.has_disease ? values.disease_description : null,
     location_id: orNull(values.location_id),

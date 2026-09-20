@@ -56,7 +56,7 @@ describe('useActivityRealtime', () => {
     act(() => handlers.insert?.())
 
     const keys = invalidate.mock.calls.map(([filters]) => filters?.queryKey)
-    expect(keys).toEqual([['activity'], ['home'], ['reports'], ['sessions']])
+    expect(keys).toEqual([['activity'], ['home'], ['reports'], ['sessions'], ['applications']])
   })
 
   it('reports whether the live connection is up', () => {

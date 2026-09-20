@@ -1,0 +1,133 @@
+{
+  "title": "Registration requests",
+  "description": "Parents ask for a place through the public form. Accept a child to add them as a player, or reject the request.",
+  "filters": {
+    "label": "Show",
+    "pending": "Waiting",
+    "pendingCount": "Waiting ({{n}})",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  },
+  "status": {
+    "pending": "Waiting",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  },
+  "columns": {
+    "child": "Child",
+    "parent": "Parent",
+    "location": "Location",
+    "sent": "Sent",
+    "status": "Status"
+  },
+  "noLocation": "No location",
+  "languages": {
+    "ar": "Arabic",
+    "en": "English"
+  },
+  "list": {
+    "caption": "Registration requests",
+    "showing": "Showing {{shown}} of {{total}}",
+    "showMore": "Show more"
+  },
+  "empty": {
+    "pending": {
+      "title": "No requests waiting",
+      "description": "When a parent sends the registration form, the request appears here. Copy the link and share it with parents."
+    },
+    "accepted": {
+      "title": "Nothing accepted yet",
+      "description": "Children you accept become players and are listed here."
+    },
+    "rejected": {
+      "title": "Nothing rejected",
+      "description": "Requests you reject are kept here."
+    }
+  },
+  "loadError": {
+    "title": "Couldn't load the requests",
+    "description": "Check your connection and try again."
+  },
+  "link": {
+    "copy": "Copy registration link",
+    "copied": "Link copied — paste it into a message",
+    "copyFailed": "Couldn't copy the link. Copy it by hand:"
+  },
+  "warning": {
+    "badge": "Check CPR",
+    "title": "Check before accepting",
+    "existingPlayer": "A player with this CPR already exists:",
+    "samePending": "Another request that is still waiting has the same CPR."
+  },
+  "detail": {
+    "back": "Back to requests",
+    "notFound": {
+      "title": "Request not found",
+      "description": "This request does not exist."
+    },
+    "loadError": {
+      "title": "Couldn't load this request",
+      "description": "Check your connection and try again."
+    },
+    "decide": "Your decision",
+    "accept": "Accept",
+    "reject": "Reject",
+    "child": "The child",
+    "parent": "The parent",
+    "parentName": "Name",
+    "phone": "Phone",
+    "language": "Language used",
+    "location": "Preferred location",
+    "sent": "Sent"
+  },
+  "decision": {
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "by": "By {{name}} on {{date}}",
+    "someone": "someone",
+    "note": "Note",
+    "openPlayer": "Open the player"
+  },
+  "whatsapp": {
+    "title": "Tell the parent",
+    "hint": "The app sends nothing by itself. This opens WhatsApp with the message below ready, in the language the parent used — you can edit it before sending.",
+    "button": "Message {{name}} on WhatsApp",
+    "badNumber": "This phone number can't be used for WhatsApp. Call the parent instead.",
+    "accepted": "Hello {{guardian}}, this is Ajyal Academy. Good news: the registration of {{player}} has been accepted. Welcome to the academy! We will contact you with the training details.",
+    "rejected": "Hello {{guardian}}, this is Ajyal Academy. Thank you for registering {{player}}. Unfortunately we have no place available at the moment. You are welcome to contact us or apply again later."
+  },
+  "accept": {
+    "title": "Accept {{name}}",
+    "description": "This adds the child as a player. Choose a coach now, or assign one later like for any player.",
+    "confirm": "Accept and add player",
+    "coach": {
+      "label": "Coach",
+      "hint": "Optional."
+    },
+    "location": {
+      "hint": "The parent asked for this location. Change it if the child will train somewhere else."
+    },
+    "cprTaken": "A player with this CPR already exists, so this request can't be accepted.",
+    "openExisting": "Open that player"
+  },
+  "reject": {
+    "title": "Reject {{name}}",
+    "description": "The request is kept. The parent is not told automatically — after rejecting you can message them on WhatsApp.",
+    "confirm": "Reject request",
+    "note": {
+      "label": "Note for the team",
+      "hint": "Optional. Only admins can see it."
+    }
+  },
+  "toast": {
+    "accepted": "{{name}} was added as a player",
+    "rejected": "The request for {{name}} was rejected"
+  },
+  "error": {
+    "already_decided": "This request was already decided. Reload the page to see the result.",
+    "application_not_found": "This request no longer exists.",
+    "invalid_coach": "Choose an active coach.",
+    "invalid_location": "Choose an active location.",
+    "invalid_input": "The note is too long."
+  }
+}

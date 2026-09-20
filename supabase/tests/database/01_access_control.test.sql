@@ -230,7 +230,7 @@ select tests.reset();
 -- ---------------------------------------------------------------------------
 select is((select count(*)::int from pg_tables where schemaname = 'public' and not rowsecurity), 0, 'row level security is on for every public table');
 select is_empty($$select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind in ('r', 'v', 'm', 'p') and has_table_privilege('anon', c.oid, 'select,insert,update,delete')$$, 'anon has no privileges on any public table');
-select is_empty($$select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')$$, 'anon (and PUBLIC) can execute no public function');
+select is((select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')), array['public_locations', 'submit_player_applications'], 'anon (and PUBLIC) can execute only the two public registration functions (Phase 10: public_locations, submit_player_applications)');
 select is((select array_agg(c.relname::text order by c.relname) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and has_table_privilege('authenticated', c.oid, 'delete')), array['expenses'], 'signed-in users can delete only expenses (admin-only by policy)');
 
 select * from finish();

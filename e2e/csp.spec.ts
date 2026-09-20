@@ -58,6 +58,32 @@ test.describe('content security policy', () => {
     })
   }
 
+  test('the parents’ registration form works under the policy, from opening it to sending it', async ({
+    page,
+  }) => {
+    const violations: string[] = []
+    await page.exposeFunction('reportViolation', (text: string) => violations.push(text))
+    await page.addInitScript(() => {
+      document.addEventListener('securitypolicyviolation', (event) => {
+        void (window as unknown as { reportViolation: (t: string) => void }).reportViolation(
+          `${event.violatedDirective} ${event.blockedURI}`,
+        )
+      })
+    })
+    const api = await openApp(page, null, 'en', '/register')
+    await page.getByLabel('Your name').fill('Mona')
+    await page.getByLabel('Phone number').fill('39001234')
+    await page.getByLabel('Preferred location').selectOption({ index: 1 })
+    await page.getByLabel("Child's full name").fill('Noor')
+    await page.getByLabel('CPR number').fill('160312399')
+    await page.getByLabel('Date of birth').fill('2015-03-12')
+    await page.getByRole('checkbox', { name: /I confirm/ }).check()
+    await page.getByRole('button', { name: 'Send registration' }).click()
+    await expect(page.getByRole('heading', { name: 'Thank you!' })).toBeVisible()
+    expect(api.world.submitAttempts).toHaveLength(1)
+    expect(violations).toEqual([])
+  })
+
   test('signing in works under the policy (the auth requests are allowed)', async ({ page }) => {
     await openApp(page, null, 'en', '/login')
     await page.locator('input[name=email]').fill(ADMIN.email)

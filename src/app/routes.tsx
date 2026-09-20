@@ -5,6 +5,7 @@ import LoginPage from '@/features/auth/pages/LoginPage'
 import { AdminShell } from './layouts/AdminShell'
 import { AuthLayout } from './layouts/AuthLayout'
 import { CoachShell } from './layouts/CoachShell'
+import { PublicLayout } from './layouts/PublicLayout'
 import NotFoundPage from './NotFoundPage'
 import { RouteErrorPage } from './RouteErrorPage'
 import { RouteLoading } from './RouteLoading'
@@ -49,6 +50,14 @@ export const routes: RouteObject[] = [
     children: [{ element: <AuthLayout />, children: [{ index: true, element: <LoginPage /> }] }],
   },
   {
+    // The parents' registration form: open to anyone, no sign-in (its own light frame; staff can still sign in from it).
+    path: '/register',
+    element: <PublicLayout />,
+    HydrateFallback: RouteLoading,
+    errorElement: <RouteErrorPage />,
+    children: [{ index: true, ...page(() => import('@/features/register/RegisterPage')) }],
+  },
+  {
     element: <RequireRole role="admin" />,
     // Pages are loaded on demand; opened directly, one needs something on screen while it loads.
     HydrateFallback: RouteLoading,
@@ -72,6 +81,14 @@ export const routes: RouteObject[] = [
               { path: 'sessions/:id/attendance', ...attendance },
               { path: 'coaches', ...page(() => import('@/features/coaches/CoachesPage')) },
               { path: 'locations', ...page(() => import('@/features/locations/LocationsPage')) },
+              {
+                path: 'applications',
+                ...page(() => import('@/features/applications/ApplicationsPage')),
+              },
+              {
+                path: 'applications/:id',
+                ...page(() => import('@/features/applications/ApplicationDetailPage')),
+              },
               { path: 'discounts', ...page(() => import('@/features/discounts/DiscountsPage')) },
               { path: 'expenses', ...page(() => import('@/features/expenses/ExpensesPage')) },
               { path: 'reports', ...page(() => import('@/features/reports/ReportsPage')) },

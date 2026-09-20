@@ -115,6 +115,16 @@ export default function LoginPage() {
         </Button>
       </form>
 
+      <p className="border-t border-line pt-4 text-center text-[15px] text-ink-muted">
+        {t('auth:register.prompt')}{' '}
+        <Link
+          to="/register"
+          className="inline-flex min-h-11 items-center font-semibold text-brand-blue underline"
+        >
+          {t('auth:register.link')}
+        </Link>
+      </p>
+
       {import.meta.env.DEV && (
         <div className="border-t border-dashed border-line pt-4">
           <Button asChild variant="ghost" fullWidth>

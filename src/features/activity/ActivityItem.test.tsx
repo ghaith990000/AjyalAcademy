@@ -58,6 +58,11 @@ const EXPECTED: Record<'en' | 'ar', Record<KnownAction | 'player.created (no coa
     'coach.created': 'Demo Admin added the coach Sara Al Khalifa',
     'location.created': 'Demo Admin added the location Al-Rifa',
     'location.updated': 'Demo Admin updated the location Hamad City Renamed from Hamad',
+    'application.submitted':
+      'Mona Al Mahmood asked to register Yousef Al Mahmood and Noor Al Mahmood Location: Al-Rifa',
+    'application.accepted':
+      'Demo Admin accepted the registration of Yousef Al Mahmood into the team of Khalid Al Dosari Location: Al-Rifa',
+    'application.rejected': 'Demo Admin rejected the registration of Noor Al Mahmood',
   },
   ar: {
     'player.created':
@@ -88,6 +93,11 @@ const EXPECTED: Record<'en' | 'ar', Record<KnownAction | 'player.created (no coa
     'coach.created': 'أُضيف المدرب Sara Al Khalifa بواسطة Demo Admin',
     'location.created': 'أُضيف الموقع Al-Rifa بواسطة Demo Admin',
     'location.updated': 'عُدّل الموقع Hamad City بواسطة Demo Admin كان اسمه Hamad',
+    'application.submitted':
+      'طلب Mona Al Mahmood تسجيل Yousef Al Mahmood وNoor Al Mahmood الموقع: Al-Rifa',
+    'application.accepted':
+      'قُبل تسجيل Yousef Al Mahmood في فريق المدرب Khalid Al Dosari بواسطة Demo Admin الموقع: Al-Rifa',
+    'application.rejected': 'رُفض تسجيل Noor Al Mahmood بواسطة Demo Admin',
   },
 }
 

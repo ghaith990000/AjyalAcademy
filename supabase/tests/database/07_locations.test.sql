@@ -272,7 +272,7 @@ select tests.reset();
 -- nothing was opened to anon
 -- ---------------------------------------------------------------------------
 select is_empty($$select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind in ('r', 'v', 'm', 'p') and has_table_privilege('anon', c.oid, 'select,insert,update,delete')$$, 'anon still has no privileges on any public table');
-select is_empty($$select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')$$, 'and can execute no public function');
+select is((select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')), array['public_locations', 'submit_player_applications'], 'and can execute only the two public registration functions');
 
 select * from finish();
 rollback;

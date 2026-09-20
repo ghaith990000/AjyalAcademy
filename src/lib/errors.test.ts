@@ -8,6 +8,20 @@ describe('errorKeyOf', () => {
     expect(errorKeyOf({ name: 'FunctionsFetchError', message: 'x' })).toBe('network')
   })
 
+  it('recognises a failed fetch that supabase-js returns as an error object instead of throwing', () => {
+    // postgrest-js: `${error.name}: ${error.message}`, with no status and no code
+    for (const message of [
+      'TypeError: Failed to fetch', // Chrome
+      'TypeError: Load failed', // Safari
+      'TypeError: NetworkError when attempting to fetch resource.', // Firefox
+      'FetchError: request to https://x.supabase.co failed',
+    ]) {
+      expect(errorKeyOf({ message, details: '', hint: '', code: '' })).toBe('network')
+    }
+    // ...but not a database error that merely mentions one
+    expect(errorKeyOf({ message: 'invalid input: TypeError', code: '22P02' })).toBe('generic')
+  })
+
   it('recognises permission errors (Postgres RLS / privileges and our own codes)', () => {
     expect(errorKeyOf({ code: '42501', message: 'permission denied' })).toBe('forbidden')
     expect(errorKeyOf({ status: 403, message: 'no' })).toBe('forbidden')

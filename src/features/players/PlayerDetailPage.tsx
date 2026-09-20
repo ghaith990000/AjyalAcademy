@@ -203,6 +203,9 @@ export default function PlayerDetailPage() {
                 <bdi dir="ltr">{player.phone}</bdi>
               </a>
             </InfoRow>
+            <InfoRow label={t('players:detail.guardian')}>
+              {player.guardian_name ? <bdi>{player.guardian_name}</bdi> : notProvided}
+            </InfoRow>
             <InfoRow label={t('players:detail.school')}>{player.school ?? notProvided}</InfoRow>
             <InfoRow label={t('players:detail.address')}>{player.address ?? notProvided}</InfoRow>
             <InfoRow label={t('players:detail.location')}>

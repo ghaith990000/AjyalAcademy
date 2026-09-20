@@ -128,3 +128,10 @@ No new `components/ui` component. The **attendance screen** (`features/attendanc
 
 - **`LocationField` / `LocationSelect`** (`src/features/locations/LocationField.tsx`) wrap the native `Select` — the OS picker on phones, RTL-safe. Use `LocationField` (label, hint, error wired through `Field`) in forms and `LocationSelect` inside a `Field` for filters. Location names are data in either script: show them in `<bdi>` so a Latin name inside Arabic text (or the reverse) keeps its own direction.
 - **Location tables** (`LocationBreakdown`) follow the months table: four columns that fit 390px, amounts in LTR islands, a focusable named region, a total row that equals the all-locations figures, a negative profit in the danger colour _and_ signed.
+
+## As built (Phase 10)
+
+- **`PublicLayout`** (`src/app/layouts/PublicLayout.tsx`) frames pages anyone can open: a navy brand bar with the language switch, a centred column of at most 42rem, a footer link to sign in. Use it for any future public page.
+- **Repeating cards** (the registration form's children) are `Card`s with `role="group"` named by their heading; the remove button is an `IconButton` with its own label ("Remove child 2"). A hidden honeypot input sits in an `aria-hidden` zero-size box with `tabIndex={-1}`.
+- **`CountBadge`** (in `AppShell`) is a pink pill (white on `brand-pink` is 4.59:1) whose number is `aria-hidden`; a screen-reader-only "N waiting" carries the meaning, and a real space separates it from the label so the name reads "Registrations 3 waiting".
+- **Names in cards** (`dir="auto"` + `truncate`): a Latin name in an Arabic card is aligned and cut at its own end, not at the wrong one. A link inside a warning or an alert sits on its own line (`inline-flex min-h-11`) so it is a 44px target.

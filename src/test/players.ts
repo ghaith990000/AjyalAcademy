@@ -13,6 +13,7 @@ export function fakePlayer(overrides: Partial<PlayerRow> = {}): PlayerRow {
     address: 'Riffa, Block 901',
     school: 'Al Rifa Primary School',
     phone: '39111001',
+    guardian_name: null,
     has_disease: false,
     disease_description: null,
     coach_id: 'c1',

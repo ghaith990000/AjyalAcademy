@@ -403,6 +403,82 @@ function seedWorld() {
     act('expense.created', ADMIN, 700, { category: 'field_rent', amount_fils: 50_000 }),
   ]
 
+  // Registration requests from parents (what the public form stores): waiting, accepted and rejected.
+  const app = (id: string, extra: Row): Row => ({
+    id,
+    submission_id: `sub-${id}`,
+    guardian_name: 'منى المحمود',
+    phone: '39001234',
+    language: 'ar',
+    location_id: LOC.rifa.id,
+    location_name: LOC.rifa.name,
+    full_name: 'نور المحمود',
+    cpr: '160312345',
+    date_of_birth: '2015-05-05',
+    address: 'الرفاع، مجمع 901',
+    school: 'مدرسة النور',
+    has_disease: false,
+    disease_description: null,
+    status: 'pending',
+    created_at: stamp(90),
+    decided_at: null,
+    decided_by_name: null,
+    decision_note: null,
+    player_id: null,
+    existing_player_id: null,
+    existing_player_name: null,
+    same_cpr_pending: 0,
+    ...extra,
+  })
+  const applications: Row[] = [
+    // the CPR of a player who already exists, and another waiting request has it too: both warnings at once
+    app('ap1', {
+      full_name: 'Ali Hassan',
+      guardian_name: 'Hassan Ali Al Mahmood',
+      language: 'en',
+      cpr: '150312341',
+      existing_player_id: 'p1',
+      existing_player_name: 'Ali Hassan',
+      same_cpr_pending: 1,
+      created_at: stamp(30),
+    }),
+    app('ap2', {
+      full_name: 'Mohammed Abdulrahman Al Khalifa Al Mahmood Al Sayed',
+      guardian_name: 'عبدالرحمن بن محمد بن خليفة آل خليفة',
+      cpr: '160312346',
+      location_id: null,
+      location_name: null,
+      created_at: stamp(300),
+    }),
+    app('ap3', {
+      full_name: 'سلمان العلي',
+      cpr: '160312347',
+      has_disease: true,
+      disease_description: 'ربو — يحمل بخاخاً',
+      created_at: stamp(1500),
+    }),
+    app('ap4', {
+      full_name: 'حمد الأحمد',
+      cpr: '160312348',
+      status: 'accepted',
+      decided_at: stamp(100),
+      decided_by_name: 'Demo Admin',
+      player_id: 'p2',
+      created_at: stamp(2000),
+    }),
+    app('ap5', {
+      full_name: 'Yousef Nasser',
+      guardian_name: 'Nasser Al Ali',
+      language: 'en',
+      cpr: '160312349',
+      status: 'rejected',
+      decided_at: stamp(100),
+      decided_by_name: 'Demo Admin',
+      decision_note: 'No places left this season',
+      created_at: stamp(2500),
+    }),
+  ]
+
   const plans: Row[] = [
     { id: 'plan-solo', code: 'solo', player_count: 1, price_fils: 20_000, active: true },
     { id: 'plan-duo', code: 'duo', player_count: 2, price_fils: 35_000, active: true },
@@ -420,6 +496,7 @@ function seedWorld() {
     expenses,
     discounts,
     activity,
+    applications,
     plans,
     settings: {
       id: true,
@@ -427,6 +504,10 @@ function seedWorld() {
       transport_fee_fils: 10_000,
       expiring_soon_days: 7,
     },
+    /** Every call the public form made to `submit_player_applications`, failed ones included. */
+    submitAttempts: [] as Row[],
+    /** Make the next submission fail: the connection drops, or the parent is turned away. */
+    failNextSubmit: null as 'offline' | 'rate_limited' | null,
     unmatched: [] as string[],
     calls: [] as Call[],
   }
@@ -975,6 +1056,136 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
       }
       if (path === 'rpc/generate_monthly_salaries')
         return json(route, 200, [{ created_count: 2, skipped_count: 0, created_fils: 250_000 }])
+
+      // ---- registration requests (the public form and the admin review)
+      if (path === 'rpc/public_locations')
+        return json(
+          route,
+          200,
+          world.locations
+            .filter((l) => l.active)
+            .map((l) => ({ id: l.id, name: l.name, address: l.address })),
+        )
+      if (path === 'rpc/submit_player_applications') {
+        const call = body as {
+          p_submission_id: string
+          p_guardian_name: string
+          p_phone: string
+          p_location_id: string | null
+          p_language: string
+          p_children: Row[]
+          p_website: string
+        }
+        world.submitAttempts.push(call)
+        const failure = world.failNextSubmit
+        world.failNextSubmit = null
+        if (failure === 'offline') return route.abort('connectionfailed')
+        if (failure === 'rate_limited')
+          return json(route, 400, { code: '54000', message: 'ajyal:rate_limited', details: null })
+        const place = world.locations.find((l) => l.id === call.p_location_id)
+        call.p_children.forEach((child) =>
+          world.applications.unshift({
+            id: uid('ap-new'),
+            submission_id: call.p_submission_id,
+            guardian_name: call.p_guardian_name,
+            phone: call.p_phone,
+            language: call.p_language,
+            location_id: call.p_location_id,
+            location_name: place?.name ?? null,
+            ...child,
+            status: 'pending',
+            created_at: stamp(0),
+            decided_at: null,
+            decided_by_name: null,
+            decision_note: null,
+            player_id: null,
+            existing_player_id: null,
+            existing_player_name: null,
+            same_cpr_pending: 0,
+          }),
+        )
+        return json(route, 204, null)
+      }
+      if (path === 'player_application_overview') {
+        const rows = applyFilters(isAdmin ? world.applications : [], q)
+        return q.has('limit') && q.has('offset') ? paged(rows) : list(rows)
+      }
+      if (path === 'player_applications') {
+        const rows = applyFilters(isAdmin ? world.applications : [], q)
+        if (method === 'HEAD') return head(rows.length)
+        return list(rows)
+      }
+      if (path === 'rpc/accept_player_application') {
+        const { p_application_id, p_coach_id, p_location_id } = body as {
+          p_application_id: string
+          p_coach_id: string | null
+          p_location_id: string | null
+        }
+        const target = world.applications.find((a) => a.id === p_application_id)
+        if (!target)
+          return json(route, 404, { code: 'P0002', message: 'ajyal:application_not_found' })
+        if (target.status !== 'pending')
+          return json(route, 400, { code: '55000', message: 'ajyal:already_decided' })
+        const taken = world.players.find((p) => p.cpr === target.cpr)
+        if (taken)
+          return json(route, 400, {
+            code: '23505',
+            message: 'ajyal:cpr_taken',
+            details: String(taken.id),
+          })
+        const id = uid('p-acc')
+        const place = world.locations.find((l) => l.id === p_location_id)
+        world.players.unshift({
+          id,
+          full_name: target.full_name,
+          cpr: target.cpr,
+          date_of_birth: target.date_of_birth,
+          address: target.address,
+          school: target.school,
+          phone: target.phone,
+          guardian_name: target.guardian_name,
+          has_disease: target.has_disease,
+          disease_description: target.disease_description,
+          coach_id: p_coach_id,
+          location_id: p_location_id,
+          created_by: me?.id,
+          created_at: stamp(0),
+          deleted_at: null,
+          deleted_by: null,
+          coach: p_coach_id
+            ? { full_name: PEOPLE.find((p) => p.id === p_coach_id)?.full_name }
+            : null,
+          location: place ? { name: place.name } : null,
+        })
+        Object.assign(target, {
+          status: 'accepted',
+          decided_at: stamp(0),
+          decided_by_name: me?.full_name ?? null,
+          player_id: id,
+          existing_player_id: null,
+          existing_player_name: null,
+          same_cpr_pending: 0,
+        })
+        return json(route, 200, id)
+      }
+      if (path === 'rpc/reject_player_application') {
+        const { p_application_id, p_note } = body as { p_application_id: string; p_note?: string }
+        const target = world.applications.find((a) => a.id === p_application_id)
+        if (!target)
+          return json(route, 404, { code: 'P0002', message: 'ajyal:application_not_found' })
+        if (target.status !== 'pending')
+          return json(route, 400, { code: '55000', message: 'ajyal:already_decided' })
+        Object.assign(target, {
+          status: 'rejected',
+          decided_at: stamp(0),
+          decided_by_name: me?.full_name ?? null,
+          decision_note: p_note ?? null,
+          existing_player_id: null,
+          existing_player_name: null,
+          same_cpr_pending: 0,
+        })
+        return json(route, 204, null)
+      }
 
       // ---- activity
       if (path === 'activity_log') {

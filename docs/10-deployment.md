@@ -38,9 +38,11 @@ npx supabase link --project-ref <project-ref>
 npx supabase db push          # applies every migration that has not run yet, in order
 ```
 
-`db push` asks for the database password from step 1. Afterwards check in **Table Editor** that `profiles`, `players`, `plans`, `settings`, `subscriptions`, `payments`, `training_sessions`, `attendance`, `expenses`, `activity_log`, `discounts` and `locations` exist and that each shows "RLS enabled". `plans` (four rows) and `settings` (one row) are created by the migrations, with the placeholder prices from `docs/05-business-rules.md`; you change them in the app's **Settings** page.
+`db push` asks for the database password from step 1. Afterwards check in **Table Editor** that `profiles`, `players`, `plans`, `settings`, `subscriptions`, `payments`, `training_sessions`, `attendance`, `expenses`, `activity_log`, `discounts`, `locations` and `player_applications` exist and that each shows "RLS enabled". `plans` (four rows) and `settings` (one row) are created by the migrations, with the placeholder prices from `docs/05-business-rules.md`; you change them in the app's **Settings** page.
 
 > **Upgrading an existing project to locations (`20260920100000_locations.sql`):** it turns the free-text session places into locations (one per distinct name), drops the old text column and requires a location on new sessions and subscriptions. It briefly switches one trigger off for the backfill, inside its own transaction. Do it **before** you deploy the new website (an older website would still send the removed column), and dry-run it first if you can — wrap the file's SQL in `begin; …; rollback;` and look at the result.
+
+> **Upgrading an existing project to public registration (`20260920110000_player_applications.sql`):** purely additive (a column on `players`, one table, one view, four functions, one replaced trigger function). It opens two functions to the internet on purpose: `public_locations` and `submit_player_applications` are executable by `anon`, which is how a parent with no account sends the form; `anon` still has no access to any table. Apply it **before** deploying the website that has the `/register` page. The Supabase security advisor will list those two under _"Public can execute SECURITY DEFINER function"_ — that is intended.
 
 > **Never run `supabase/seed.sql` on a real project.** It creates demo accounts with a published password (`Ajyal#Dev2026`). It is for a local Docker database only.
 
@@ -145,8 +147,9 @@ Do this on a phone, in both languages (the language button is at the top of ever
 3. **Coaches → Add coach**: create a coach; then sign in as that coach in a private window (they see no Reports, Expenses, Coaches, Discounts or Settings).
 4. As the coach: **Add player**, then **New subscription** for them (pay in full), then schedule a session for today and **Take attendance**.
 5. Back as the admin: the four actions appear at the top of the activity feed within a couple of seconds; **Reports** shows the payment; **Expenses → Generate salaries** works.
-6. **Install:** in Chrome on Android a card "Install the app" appears on the home screen (or use the browser menu → _Install app_); on iPhone: Share → _Add to Home Screen_. The app opens full-screen with the Ajyal icon.
-7. Turn on airplane mode and reopen the app: it opens and shows "You're offline".
+6. **Registration form:** open `<your site>/register` in a private window (no sign-in): fill in a parent and a child, send it, and check that the request appears under **More → Registrations** with a badge on **More**; accept it (the child becomes a player) and try the **Message on WhatsApp** button. The link parents use is the site's address followed by `/register` — **More → Registrations → Copy registration link** copies it. Delete nothing: test requests stay (Q-010) — reject them.
+7. **Install:** in Chrome on Android a card "Install the app" appears on the home screen (or use the browser menu → _Install app_); on iPhone: Share → _Add to Home Screen_. The app opens full-screen with the Ajyal icon.
+8. Turn on airplane mode and reopen the app: it opens and shows "You're offline".
 
 If any step fails, see §10.
 
@@ -207,7 +210,8 @@ Supabase Pro plus a free static-hosting tier is enough for an academy of hundred
 - [ ] Sign-ups are **off** (§3); leaked-password protection is **on** (Pro).
 - [ ] `supabase/seed.sql` was **not** run; there are no accounts with published passwords.
 - [ ] Only the publishable key is in the host's variables; the service-role key is nowhere in the repository or the host.
-- [ ] Supabase **Advisors** (Security) shows only the intentional notes: "Signed-in users can execute SECURITY DEFINER function" for the app's own functions (each checks who is calling — see `docs/04-data-model.md`) and, on the Free plan, the leaked-password note.
+- [ ] Supabase **Advisors** (Security) shows only the intentional notes: "Public can execute SECURITY DEFINER function" for `public_locations` and `submit_player_applications` (the parents' form), "Signed-in users can execute SECURITY DEFINER function" for the app's own functions (each checks who is calling — see `docs/04-data-model.md`) and, on the Free plan, the leaked-password note.
+- [ ] The registration link (`/register`) works in a private window and the request reaches **More → Registrations**; the two `anon`-executable functions in the Advisors list are the only ones.
 - [ ] At least one **location** exists (More → Locations); on a database migrated from an earlier version, the places typed on old sessions became locations — switch off any that were test entries, and give older subscriptions and expenses a location if the reports should split them.
 - [ ] Every admin account uses a strong, unique password; a departed coach is deactivated.
 - [ ] A backup exists and a restore was tried (§9).

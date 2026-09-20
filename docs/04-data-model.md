@@ -1,6 +1,6 @@
 # Data model (Postgres / Supabase)
 
-Status: **migrated in Phase 2; extended in Phase 9 (locations)** — tables, constraints, RLS, guard/activity triggers and `remove_player` exist (`supabase/migrations/`). Other RPCs are implemented in the phase that uses them (see the RPC table). This doc is the contract; migrations must match it. Update both together.
+Status: **migrated in Phase 2; extended in Phase 9 (locations) and Phase 10 (public registration)** — tables, constraints, RLS, guard/activity triggers and `remove_player` exist (`supabase/migrations/`). Other RPCs are implemented in the phase that uses them (see the RPC table). This doc is the contract; migrations must match it. Update both together.
 
 ## Conventions
 
@@ -14,13 +14,14 @@ Status: **migrated in Phase 2; extended in Phase 9 (locations)** — tables, con
 
 ## Enums
 
-| Enum                | Values                                                               |
-| ------------------- | -------------------------------------------------------------------- |
-| `user_role`         | `admin`, `coach`                                                     |
-| `discount_type`     | `percent`, `fixed`                                                   |
-| `payment_method`    | `cash`, `benefit`, `bank_transfer`, `other`                          |
-| `attendance_status` | `present`, `absent`                                                  |
-| `expense_category`  | `coach_salary`, `field_rent`, `transportation`, `equipment`, `other` |
+| Enum                 | Values                                                               |
+| -------------------- | -------------------------------------------------------------------- |
+| `user_role`          | `admin`, `coach`                                                     |
+| `discount_type`      | `percent`, `fixed`                                                   |
+| `payment_method`     | `cash`, `benefit`, `bank_transfer`, `other`                          |
+| `attendance_status`  | `present`, `absent`                                                  |
+| `expense_category`   | `coach_salary`, `field_rent`, `transportation`, `equipment`, `other` |
+| `application_status` | `pending`, `accepted`, `rejected` (Phase 10)                         |
 
 ## Tables
 
@@ -47,6 +48,7 @@ Status: **migrated in Phase 2; extended in Phase 9 (locations)** — tables, con
 | `address`             | text             |                                                                                                       |
 | `school`              | text             |                                                                                                       |
 | `phone`               | text not null    | guardian/contact number                                                                               |
+| `guardian_name`       | text             | optional (≤ 120): the parent's name; filled when a registration request is accepted (Phase 10, D-094) |
 | `has_disease`         | bool not null    | default false                                                                                         |
 | `disease_description` | text             | **check:** required (non-empty) when `has_disease`, null when not                                     |
 | `coach_id`            | uuid → profiles  | nullable (unassigned); admin assigns; coach-created ⇒ that coach                                      |
@@ -65,6 +67,20 @@ Indexes: `(coach_id) where deleted_at is null`, trigram/`ilike` search on `full_
 | `active`  | bool | default true; switched off instead of deleted — history keeps the name (D-084) |
 
 Every signed-in active user may read (inactive ones too); only admins insert or update (column grants: `name`, `address`, `active`); there is no delete. Insert / change is logged (`location.created` / `location.updated`).
+
+### `player_applications` (Phase 10)
+
+One row per child asked for through the public form. A parent's submission of 1–4 children shares `submission_id` (made by the browser, so a retry is stored once); `child_index` 1–4 orders them.
+
+| Column                                                                                         | Type                                                       | Notes                                                                                                |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `guardian_name`, `phone`, `language`                                                           | text                                                       | the parent; phone `^\+?[0-9]{8,15}$` (spaces removed); `language` `ar` \| `en` = the form's language |
+| `location_id`                                                                                  | uuid → locations                                           | optional: the location the parent chose (active when submitted)                                      |
+| `full_name`, `cpr`, `date_of_birth`, `address`, `school`, `has_disease`, `disease_description` | as `players`                                               | same checks; length limits (name 120, address 200, school 120, description 500); born 1990 or later  |
+| `status`                                                                                       | application_status                                         | default `pending`                                                                                    |
+| `decided_at`, `decided_by`, `decision_note`, `player_id`                                       | timestamptz, uuid → profiles, text (≤ 500), uuid → players | set when accepted (`player_id`) or rejected (`decision_note`, optional)                              |
+
+Admins read; **nobody writes through the API** (no insert/update/delete grant): `submit_player_applications`, `accept_player_application` and `reject_player_application` are the only way in. The view `player_application_overview` (`security_invoker`) adds `location_name`, `decided_by_name`, and, while pending, `existing_player_id` / `existing_player_name` (a non-removed player with the same CPR) and `same_cpr_pending` (other waiting requests with it). Rejected requests are kept (Q-010).
 
 ### `plans` (seeded, admin-editable prices)
 
@@ -176,33 +192,37 @@ Rules (enforced in `create_subscription` RPC): row count = `plans.player_count`;
 
 ### `activity_log`
 
-| Column        | Type            | Notes                                                                                                    |
-| ------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
-| `actor_id`    | uuid → profiles | who did it                                                                                               |
-| `action`      | text            | dotted key, see list below                                                                               |
-| `entity_type` | text            | `player`, `subscription`, `payment`, `session`, `attendance`, `discount`, `expense`, `coach`, `location` |
-| `entity_id`   | uuid            |                                                                                                          |
-| `summary`     | jsonb           | **snapshot** for display (e.g. `{ "player_name": "Ali", "plan": "duo" }`) so removed rows still render   |
-| `created_at`  | timestamptz     | indexed desc; table is in the `supabase_realtime` publication                                            |
+| Column        | Type            | Notes                                                                                                                   |
+| ------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `actor_id`    | uuid → profiles | who did it                                                                                                              |
+| `action`      | text            | dotted key, see list below                                                                                              |
+| `entity_type` | text            | `player`, `subscription`, `payment`, `session`, `attendance`, `discount`, `expense`, `coach`, `location`, `application` |
+| `entity_id`   | uuid            |                                                                                                                         |
+| `summary`     | jsonb           | **snapshot** for display (e.g. `{ "player_name": "Ali", "plan": "duo" }`) so removed rows still render                  |
+| `created_at`  | timestamptz     | indexed desc; table is in the `supabase_realtime` publication                                                           |
 
-Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigned`, `subscription.created`, `subscription.cancelled`, `payment.recorded`, `discount.created`, `session.created`, `session.cancelled`, `attendance.saved`, `expense.created`, `expense.updated`, `expense.deleted`, `expense.salaries_generated`, `coach.created`, `location.created`, `location.updated`, `subscription.location_changed`. UI maps each to a translated sentence with the `summary` values.
+Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigned`, `subscription.created`, `subscription.cancelled`, `payment.recorded`, `discount.created`, `session.created`, `session.cancelled`, `attendance.saved`, `expense.created`, `expense.updated`, `expense.deleted`, `expense.salaries_generated`, `coach.created`, `location.created`, `location.updated`, `subscription.location_changed`, `application.submitted`, `application.accepted`, `application.rejected`. UI maps each to a translated sentence with the `summary` values.
 
 ## RPCs and SQL functions
 
-| Function                                     | Who                        | Purpose                                                                                                                                                        |
-| -------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `calc_subscription_total(...)`               | internal                   | Authoritative total calculation (mirrors `src/lib/pricing.ts`).                                                                                                |
-| `create_subscription(...)`                   | admin, coach (own players) | Validates (incl. a **required active location**, Phase 9), recomputes fees/discount/total, inserts subscription + players (+ optional payment), logs activity. |
-| `set_subscription_location(id, location)`    | admin                      | Labels an older subscription or corrects one; moves all its payments to that location; logged with both names (Phase 9).                                       |
-| `record_payment(subscription_id, ...)`       | admin, coach (own)         | Adds a payment, guards overpayment, logs activity.                                                                                                             |
-| `cancel_subscription(id, reason)`            | admin, coach (own)         | Sets `cancelled_at`, logs activity.                                                                                                                            |
-| `save_attendance(session_id, records)`       | admin, session coach       | Upserts attendance rows (records = JSON array), logs one `attendance.saved`.                                                                                   |
-| `assign_players(player_ids[], coach_id)`     | admin                      | Bulk (re)assignment, logs `player.reassigned`.                                                                                                                 |
-| `generate_monthly_salaries(month date)`      | admin                      | Idempotently inserts a `coach_salary` expense per active coach with a salary (created / skipped counts).                                                       |
-| `report_summary(from, to[, location])`       | admin                      | `{ collected_fils, expenses_fils, profit_fils, margin_bps }`; with a location, only its payments and expenses.                                                 |
-| `revenue_by_month(year[, location])`         | admin                      | 12 rows: `month_start`, collected, expenses, profit.                                                                                                           |
-| `expenses_by_category(from, to[, location])` | admin                      | category, total.                                                                                                                                               |
-| `report_by_location(from, to)`               | admin                      | One row per location that is active or has money in the period, plus a `null` location_id row (Phase 9).                                                       |
+| Function                                         | Who                        | Purpose                                                                                                                                                        |
+| ------------------------------------------------ | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `calc_subscription_total(...)`                   | internal                   | Authoritative total calculation (mirrors `src/lib/pricing.ts`).                                                                                                |
+| `create_subscription(...)`                       | admin, coach (own players) | Validates (incl. a **required active location**, Phase 9), recomputes fees/discount/total, inserts subscription + players (+ optional payment), logs activity. |
+| `set_subscription_location(id, location)`        | admin                      | Labels an older subscription or corrects one; moves all its payments to that location; logged with both names (Phase 9).                                       |
+| `record_payment(subscription_id, ...)`           | admin, coach (own)         | Adds a payment, guards overpayment, logs activity.                                                                                                             |
+| `cancel_subscription(id, reason)`                | admin, coach (own)         | Sets `cancelled_at`, logs activity.                                                                                                                            |
+| `save_attendance(session_id, records)`           | admin, session coach       | Upserts attendance rows (records = JSON array), logs one `attendance.saved`.                                                                                   |
+| `assign_players(player_ids[], coach_id)`         | admin                      | Bulk (re)assignment, logs `player.reassigned`.                                                                                                                 |
+| `generate_monthly_salaries(month date)`          | admin                      | Idempotently inserts a `coach_salary` expense per active coach with a salary (created / skipped counts).                                                       |
+| `report_summary(from, to[, location])`           | admin                      | `{ collected_fils, expenses_fils, profit_fils, margin_bps }`; with a location, only its payments and expenses.                                                 |
+| `revenue_by_month(year[, location])`             | admin                      | 12 rows: `month_start`, collected, expenses, profit.                                                                                                           |
+| `expenses_by_category(from, to[, location])`     | admin                      | category, total.                                                                                                                                               |
+| `report_by_location(from, to)`                   | admin                      | One row per location that is active or has money in the period, plus a `null` location_id row (Phase 9).                                                       |
+| `public_locations()`                             | **anon**, signed in        | The active locations (`id`, `name`, `address`) for the registration form's picker (Phase 10).                                                                  |
+| `submit_player_applications(...)`                | **anon**, signed in        | The public form: 1–4 children from one parent (Phase 10; see _As built_).                                                                                      |
+| `accept_player_application(id, coach, location)` | admin                      | Creates the player from a waiting request and marks it accepted; returns the player id (Phase 10).                                                             |
+| `reject_player_application(id, note)`            | admin                      | Marks a waiting request rejected, with an optional internal note (Phase 10).                                                                                   |
 
 ### As built (Phase 4)
 
@@ -246,8 +266,18 @@ No schema change. The home feed reads `activity_log` as the caller — row-level
 - **Error codes** (`ajyal:<code>`): `location_required`, `invalid_location`, plus the existing `forbidden`, `subscription_not_found`, `invalid_period`.
 - pgTAP: `supabase/tests/database/07_locations.test.sql` (86 assertions); `01`, `04` and `05` were adapted (a default location for sessions, `create_subscription` takes a location).
 
+### As built (Phase 10)
+
+- **Migration** `20260920110000_player_applications.sql`: `players.guardian_name`, the enum, `player_applications` (RLS: one `select` policy for admins; only `select` is granted), the view, the four functions and a `create or replace` of `trg_players_activity` (it skips the `player.created` entry while `ajyal.application` is `on`, so accepting logs one `application.accepted` entry instead).
+- **`submit_player_applications(p_submission_id, p_guardian_name, p_phone, p_location_id, p_language, p_children jsonb, p_website default null) → void`** — granted to `anon` and `authenticated`, `SECURITY DEFINER`. Order: a filled `p_website` (the honeypot) returns silently → input checks (`ajyal:invalid_input`: id, name ≤ 120, phone, language, 1–4 children; `ajyal:too_many_children` above 4) → a submission id already stored returns silently (a retry) → location active (`ajyal:invalid_location`) → rate limits (`ajyal:rate_limited`, errcode 54000: 5 per phone per day on the last 8 digits, 60 an hour and 300 a day overall, D-090) → each child inserted (a bad value in any child ⇒ `ajyal:invalid_input`; date of birth in the past and not before 1990) → distinct CPRs (`ajyal:duplicate_child`) → one `application.submitted` entry (`guardian_name`, `child_count`, `child_names`, `location_name`; no actor). All or nothing.
+- **`accept_player_application(p_application_id, p_coach_id, p_location_id) → uuid`**: admin (`ajyal:forbidden`) → request exists (`ajyal:application_not_found`) and is pending (`ajyal:already_decided`, 55000) → the CPR is not a non-removed player's (`ajyal:cpr_taken`, 23505, the player's id in DETAIL) → coach active and a coach (`ajyal:invalid_coach`) → location active (`ajyal:invalid_location`) → inserts the player (coach and location exactly as sent, `guardian_name` and everything else from the request, `created_by` the admin) → marks the request accepted → logs `application.accepted` (`player_name`, `guardian_name`, `coach_name`, `location_name`, `player_id`). The row is locked first, so two admins cannot both decide it.
+- **`reject_player_application(p_application_id, p_note default null)`**: the same first checks; a note over 500 characters is `ajyal:invalid_input`; logs `application.rejected`.
+- **Error codes** (`ajyal:<code>`): `invalid_input`, `too_many_children`, `duplicate_child`, `invalid_location`, `rate_limited` · `forbidden`, `application_not_found`, `already_decided`, `cpr_taken`, `invalid_coach`.
+- pgTAP: `supabase/tests/database/08_applications.test.sql` (139 assertions): the anonymous door (what `anon` can and cannot touch), input checks, honeypot, retry, the rate limits (per phone, per hour, per day), who sees and decides, the decisions, warnings, the activity trail. `01` and `07` now expect `anon` to execute exactly `public_locations` and `submit_player_applications`.
+
 ## Triggers
 
+- `player_applications` has no trigger; its functions log `application.*` themselves (the feed shows a parent's submission with no actor).
 - `locations` AFTER INSERT/UPDATE → `location.created` / `location.updated` (an update that changes nothing is not logged).
 - `trg_sessions_guard`, `trg_players_guard`, `trg_expenses_guard`: a location, when set or changed, must be an **active** location (`ajyal:invalid_location`); a session also requires one on insert and cannot lose it (`ajyal:location_required`).
 - `on_auth_user_created` → nothing (profiles are inserted by the `create-coach` Edge Function / seed, never self-signup).
@@ -260,20 +290,21 @@ No schema change. The home feed reads `activity_log` as the caller — row-level
 
 `A` = admin, `C` = coach. "own" = `players.coach_id = auth.uid()` (or a record tied to such a player / created by that coach).
 
-| Table                  | Select                                     | Insert                            | Update                                     | Delete                        |
-| ---------------------- | ------------------------------------------ | --------------------------------- | ------------------------------------------ | ----------------------------- |
-| `profiles`             | A: all · C: self only (D-034)              | Edge Function only (service role) | A: all · C: self (language only)           | none                          |
-| `players`              | A: all · C: own                            | A · C (forced `coach_id = uid`)   | A: all · C: own (cannot change `coach_id`) | none (soft delete via update) |
-| `plans`, `settings`    | A, C read                                  | A                                 | A                                          | none                          |
-| `discounts`            | A: all · C: active only (to apply code)    | A                                 | A                                          | none                          |
-| `subscriptions`        | A: all · C: those containing an own player | via RPC only                      | via RPC only                               | none                          |
-| `subscription_players` | as subscriptions                           | via RPC only                      | none                                       | none                          |
-| `payments`             | as subscriptions                           | via RPC only                      | none                                       | none                          |
-| `training_sessions`    | A: all · C: own (`coach_id = uid`)         | A · C (forced own)                | A · C own                                  | none (cancel)                 |
-| `locations`            | A, C read (inactive too)                   | A                                 | A (`name`, `address`, `active`)            | none (switch off)             |
-| `attendance`           | A: all · C: sessions they run              | via RPC only                      | via RPC only                               | none                          |
-| `expenses`             | A                                          | A                                 | A                                          | A                             |
-| `activity_log`         | A: all · C: `actor_id = uid`               | none (definer functions only)     | none                                       | none                          |
+| Table                  | Select                                     | Insert                                    | Update                                     | Delete                        |
+| ---------------------- | ------------------------------------------ | ----------------------------------------- | ------------------------------------------ | ----------------------------- |
+| `profiles`             | A: all · C: self only (D-034)              | Edge Function only (service role)         | A: all · C: self (language only)           | none                          |
+| `players`              | A: all · C: own                            | A · C (forced `coach_id = uid`)           | A: all · C: own (cannot change `coach_id`) | none (soft delete via update) |
+| `plans`, `settings`    | A, C read                                  | A                                         | A                                          | none                          |
+| `discounts`            | A: all · C: active only (to apply code)    | A                                         | A                                          | none                          |
+| `subscriptions`        | A: all · C: those containing an own player | via RPC only                              | via RPC only                               | none                          |
+| `subscription_players` | as subscriptions                           | via RPC only                              | none                                       | none                          |
+| `payments`             | as subscriptions                           | via RPC only                              | none                                       | none                          |
+| `training_sessions`    | A: all · C: own (`coach_id = uid`)         | A · C (forced own)                        | A · C own                                  | none (cancel)                 |
+| `locations`            | A, C read (inactive too)                   | A                                         | A (`name`, `address`, `active`)            | none (switch off)             |
+| `player_applications`  | A                                          | none (`submit_player_applications`, anon) | none (`accept_…` / `reject_…`, admin)      | none                          |
+| `attendance`           | A: all · C: sessions they run              | via RPC only                              | via RPC only                               | none                          |
+| `expenses`             | A                                          | A                                         | A                                          | A                             |
+| `activity_log`         | A: all · C: `actor_id = uid`               | none (definer functions only)             | none                                       | none                          |
 
 RLS tests live in `supabase/tests/` and must cover: coach A cannot read/update coach B's players, subscriptions, sessions, attendance; a coach cannot read `expenses`, `report_*`; nobody can write `activity_log` directly.
 

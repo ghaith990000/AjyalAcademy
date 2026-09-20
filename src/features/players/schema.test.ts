@@ -9,6 +9,7 @@ const valid: PlayerFormValues = {
   address: '',
   school: '',
   phone: '39111001',
+  guardian_name: '',
   has_disease: false,
   disease_description: '',
   coach_id: '',
@@ -91,6 +92,18 @@ describe('playerSchema', () => {
   })
 })
 
+describe('guardian name', () => {
+  it('is optional', () => {
+    expect(playerSchema.safeParse({ ...valid, guardian_name: '' }).success).toBe(true)
+  })
+
+  it('is at most 120 characters', () => {
+    expect(issues({ guardian_name: 'x'.repeat(121) }).guardian_name).toBe(
+      'form.guardianName.tooLong',
+    )
+  })
+})
+
 describe('toPlayerInput', () => {
   it('turns blank optional fields into null', () => {
     expect(toPlayerInput(valid, { includeCoach: false })).toEqual({
@@ -100,10 +113,17 @@ describe('toPlayerInput', () => {
       address: null,
       school: null,
       phone: '39111001',
+      guardian_name: null,
       has_disease: false,
       disease_description: null,
       location_id: null,
     })
+  })
+
+  it("keeps the parent's name (trimmed by the schema), or null when blank", () => {
+    const parsed = playerSchema.parse({ ...valid, guardian_name: '  Mona Al Mahmood  ' })
+    expect(toPlayerInput(parsed, { includeCoach: false }).guardian_name).toBe('Mona Al Mahmood')
+    expect(toPlayerInput(valid, { includeCoach: false }).guardian_name).toBeNull()
   })
 
   it('sends the chosen location, or null for none', () => {

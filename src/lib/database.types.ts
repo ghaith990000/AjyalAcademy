@@ -296,6 +296,97 @@ export type Database = {
         }
         Relationships: []
       }
+      player_applications: {
+        Row: {
+          address: string | null
+          child_index: number
+          cpr: string
+          created_at: string
+          date_of_birth: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          disease_description: string | null
+          full_name: string
+          guardian_name: string
+          has_disease: boolean
+          id: string
+          language: string
+          location_id: string | null
+          phone: string
+          player_id: string | null
+          school: string | null
+          status: Database['public']['Enums']['application_status']
+          submission_id: string
+        }
+        Insert: {
+          address?: string | null
+          child_index: number
+          cpr: string
+          created_at?: string
+          date_of_birth: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          disease_description?: string | null
+          full_name: string
+          guardian_name: string
+          has_disease?: boolean
+          id?: string
+          language: string
+          location_id?: string | null
+          phone: string
+          player_id?: string | null
+          school?: string | null
+          status?: Database['public']['Enums']['application_status']
+          submission_id: string
+        }
+        Update: {
+          address?: string | null
+          child_index?: number
+          cpr?: string
+          created_at?: string
+          date_of_birth?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          disease_description?: string | null
+          full_name?: string
+          guardian_name?: string
+          has_disease?: boolean
+          id?: string
+          language?: string
+          location_id?: string | null
+          phone?: string
+          player_id?: string | null
+          school?: string | null
+          status?: Database['public']['Enums']['application_status']
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'player_applications_decided_by_fkey'
+            columns: ['decided_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'player_applications_location_id_fkey'
+            columns: ['location_id']
+            isOneToOne: false
+            referencedRelation: 'locations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'player_applications_player_id_fkey'
+            columns: ['player_id']
+            isOneToOne: false
+            referencedRelation: 'players'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       players: {
         Row: {
           address: string | null
@@ -308,6 +399,7 @@ export type Database = {
           deleted_by: string | null
           disease_description: string | null
           full_name: string
+          guardian_name: string | null
           has_disease: boolean
           id: string
           location_id: string | null
@@ -325,6 +417,7 @@ export type Database = {
           deleted_by?: string | null
           disease_description?: string | null
           full_name: string
+          guardian_name?: string | null
           has_disease?: boolean
           id?: string
           location_id?: string | null
@@ -342,6 +435,7 @@ export type Database = {
           deleted_by?: string | null
           disease_description?: string | null
           full_name?: string
+          guardian_name?: string | null
           has_disease?: boolean
           id?: string
           location_id?: string | null
@@ -637,6 +731,36 @@ export type Database = {
       }
     }
     Views: {
+      player_application_overview: {
+        Row: {
+          address: string | null
+          child_index: number | null
+          cpr: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decided_by_name: string | null
+          decision_note: string | null
+          disease_description: string | null
+          existing_player_id: string | null
+          existing_player_name: string | null
+          full_name: string | null
+          guardian_name: string | null
+          has_disease: boolean | null
+          id: string | null
+          language: string | null
+          location_id: string | null
+          location_name: string | null
+          phone: string | null
+          player_id: string | null
+          same_cpr_pending: number | null
+          school: string | null
+          status: Database['public']['Enums']['application_status'] | null
+          submission_id: string | null
+        }
+        Relationships: []
+      }
       player_attendance: {
         Row: {
           coach_id: string | null
@@ -695,6 +819,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_player_application: {
+        Args: { p_application_id: string; p_coach_id: string; p_location_id: string }
+        Returns: string
+      }
       assign_players: {
         Args: { p_coach_id?: string; p_player_ids: string[] }
         Returns: number
@@ -766,6 +894,14 @@ export type Database = {
         Returns: string
       }
       remove_player: { Args: { p_player_id: string }; Returns: undefined }
+      public_locations: {
+        Args: never
+        Returns: { address: string; id: string; name: string }[]
+      }
+      reject_player_application: {
+        Args: { p_application_id: string; p_note?: string }
+        Returns: undefined
+      }
       report_by_location: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -802,8 +938,21 @@ export type Database = {
         Args: { p_location_id: string; p_subscription_id: string }
         Returns: undefined
       }
+      submit_player_applications: {
+        Args: {
+          p_children: Json
+          p_guardian_name: string
+          p_language: string
+          p_location_id: string
+          p_phone: string
+          p_submission_id: string
+          p_website?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
+      application_status: 'pending' | 'accepted' | 'rejected'
       attendance_status: 'present' | 'absent'
       discount_type: 'percent' | 'fixed'
       expense_category: 'coach_salary' | 'field_rent' | 'transportation' | 'equipment' | 'other'
@@ -914,6 +1063,7 @@ export type Enums<
 export const Constants = {
   public: {
     Enums: {
+      application_status: ['pending', 'accepted', 'rejected'],
       attendance_status: ['present', 'absent'],
       discount_type: ['percent', 'fixed'],
       expense_category: ['coach_salary', 'field_rent', 'transportation', 'equipment', 'other'],

@@ -1,0 +1,113 @@
+{
+  "title": "Register your child",
+  "subtitle": "Ask for a place at Ajyal Academy. Fill in the form once — the academy will review your request and contact you.",
+  "parent": {
+    "title": "Parent or guardian",
+    "name": {
+      "label": "Your name"
+    },
+    "phone": {
+      "label": "Phone number",
+      "hint": "The academy will contact you on this number (WhatsApp).",
+      "placeholder": "3900 1234"
+    },
+    "location": {
+      "label": "Preferred location",
+      "hint": "Where would your child like to train?",
+      "placeholder": "Choose a location"
+    }
+  },
+  "child": {
+    "title": "Child {{n}}",
+    "remove": "Remove child {{n}}",
+    "fullName": {
+      "label": "Child's full name"
+    },
+    "cpr": {
+      "label": "CPR number",
+      "hint": "9 digits"
+    },
+    "dob": {
+      "label": "Date of birth"
+    },
+    "school": {
+      "label": "School"
+    },
+    "address": {
+      "label": "Address"
+    },
+    "disease": {
+      "label": "Has a medical condition?",
+      "hint": "For example asthma or an allergy."
+    },
+    "diseaseDescription": {
+      "label": "Describe the condition",
+      "placeholder": "What should the coaches know?"
+    }
+  },
+  "add": {
+    "button": "Add another child",
+    "limit": "You can register up to {{max}} children in one request."
+  },
+  "confirm": {
+    "label": "I confirm that the information is correct and that I am the child's parent or guardian."
+  },
+  "submit": "Send registration",
+  "privacy": "The details you send are used only by the academy to review your request.",
+  "trap": "Leave this field empty",
+  "form": {
+    "guardianName": {
+      "required": "Enter your name",
+      "tooLong": "The name is too long (120 characters at most)"
+    },
+    "phone": {
+      "required": "Enter a phone number",
+      "invalid": "Enter a valid number of 8 digits (a +973 prefix is fine)"
+    },
+    "location": {
+      "required": "Choose a location",
+      "invalid": "That location is no longer available. Choose another one."
+    },
+    "fullName": {
+      "required": "Enter the child's name",
+      "tooLong": "The name is too long (120 characters at most)"
+    },
+    "cpr": {
+      "invalid": "The CPR must be exactly 9 digits",
+      "duplicate": "This CPR is used for another child in this form"
+    },
+    "dob": {
+      "required": "Enter the date of birth",
+      "invalid": "Enter a valid date of birth",
+      "future": "The date of birth must be in the past"
+    },
+    "school": {
+      "tooLong": "Too long (120 characters at most)"
+    },
+    "address": {
+      "tooLong": "Too long (200 characters at most)"
+    },
+    "diseaseDescription": {
+      "required": "Describe the condition",
+      "tooLong": "Too long (500 characters at most)"
+    },
+    "confirm": {
+      "required": "Please confirm that the information is correct"
+    }
+  },
+  "error": {
+    "network": "We couldn't reach the server. Check your connection and press “Send registration” again — your answers are still here.",
+    "rateLimited": "Too many requests were sent from this number today. Please try again later, or contact the academy.",
+    "invalid": "Some details were not accepted. Please check the form and try again.",
+    "duplicateChild": "Two children have the same CPR. Please check the form.",
+    "generic": "Something went wrong. Please try again in a moment — your answers are still here."
+  },
+  "done": {
+    "title": "Thank you!",
+    "received": "We received the registration request for <b>{{names}}</b>.",
+    "contact": "The academy will review it and contact you on <b>{{phone}}</b>.",
+    "another": "Register another child"
+  },
+  "staff": "Academy staff?",
+  "signIn": "Sign in"
+}

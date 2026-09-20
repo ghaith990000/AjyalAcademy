@@ -2,7 +2,9 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import * as applicationsApi from '@/features/applications/api'
 import { AuthContext, type AuthState } from '@/features/auth/auth-context'
+import type * as registerApi from '@/features/register/api'
 import i18n from '@/lib/i18n'
 import { fakeAuth } from '@/test/auth'
 import { Providers } from './providers'
@@ -12,6 +14,16 @@ import { routes } from './routes'
 // live updates) has its own tests, and tests never reach the network.
 vi.mock('@/features/home/HomePage', () => ({
   default: ({ role }: { role: string }) => <h1>Home ({role})</h1>,
+}))
+
+// The shell counts the requests waiting (a badge on the menu); the registration form reads the locations.
+vi.mock('@/features/applications/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof applicationsApi>()),
+  countPendingApplications: vi.fn(async () => 0),
+}))
+vi.mock('@/features/register/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof registerApi>()),
+  listPublicLocations: vi.fn(async () => []),
 }))
 
 function renderAt(path: string, auth: AuthState = fakeAuth('admin')) {
@@ -28,6 +40,7 @@ function renderAt(path: string, auth: AuthState = fakeAuth('admin')) {
 
 describe('app routes and shells', () => {
   beforeEach(async () => {
+    vi.mocked(applicationsApi.countPendingApplications).mockResolvedValue(0)
     await i18n.changeLanguage('ar')
   })
 
@@ -54,6 +67,7 @@ describe('app routes and shells', () => {
       'Players',
       'Subscriptions',
       'Sessions',
+      'Registrations',
       'Coaches',
       'Discounts',
       'Expenses',
@@ -62,6 +76,33 @@ describe('app routes and shells', () => {
     ]) {
       expect(within(sidebar).getByRole('link', { name })).toBeInTheDocument()
     }
+  })
+
+  it('shows how many registration requests wait, on the menu entry and on the phone’s More tab', async () => {
+    await i18n.changeLanguage('en')
+    vi.mocked(applicationsApi.countPendingApplications).mockResolvedValue(3)
+    renderAt('/admin')
+    const sidebar = (await screen.findAllByRole('navigation', { name: 'Main navigation' }))[0]!
+    expect(
+      await within(sidebar).findByRole('link', { name: 'Registrations 3 waiting' }),
+    ).toHaveAttribute('href', '/admin/applications')
+    expect(await screen.findByRole('button', { name: '3 waiting More' })).toBeInTheDocument()
+  })
+
+  it('shows no badge when nothing waits, and coaches never see the entry or ask for the count', async () => {
+    await i18n.changeLanguage('en')
+    vi.mocked(applicationsApi.countPendingApplications).mockClear()
+    renderAt('/admin')
+    const sidebar = (await screen.findAllByRole('navigation', { name: 'Main navigation' }))[0]!
+    expect(await within(sidebar).findByRole('link', { name: 'Registrations' })).toBeInTheDocument()
+    expect(screen.queryByText(/waiting/)).not.toBeInTheDocument()
+    document.body.innerHTML = ''
+
+    vi.mocked(applicationsApi.countPendingApplications).mockClear()
+    renderAt('/coach', fakeAuth('coach'))
+    await screen.findAllByRole('navigation', { name: 'Main navigation' })
+    expect(screen.queryByRole('link', { name: /Registrations/ })).not.toBeInTheDocument()
+    expect(applicationsApi.countPendingApplications).not.toHaveBeenCalled()
   })
 
   it('shows only coach destinations for the coach area', async () => {
@@ -86,6 +127,27 @@ describe('app routes and shells', () => {
     expect(within(menu).getByText('Coach')).toBeInTheDocument()
     await userEvent.click(within(menu).getByRole('button', { name: 'Sign out' }))
     expect(auth.signOut).toHaveBeenCalledOnce()
+  })
+
+  it('opens the parents’ registration form without any sign-in, with the staff sign-in one tap away', async () => {
+    await i18n.changeLanguage('en')
+    const router = renderAt('/register', fakeAuth(null))
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Register your child' }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/register')
+    expect(screen.queryByRole('navigation', { name: 'Main navigation' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('link', { name: 'Sign in' }))
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+  })
+
+  it('offers the registration form from the sign-in page', async () => {
+    await i18n.changeLanguage('en')
+    renderAt('/login', fakeAuth(null))
+    await userEvent.click(await screen.findByRole('link', { name: 'Open the registration form' }))
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Register your child' }),
+    ).toBeInTheDocument()
   })
 
   it('renders a translated not-found page', async () => {

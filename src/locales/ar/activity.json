@@ -74,6 +74,12 @@
     "location": {
       "created": "أُضيف الموقع <b>{{location}}</b> بواسطة <b>{{actor}}</b>",
       "updated": "عُدّل الموقع <b>{{location}}</b> بواسطة <b>{{actor}}</b>"
+    },
+    "application": {
+      "submitted": "طلب <b>{{guardian}}</b> تسجيل <b>{{children}}</b>",
+      "accepted": "قُبل تسجيل <b>{{player}}</b> بواسطة <b>{{actor}}</b>",
+      "acceptedCoach": "قُبل تسجيل <b>{{player}}</b> في فريق المدرب <b>{{coach}}</b> بواسطة <b>{{actor}}</b>",
+      "rejected": "رُفض تسجيل <b>{{player}}</b> بواسطة <b>{{actor}}</b>"
     }
   },
   "detail": {

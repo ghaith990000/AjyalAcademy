@@ -57,6 +57,7 @@ export function PlayerFormDialog({ player, onClose, onSaved }: PlayerFormDialogP
       school: player?.school ?? '',
       location_id: player?.location_id ?? '',
       phone: player?.phone ?? '',
+      guardian_name: player?.guardian_name ?? '',
       has_disease: player?.has_disease ?? false,
       disease_description: player?.disease_description ?? '',
       coach_id: '',
@@ -190,6 +191,13 @@ export function PlayerFormDialog({ player, onClose, onSaved }: PlayerFormDialogP
               placeholder={t('players:form.phone.placeholder')}
             />
           )}
+        </Field>
+
+        <Field
+          label={t('players:form.guardianName.label')}
+          error={message(errors.guardian_name?.message)}
+        >
+          {(c) => <Input {...c} {...register('guardian_name')} dir="auto" autoComplete="off" />}
         </Field>
 
         <Field label={t('players:form.school.label')} error={message(errors.school?.message)}>

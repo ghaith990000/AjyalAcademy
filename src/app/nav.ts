@@ -2,6 +2,7 @@ import type { ParseKeys } from 'i18next'
 import {
   CalendarDays,
   ChartColumn,
+  ClipboardList,
   CreditCard,
   House,
   type LucideIcon,
@@ -22,6 +23,8 @@ export interface NavItem {
   tabLabel?: ParseKeys<'nav'>
   /** Match the path exactly (used for the home item). */
   end?: boolean
+  /** A count shown on the entry (what is waiting for the person); the shell reads it, see `useNavBadges`. */
+  badge?: 'applications'
 }
 
 export interface NavConfig {
@@ -44,6 +47,12 @@ export const adminNav: NavConfig = {
     { to: '/admin/sessions', icon: CalendarDays, label: 'sessions' },
   ],
   more: [
+    {
+      to: '/admin/applications',
+      icon: ClipboardList,
+      label: 'applications',
+      badge: 'applications',
+    },
     { to: '/admin/coaches', icon: UserCog, label: 'coaches' },
     { to: '/admin/locations', icon: MapPin, label: 'locations' },
     { to: '/admin/discounts', icon: Percent, label: 'discounts' },

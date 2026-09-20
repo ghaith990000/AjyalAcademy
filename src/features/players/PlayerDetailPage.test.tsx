@@ -34,7 +34,12 @@ vi.mock('@/features/coaches/api', async (importOriginal) => ({
   listCoaches: vi.fn(),
 }))
 
-const healthy = fakePlayer({ id: 'p1', full_name: 'Yousef Al Mahmood', cpr: '150312345' })
+const healthy = fakePlayer({
+  id: 'p1',
+  full_name: 'Yousef Al Mahmood',
+  cpr: '150312345',
+  guardian_name: 'Mona Al Mahmood',
+})
 const withCondition = fakePlayer({
   id: 'p2',
   full_name: 'Ali Hassan',
@@ -108,7 +113,15 @@ describe('PlayerDetailPage', () => {
   it('marks missing school and address as not provided', async () => {
     renderDetail('p2')
     await screen.findByRole('heading', { name: 'Ali Hassan' })
-    expect(screen.getAllByText('Not provided')).toHaveLength(2)
+    // school, address and the parent's name
+    expect(screen.getAllByText('Not provided')).toHaveLength(3)
+  })
+
+  it("shows the parent's name when it is known (a player accepted from a registration request)", async () => {
+    renderDetail('p1')
+    await screen.findByRole('heading', { name: 'Yousef Al Mahmood' })
+    expect(screen.getByText('Parent or guardian')).toBeInTheDocument()
+    expect(screen.getByText('Mona Al Mahmood')).toBeInTheDocument()
   })
 
   it("lists the player's subscriptions with status, and offers a new one for this player", async () => {

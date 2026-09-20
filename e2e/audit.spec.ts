@@ -19,6 +19,12 @@ const ADMIN_ROUTES = [
   '/admin/sessions/se2/attendance',
   '/admin/coaches',
   '/admin/locations',
+  '/admin/applications',
+  '/admin/applications/ap1', // waiting, with both CPR warnings
+  '/admin/applications/ap2', // waiting, very long names, no location
+  '/admin/applications/ap3', // waiting, with a medical condition
+  '/admin/applications/ap4', // accepted: the WhatsApp message (Arabic)
+  '/admin/applications/ap5', // rejected, with the team's note (English)
   '/admin/discounts',
   '/admin/expenses',
   '/admin/reports',
@@ -73,6 +79,29 @@ for (const lang of LANGS) {
       await expectAccessible(page, 'login')
     })
 
+    // The parents' form: no sign-in, its own frame.
+    test('the registration form (signed out)', async ({ page }) => {
+      const api = await openApp(page, null, lang, '/register')
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      await settled(page)
+      await expect(page.locator('html')).toHaveAttribute('dir', rtl ? 'rtl' : 'ltr')
+      await expectMobileLayout(page, 'registration form', 'body')
+      await expectAccessible(page, 'registration form')
+      expect(api.world.unmatched).toEqual([])
+    })
+
+    test('the registration form with four children and every error showing', async ({ page }) => {
+      const api = await openApp(page, null, lang, '/register')
+      await settled(page)
+      const add = page.getByRole('button', { name: t(lang, 'register:add.button') })
+      for (let i = 0; i < 3; i++) await add.click()
+      await page.getByRole('button', { name: t(lang, 'register:submit') }).click()
+      await expect(page.getByRole('alert').first()).toBeVisible()
+      await expectMobileLayout(page, 'registration form with errors', 'body')
+      await expectAccessible(page, 'registration form with errors')
+      expect(api.world.unmatched).toEqual([])
+    })
+
     test('a page that does not exist', async ({ page }) => {
       await openApp(page, ADMIN, lang, '/admin/nope')
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
@@ -112,6 +141,8 @@ for (const lang of LANGS) {
       [ADMIN, '/admin/sessions', 'sessions:add', 'schedule a session'],
       [ADMIN, '/admin/expenses', 'expenses:add', 'add an expense'],
       [ADMIN, '/admin/locations', 'locations:add', 'add a location'],
+      [ADMIN, '/admin/applications/ap1', 'applications:detail.accept', 'accept a request'],
+      [ADMIN, '/admin/applications/ap1', 'applications:detail.reject', 'reject a request'],
       [ADMIN, '/admin/discounts', 'discounts:add', 'add a discount'],
       [ADMIN, '/admin/coaches', 'coaches:add', 'add a coach'],
     ]

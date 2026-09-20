@@ -87,5 +87,19 @@ export const SAMPLE_SUMMARIES: Record<KnownAction, Record<string, unknown>> = {
   'expense.salaries_generated': { month: '2026-10-01', created_count: 2, created_fils: 250_000 },
   'coach.created': { coach_name: 'Sara Al Khalifa' },
   'location.created': { location_name: 'Al-Rifa' },
+  'application.submitted': {
+    guardian_name: 'Mona Al Mahmood',
+    child_count: 2,
+    child_names: ['Yousef Al Mahmood', 'Noor Al Mahmood'],
+    location_name: 'Al-Rifa',
+  },
+  'application.accepted': {
+    player_name: 'Yousef Al Mahmood',
+    guardian_name: 'Mona Al Mahmood',
+    coach_name: 'Khalid Al Dosari',
+    location_name: 'Al-Rifa',
+    player_id: 'p1',
+  },
+  'application.rejected': { player_name: 'Noor Al Mahmood', guardian_name: 'Mona Al Mahmood' },
   'location.updated': { location_name: 'Hamad City', previous_name: 'Hamad', active: true },
 }

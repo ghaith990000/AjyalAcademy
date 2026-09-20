@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Providers } from '@/app/providers'
 import * as activityApi from '@/features/activity/api'
 import * as activityHooks from '@/features/activity/hooks'
+import * as applicationsApi from '@/features/applications/api'
 import { AuthContext } from '@/features/auth/auth-context'
 import * as coachesApi from '@/features/coaches/api'
 import * as reportsApi from '@/features/reports/api'
@@ -27,6 +28,10 @@ vi.mock('./api', async (importOriginal) => ({
 vi.mock('@/features/activity/api', async (importOriginal) => ({
   ...(await importOriginal<typeof activityApi>()),
   listActivity: vi.fn(),
+}))
+vi.mock('@/features/applications/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof applicationsApi>()),
+  countPendingApplications: vi.fn(),
 }))
 vi.mock('@/features/activity/hooks', async (importOriginal) => ({
   ...(await importOriginal<typeof activityHooks>()),
@@ -84,6 +89,7 @@ describe('HomePage', () => {
     vi.mocked(sessionsApi.listTodaySessions).mockResolvedValue([])
     vi.mocked(activityApi.listActivity).mockResolvedValue({ rows: [], next: null })
     vi.mocked(coachesApi.listCoaches).mockResolvedValue([])
+    vi.mocked(applicationsApi.countPendingApplications).mockResolvedValue(0)
   })
   afterEach(() => vi.useRealTimers())
 
@@ -182,6 +188,23 @@ describe('HomePage', () => {
     })
   })
 
+  describe('registration requests (admin)', () => {
+    it('points at the requests waiting for a decision', async () => {
+      vi.mocked(applicationsApi.countPendingApplications).mockResolvedValue(3)
+      renderHome('admin')
+      const link = await screen.findByRole('link', { name: /Registration requests/ })
+      expect(link).toHaveAttribute('href', '/admin/applications')
+      expect(link).toHaveTextContent('Waiting for your decision: 3')
+    })
+
+    it('shows nothing when no request is waiting', async () => {
+      renderHome('admin')
+      await screen.findByRole('heading', { level: 1, name: 'Welcome back, Demo' })
+      await waitFor(() => expect(applicationsApi.countPendingApplications).toHaveBeenCalled())
+      expect(screen.queryByRole('link', { name: /Registration requests/ })).not.toBeInTheDocument()
+    })
+  })
+
   describe('coach', () => {
     it('shows their own two numbers and no money', async () => {
       vi.mocked(sessionsApi.listTodaySessions).mockResolvedValue([fakeSession(), fakeSession()])
@@ -197,6 +220,8 @@ describe('HomePage', () => {
       expect(screen.queryByText('Active subscriptions')).not.toBeInTheDocument()
       expect(reportsApi.getReportSummary).not.toHaveBeenCalled()
       expect(api.countActiveSubscriptions).not.toHaveBeenCalled()
+      // registration requests are the admins' business
+      expect(applicationsApi.countPendingApplications).not.toHaveBeenCalled()
     })
 
     it('has a one-tap "Take attendance" on each of their sessions, inside the coach area', async () => {

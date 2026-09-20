@@ -2,19 +2,19 @@
 
 Single source of progress. Work **one phase at a time, in order**. Status values: `Not started` · `In progress` · `Done` (verified per the Definition of Done in [09-conventions.md](09-conventions.md)).
 
-| #   | Phase                                    | Status      | Delivers requirements                            | File                                                 |
-| --- | ---------------------------------------- | ----------- | ------------------------------------------------ | ---------------------------------------------------- |
-| 0   | Docs & scaffold                          | **Done**    | R-13, R-16 (base), R-14 (base)                   | [PHASE-0](phases/PHASE-0-docs-and-scaffold.md)       |
-| 1   | Design system & app shell                | **Done**    | R-05, R-14, R-15                                 | [PHASE-1](phases/PHASE-1-design-system-and-shell.md) |
-| 2   | Supabase, auth & roles                   | **Done**    | R-01/R-02 (schema), R-10 (seed), R-11 (triggers) | [PHASE-2](phases/PHASE-2-supabase-auth-roles.md)     |
-| 3   | Players                                  | **Done**    | R-01, R-06, R-07                                 | [PHASE-3](phases/PHASE-3-players.md)                 |
-| 4   | Subscriptions, fees, discounts, payments | **Done**    | R-02, R-10, R-12                                 | [PHASE-4](phases/PHASE-4-subscriptions.md)           |
-| 5   | Sessions & attendance                    | **Done**    | R-03, R-04                                       | [PHASE-5](phases/PHASE-5-sessions-attendance.md)     |
-| 6   | Finance & reports                        | **Done**    | R-08, R-09                                       | [PHASE-6](phases/PHASE-6-finance-reports.md)         |
-| 7   | Home dashboards & activity feed          | **Done**    | R-11                                             | [PHASE-7](phases/PHASE-7-home-and-activity.md)       |
-| 8   | Polish & release                         | **Done**    | R-05 (verify), R-14, R-15                        | [PHASE-8](phases/PHASE-8-polish-release.md)          |
-| 9   | Locations                                | **Done**    | R-17                                             | [PHASE-9](phases/PHASE-9-locations.md)               |
-| 10  | Public player registration               | Not started | R-18                                             | [PHASE-10](phases/PHASE-10-player-registration.md)   |
+| #   | Phase                                    | Status   | Delivers requirements                            | File                                                 |
+| --- | ---------------------------------------- | -------- | ------------------------------------------------ | ---------------------------------------------------- |
+| 0   | Docs & scaffold                          | **Done** | R-13, R-16 (base), R-14 (base)                   | [PHASE-0](phases/PHASE-0-docs-and-scaffold.md)       |
+| 1   | Design system & app shell                | **Done** | R-05, R-14, R-15                                 | [PHASE-1](phases/PHASE-1-design-system-and-shell.md) |
+| 2   | Supabase, auth & roles                   | **Done** | R-01/R-02 (schema), R-10 (seed), R-11 (triggers) | [PHASE-2](phases/PHASE-2-supabase-auth-roles.md)     |
+| 3   | Players                                  | **Done** | R-01, R-06, R-07                                 | [PHASE-3](phases/PHASE-3-players.md)                 |
+| 4   | Subscriptions, fees, discounts, payments | **Done** | R-02, R-10, R-12                                 | [PHASE-4](phases/PHASE-4-subscriptions.md)           |
+| 5   | Sessions & attendance                    | **Done** | R-03, R-04                                       | [PHASE-5](phases/PHASE-5-sessions-attendance.md)     |
+| 6   | Finance & reports                        | **Done** | R-08, R-09                                       | [PHASE-6](phases/PHASE-6-finance-reports.md)         |
+| 7   | Home dashboards & activity feed          | **Done** | R-11                                             | [PHASE-7](phases/PHASE-7-home-and-activity.md)       |
+| 8   | Polish & release                         | **Done** | R-05 (verify), R-14, R-15                        | [PHASE-8](phases/PHASE-8-polish-release.md)          |
+| 9   | Locations                                | **Done** | R-17                                             | [PHASE-9](phases/PHASE-9-locations.md)               |
+| 10  | Public player registration               | **Done** | R-18                                             | [PHASE-10](phases/PHASE-10-player-registration.md)   |
 
 ## Dependency notes
 
@@ -26,16 +26,17 @@ Single source of progress. Work **one phase at a time, in order**. Status values
 
 ## Change history
 
-| Date       | Change                                                                                                                                                                                  |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-09-19 | Phase 0 completed: docs written, Vite/React/TS/Tailwind/i18n/Vitest scaffold, brand assets.                                                                                             |
-| 2026-09-19 | Phase 1 completed: design system, app shells (admin/coach), login screen, dev gallery, i18n typing + guard tests.                                                                       |
-| 2026-09-19 | Phase 2 completed: hosted Supabase (schema, RLS, triggers, `remove_player`), pgTAP tests, auth + role guards, Coaches page, `create-coach` function.                                    |
-| 2026-09-19 | Phase 3 completed: players registry (list, search, filters, add/edit, detail, soft delete), coach assignment (single + bulk `assign_players`).                                          |
-| 2026-09-19 | Phase 4 completed: pricing (TS + SQL, pinned to the worked examples), create/record/cancel subscription RPCs, subscription wizard/list/detail, settings and discounts pages.            |
-| 2026-09-19 | Phase 5 completed: sessions (schedule, weekly repeat, edit, cancel, agenda), attendance screen + `save_attendance` RPC, attendance history and rate on the player page.                 |
-| 2026-09-19 | Phase 6 completed: expenses (CRUD, month filter, category chips, monthly salary generation), report functions (summary, by month, by category), Reports page with chart and CSV export. |
-| 2026-09-19 | Phase 7 completed: home dashboards for admins and coaches (KPIs, today's sessions, expiring subscriptions, quick actions) and the live activity feed.                                   |
-| 2026-09-20 | Phase 8 completed: installable PWA (offline shell, update prompt), accessibility and resilience pass, code splitting, Playwright suite, deployment and user guides, docs audit.         |
-| 2026-09-20 | Phases 9 (locations) and 10 (public player registration) added to the roadmap at the owner's request.                                                                                   |
-| 2026-09-20 | Phase 9 completed: locations (sessions, subscriptions, expenses and players by location; reports and CSV split and filtered by location; the free-text session place migrated).         |
+| Date       | Change                                                                                                                                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-09-19 | Phase 0 completed: docs written, Vite/React/TS/Tailwind/i18n/Vitest scaffold, brand assets.                                                                                                                                                |
+| 2026-09-19 | Phase 1 completed: design system, app shells (admin/coach), login screen, dev gallery, i18n typing + guard tests.                                                                                                                          |
+| 2026-09-19 | Phase 2 completed: hosted Supabase (schema, RLS, triggers, `remove_player`), pgTAP tests, auth + role guards, Coaches page, `create-coach` function.                                                                                       |
+| 2026-09-19 | Phase 3 completed: players registry (list, search, filters, add/edit, detail, soft delete), coach assignment (single + bulk `assign_players`).                                                                                             |
+| 2026-09-19 | Phase 4 completed: pricing (TS + SQL, pinned to the worked examples), create/record/cancel subscription RPCs, subscription wizard/list/detail, settings and discounts pages.                                                               |
+| 2026-09-19 | Phase 5 completed: sessions (schedule, weekly repeat, edit, cancel, agenda), attendance screen + `save_attendance` RPC, attendance history and rate on the player page.                                                                    |
+| 2026-09-19 | Phase 6 completed: expenses (CRUD, month filter, category chips, monthly salary generation), report functions (summary, by month, by category), Reports page with chart and CSV export.                                                    |
+| 2026-09-19 | Phase 7 completed: home dashboards for admins and coaches (KPIs, today's sessions, expiring subscriptions, quick actions) and the live activity feed.                                                                                      |
+| 2026-09-20 | Phase 8 completed: installable PWA (offline shell, update prompt), accessibility and resilience pass, code splitting, Playwright suite, deployment and user guides, docs audit.                                                            |
+| 2026-09-20 | Phases 9 (locations) and 10 (public player registration) added to the roadmap at the owner's request.                                                                                                                                      |
+| 2026-09-20 | Phase 9 completed: locations (sessions, subscriptions, expenses and players by location; reports and CSV split and filtered by location; the free-text session place migrated).                                                            |
+| 2026-09-20 | Phase 10 completed: a public registration form for parents (no login, up to 4 children), an admin review screen (accept creates the player, reject keeps the request), a one-tap WhatsApp message to the parent, home card and menu badge. |

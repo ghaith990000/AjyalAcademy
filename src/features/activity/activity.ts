@@ -10,6 +10,7 @@ import {
   CalendarPlus,
   CalendarX,
   ClipboardCheck,
+  ClipboardList,
   CreditCard,
   HandCoins,
   MapPin,
@@ -20,6 +21,8 @@ import {
   UserCog,
   UserMinus,
   UserPen,
+  UserRoundCheck,
+  UserRoundX,
   UserPlus,
   Wallet,
   type LucideIcon,
@@ -55,9 +58,9 @@ export const ACTIVITY_FILTERS = [
 ] as const
 export type ActivityFilter = (typeof ACTIVITY_FILTERS)[number]
 
-/** `entity_type` values behind each chip (attendance belongs with sessions; discounts, coaches and locations are "other"). */
+/** `entity_type` values behind each chip (registration requests belong with players, attendance with sessions; discounts, coaches and locations are "other"). */
 export const FILTER_ENTITY_TYPES: Record<Exclude<ActivityFilter, 'all'>, readonly string[]> = {
-  player: ['player'],
+  player: ['player', 'application'],
   subscription: ['subscription'],
   payment: ['payment'],
   session: ['session', 'attendance'],
@@ -105,6 +108,9 @@ const LOOKS = {
   'coach.created': { icon: UserCog, tone: 'blue' },
   'location.created': { icon: MapPin, tone: 'blue' },
   'location.updated': { icon: MapPin, tone: 'blue' },
+  'application.submitted': { icon: ClipboardList, tone: 'pink' },
+  'application.accepted': { icon: UserRoundCheck, tone: 'success' },
+  'application.rejected': { icon: UserRoundX, tone: 'danger' },
 } as const satisfies Record<string, ActionLook>
 
 export type KnownAction = keyof typeof LOOKS
@@ -334,6 +340,28 @@ export function describeActivity(
             : null,
       )
     }
+    case 'application.submitted': {
+      const location = text(s, 'location_name')
+      const guardian = text(s, 'guardian_name') ?? DASH
+      return {
+        // Nobody signed in to send it: the parent is who the entry is about.
+        ...view(
+          'action.application.submitted',
+          { guardian, children: people(list(s, 'child_names'), labels.player, language) },
+          location ? { key: 'detail.location', values: { location } } : null,
+        ),
+        actor: guardian,
+      }
+    }
+    case 'application.accepted': {
+      const location = text(s, 'location_name')
+      const detail = location ? { key: 'detail.location' as const, values: { location } } : null
+      return coach
+        ? view('action.application.acceptedCoach', { player, coach }, detail)
+        : view('action.application.accepted', { player }, detail)
+    }
+    case 'application.rejected':
+      return view('action.application.rejected', { player })
     default:
       return view('action.unknown', {})
   }
