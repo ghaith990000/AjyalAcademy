@@ -22,6 +22,8 @@ export interface ApplicationRow {
   location_name: string | null
   full_name: string
   cpr: string
+  /** The parent's own upload, if they attached one — never a copy, so it stays even after acceptance. */
+  cpr_storage_path: string | null
   date_of_birth: string
   address: string | null
   school: string | null

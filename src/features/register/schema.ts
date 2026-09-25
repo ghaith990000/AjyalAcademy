@@ -23,6 +23,8 @@ const childSchema = z
     address: z.string().trim().max(200, 'form.address.tooLong'),
     has_disease: z.boolean(),
     disease_description: z.string().trim().max(500, 'form.diseaseDescription.tooLong'),
+    /** The path of an already-uploaded CPR file, or null. Set by the FileSlot, never typed. */
+    cpr_storage_path: z.string().nullable(),
   })
   .superRefine((child, ctx) => {
     if (child.has_disease && child.disease_description === '') {
@@ -88,6 +90,7 @@ export const emptyChild = (): ChildFormValues => ({
   address: '',
   has_disease: false,
   disease_description: '',
+  cpr_storage_path: null,
 })
 
 const orNull = (value: string) => (value === '' ? null : value)
@@ -102,5 +105,6 @@ export function toChildInput(child: ChildFormValues): ChildInput {
     school: orNull(child.school),
     has_disease: child.has_disease,
     disease_description: child.has_disease ? child.disease_description : null,
+    cpr_storage_path: child.cpr_storage_path,
   }
 }

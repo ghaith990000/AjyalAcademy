@@ -49,6 +49,7 @@ The Home screen is your daily panel: how many players you have, today's sessions
 
 - **Add player:** fill in name, CPR (9 digits), date of birth and phone; tick _Has a medical condition_ and describe it if needed. The player becomes yours. A CPR that already exists is refused (the app tells you who has it, if it is one of your players).
 - **Edit** fixes a detail. **Remove** takes a player off your lists; their payments and attendance history are kept.
+- On a player's own page, **Photo & CPR document** lets you add or replace a photo and a CPR file (an image or a PDF, up to 8 MB) — only you and an admin can see them.
 
 ### Subscriptions
 
@@ -86,11 +87,11 @@ As a coach, but you see everyone. Select players (checkboxes) and tap **Assign t
 
 ### Registration requests
 
-Parents register their children **without an account**: send them the registration link and they fill in one short form (their name and phone, and up to four children). To get the link, open **More → Registrations** and tap **Copy registration link**, then paste it into a WhatsApp message or group. (The sign-in page has a link to the form too.)
+Parents register their children **without an account**: send them the registration link and they fill in one short form (their name and phone, and up to four children — each may attach a CPR file, an image or a PDF, though it is not required). To get the link, open **More → Registrations** and tap **Copy registration link**, then paste it into a WhatsApp message or group. (The sign-in page has a link to the form too.)
 
 When a parent sends the form, **Registrations** shows a pink number on **More** (and a card on the home screen). Open a request to see the child and the parent. If a player with the same CPR already exists, or another waiting request has it, a yellow **Check before accepting** box says so.
 
-- **Accept** adds the child as a player, with the parent's name. Choose a coach now or leave it and assign one later, and confirm the location the parent asked for. A CPR that already belongs to a player cannot be accepted.
+- **Accept** adds the child as a player, with the parent's name and their attached CPR file, if any. Choose a coach now or leave it and assign one later, and confirm the location the parent asked for. A CPR that already belongs to a player cannot be accepted.
 - **Reject** keeps the request, with an optional note only admins see.
 - Each child is decided on its own, and a decision is final. A parent whose child was rejected can send the form again.
 
@@ -168,6 +169,7 @@ _Collected_ counts payments **by the date they were received**, including paymen
 
 - **إضافة لاعب:** أدخل الاسم والرقم الشخصي (9 أرقام) وتاريخ الميلاد والهاتف؛ وفعّل _لديه حالة طبية_ واشرحها عند الحاجة. يصبح اللاعب لاعبك. الرقم الشخصي المكرر مرفوض (ويخبرك التطبيق بصاحبه إن كان من لاعبيك).
 - **تعديل** لتصحيح بيان. **إزالة** تُخرج اللاعب من قوائمك مع بقاء مدفوعاته وسجل حضوره.
+- في صفحة اللاعب نفسه، يتيح لك قسم **الصورة ومستند الرقم الشخصي** إضافة أو استبدال صورة ومستند (صورة أو ملف PDF، حتى 8 ميجابايت) — لا يراهما إلا أنت والمدير.
 
 ### الاشتراكات
 
@@ -205,11 +207,11 @@ _Collected_ counts payments **by the date they were received**, including paymen
 
 ### طلبات التسجيل
 
-يسجّل أولياء الأمور أبناءهم **دون حساب**: أرسل لهم رابط التسجيل فيعبّئون نموذجاً قصيراً واحداً (اسمهم ورقم هاتفهم، وحتى أربعة أطفال). للحصول على الرابط افتح **المزيد ← التسجيلات** واضغط **نسخ رابط التسجيل**، ثم الصقه في رسالة أو مجموعة واتساب. (وفي صفحة تسجيل الدخول رابط إلى النموذج أيضاً.)
+يسجّل أولياء الأمور أبناءهم **دون حساب**: أرسل لهم رابط التسجيل فيعبّئون نموذجاً قصيراً واحداً (اسمهم ورقم هاتفهم، وحتى أربعة أطفال — ولكل طفل يمكن إرفاق مستند الرقم الشخصي، صورة أو ملف PDF، وإن لم يكن ذلك إلزامياً). للحصول على الرابط افتح **المزيد ← التسجيلات** واضغط **نسخ رابط التسجيل**، ثم الصقه في رسالة أو مجموعة واتساب. (وفي صفحة تسجيل الدخول رابط إلى النموذج أيضاً.)
 
 عندما يرسل ولي أمر النموذج يظهر رقم وردي على **المزيد** عند **التسجيلات** (وبطاقة في الرئيسية). افتح الطلب لترى الطفل وولي الأمر. وإذا كان هناك لاعب بالرقم الشخصي نفسه، أو طلب آخر قيد الانتظار به، يظهر مربع أصفر **تحقّق قبل القبول** يخبرك بذلك.
 
-- **قبول** يضيف الطفل لاعباً مع اسم ولي الأمر. اختر مدرباً الآن أو اتركه وعيّنه لاحقاً، وأكّد الموقع الذي طلبه ولي الأمر. لا يمكن قبول رقم شخصي يملكه لاعب موجود.
+- **قبول** يضيف الطفل لاعباً مع اسم ولي الأمر ومستند الرقم الشخصي إن أُرفق. اختر مدرباً الآن أو اتركه وعيّنه لاحقاً، وأكّد الموقع الذي طلبه ولي الأمر. لا يمكن قبول رقم شخصي يملكه لاعب موجود.
 - **رفض** يُبقي الطلب محفوظاً، مع ملاحظة اختيارية يراها المديرون فقط.
 - يُبَتّ في كل طفل على حدة، والقرار نهائي. ويستطيع ولي أمر طفل مرفوض إرسال النموذج مرة أخرى.
 

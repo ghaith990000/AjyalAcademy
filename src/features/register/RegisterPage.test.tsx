@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Providers } from '@/app/providers'
 import i18n from '@/lib/i18n'
+import * as storage from '@/lib/storage'
 import * as api from './api'
 import RegisterPage from './RegisterPage'
 
@@ -10,6 +11,11 @@ vi.mock('./api', async (importOriginal) => ({
   ...(await importOriginal<typeof api>()),
   listPublicLocations: vi.fn(),
   submitApplications: vi.fn(),
+}))
+vi.mock('@/lib/storage', async (importOriginal) => ({
+  ...(await importOriginal<typeof storage>()),
+  uploadFile: vi.fn(),
+  signedUrl: vi.fn(),
 }))
 
 const LOCATIONS: api.PublicLocation[] = [
@@ -57,6 +63,8 @@ describe('RegisterPage', () => {
     await i18n.changeLanguage('en')
     vi.mocked(api.listPublicLocations).mockResolvedValue(LOCATIONS)
     vi.mocked(api.submitApplications).mockResolvedValue()
+    vi.mocked(storage.uploadFile).mockResolvedValue()
+    URL.createObjectURL = vi.fn(() => 'blob:mock')
   })
 
   it('opens with the parent section and one child, in either language', async () => {
@@ -109,6 +117,7 @@ describe('RegisterPage', () => {
           school: null,
           has_disease: false,
           disease_description: null,
+          cpr_storage_path: null,
         },
       ],
       website: '',
@@ -118,6 +127,34 @@ describe('RegisterPage', () => {
       'We received the registration request for Yousef Al Mahmood.',
     )
     expect(screen.getByText('3900 1234')).toBeInTheDocument()
+  })
+
+  it('attaches an optional CPR file to a child and sends its path with the request', async () => {
+    renderPage()
+    await fillEverything()
+    const scan = new File([new Uint8Array(10)], 'cpr.jpg', { type: 'image/jpeg' })
+    const input = within(childCard(1)).getByLabelText('Add file')
+    await userEvent.upload(input, scan)
+
+    await waitFor(() => expect(storage.uploadFile).toHaveBeenCalledOnce())
+    await send()
+
+    await waitFor(() => expect(api.submitApplications).toHaveBeenCalledOnce())
+    expect(vi.mocked(api.submitApplications).mock.calls[0]?.[0]?.children[0]?.cpr_storage_path).toMatch(
+      /^applications\/[0-9a-f-]{36}\/1-[0-9a-f-]{36}\.jpg$/,
+    )
+  })
+
+  it('shows a translated message when a file is too large or the wrong type, and sends nothing', async () => {
+    renderPage()
+    await fillParent()
+    fillChild(childCard(1))
+    const oversized = new File([new Uint8Array(9 * 1024 * 1024)], 'big.jpg', { type: 'image/jpeg' })
+    const input = within(childCard(1)).getByLabelText('Add file')
+    await userEvent.upload(input, oversized)
+
+    expect(await screen.findByText('That file is larger than 8 MB.')).toBeInTheDocument()
+    expect(storage.uploadFile).not.toHaveBeenCalled()
   })
 
   it('sends the language the parent is using', async () => {

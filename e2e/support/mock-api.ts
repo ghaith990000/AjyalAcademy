@@ -143,6 +143,8 @@ function seedWorld() {
     id,
     full_name,
     cpr: `15031234${id.slice(-1)}`,
+    cpr_file_path: null,
+    avatar_path: null,
     date_of_birth: '2015-03-12',
     address: 'Riffa',
     school: 'Al Noor School',
@@ -414,6 +416,7 @@ function seedWorld() {
     location_name: LOC.rifa.name,
     full_name: 'نور المحمود',
     cpr: '160312345',
+    cpr_storage_path: null,
     date_of_birth: '2015-05-05',
     address: 'الرفاع، مجمع 901',
     school: 'مدرسة النور',
@@ -455,6 +458,7 @@ function seedWorld() {
       cpr: '160312347',
       has_disease: true,
       disease_description: 'ربو — يحمل بخاخاً',
+      cpr_storage_path: 'applications/sub-ap3/1-seed.jpg',
       created_at: stamp(1500),
     }),
     app('ap4', {
@@ -508,6 +512,9 @@ function seedWorld() {
     submitAttempts: [] as Row[],
     /** Make the next submission fail: the connection drops, or the parent is turned away. */
     failNextSubmit: null as 'offline' | 'rate_limited' | null,
+    /** Object paths "uploaded" to the `player-files` bucket, bucket-relative (as `cpr_storage_path` holds it). */
+    files: new Set<string>(['applications/sub-ap3/1-seed.jpg']),
+    uploads: [] as { path: string }[],
     unmatched: [] as string[],
     calls: [] as Call[],
   }
@@ -679,6 +686,42 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
         ? json(route, 200, sessionFor(me).user)
         : json(route, 401, { message: 'no session' })
 
+    // ---- storage (player-files): upload, sign, remove — `world.files` holds bucket-relative object paths,
+    // exactly what the app itself stores as `cpr_storage_path` / `cpr_file_path` / `avatar_path` (the bucket
+    // is a separate dimension, never part of the path). The RLS policies themselves are pgTAP's job; here it
+    // is enough that the wire calls the app makes are the ones storage-js actually sends.
+    if (url.pathname.startsWith('/storage/v1/object/')) {
+      const rest = url.pathname.slice('/storage/v1/object/'.length)
+      if (rest.startsWith('sign/')) {
+        // .../object/sign/<bucket>/<path> — drop the bucket segment.
+        const objectPath = decodeURIComponent(rest.slice('sign/'.length)).split('/').slice(1).join('/')
+        if (method === 'GET') {
+          // The browser actually loads an <img src> pointed at this URL — a tiny real PNG keeps it happy.
+          return route.fulfill({
+            status: 200,
+            contentType: 'image/png',
+            body: Buffer.from(
+              'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+              'base64',
+            ),
+          })
+        }
+        return json(route, 200, { signedURL: `/object/sign/${objectPath}?token=mock` })
+      }
+      if (method === 'DELETE') {
+        const { prefixes } = (body ?? {}) as { prefixes?: string[] }
+        for (const p of prefixes ?? []) world.files.delete(p)
+        return json(route, 200, (prefixes ?? []).map((name) => ({ name })))
+      }
+      if (method === 'POST') {
+        // .../object/<bucket>/<path> — drop the bucket segment.
+        const objectPath = decodeURIComponent(rest).split('/').slice(1).join('/')
+        world.files.add(objectPath)
+        world.uploads.push({ path: objectPath })
+        return json(route, 200, { Id: uid('file'), Key: objectPath })
+      }
+    }
+
     const path = url.pathname.replace('/rest/v1/', '')
     const q = url.searchParams
     world.calls.push({ method, path, search: url.search, body })
@@ -767,6 +810,12 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
           row.location = place ? { name: place.name } : null
           world.players.unshift(row)
           return json(route, 201, wantsObject ? { id: row.id } : [{ id: row.id }])
+        }
+        if (method === 'PATCH') {
+          const id = q.get('id')?.slice(3)
+          const row = world.players.find((p) => p.id === id)
+          if (row) Object.assign(row, body)
+          return json(route, 200, [{ id }])
         }
         let rows = own(world.players)
         const or = q.get('or')
@@ -1146,6 +1195,9 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
           guardian_name: target.guardian_name,
           has_disease: target.has_disease,
           disease_description: target.disease_description,
+          // Kept as-is, not copied: the player's CPR file is the same upload the parent made.
+          cpr_file_path: target.cpr_storage_path,
+          avatar_path: null,
           coach_id: p_coach_id,
           location_id: p_location_id,
           created_by: me?.id,

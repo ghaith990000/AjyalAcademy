@@ -78,7 +78,10 @@
     "phone": "Phone",
     "language": "Language used",
     "location": "Preferred location",
-    "sent": "Sent"
+    "sent": "Sent",
+    "cprFile": "CPR document the parent attached",
+    "cprFileOpen": "Open the file",
+    "cprFileError": "Couldn't load the file. Try again."
   },
   "decision": {
     "accepted": "Accepted",

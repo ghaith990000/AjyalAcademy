@@ -19,7 +19,9 @@ function contentSecurityPolicy(supabaseUrl: string): string {
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
+    // CPR documents and player photos are private files: a signed URL on the Supabase host once loaded from
+    // the server, and a `blob:` object URL for the instant local preview right after picking one.
+    `img-src 'self' data: blob: https://${host}`,
     "font-src 'self'",
     `connect-src 'self' https://${host} wss://${host}`,
     "manifest-src 'self'",

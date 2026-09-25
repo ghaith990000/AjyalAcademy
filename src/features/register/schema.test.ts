@@ -127,6 +127,7 @@ describe('toChildInput', () => {
       school: null,
       has_disease: false,
       disease_description: null,
+      cpr_storage_path: null,
     })
   })
 

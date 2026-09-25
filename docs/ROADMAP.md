@@ -15,6 +15,7 @@ Single source of progress. Work **one phase at a time, in order**. Status values
 | 8   | Polish & release                         | **Done** | R-05 (verify), R-14, R-15                        | [PHASE-8](phases/PHASE-8-polish-release.md)          |
 | 9   | Locations                                | **Done** | R-17                                             | [PHASE-9](phases/PHASE-9-locations.md)               |
 | 10  | Public player registration               | **Done** | R-18                                             | [PHASE-10](phases/PHASE-10-player-registration.md)   |
+| 11  | CPR documents & player photos            | **Done** | R-19                                             | [PHASE-11](phases/PHASE-11-uploads.md)               |
 
 ## Dependency notes
 
@@ -22,7 +23,7 @@ Single source of progress. Work **one phase at a time, in order**. Status values
 - Phase 4 depends on Phase 3 (players). Phase 5 depends on Phase 3. Phase 6 depends on Phase 4 (payments). Phase 7 depends on Phases 2–6 (it surfaces their data).
 - Open questions ([08-decisions.md](08-decisions.md)) Q-001…Q-004 should be answered before Phase 4 starts; placeholders are used otherwise.
 
-- Phases 9–10 were added after the first release at the owner's request. Phase 10 depends on Phase 9 (the registration form asks for a location).
+- Phases 9–11 were added after the first release at the owner's request. Phase 10 depends on Phase 9 (the registration form asks for a location). Phase 11 depends on Phase 10 (a parent's CPR file is attached to the same request the form already sends).
 
 ## Change history
 
@@ -40,3 +41,4 @@ Single source of progress. Work **one phase at a time, in order**. Status values
 | 2026-09-20 | Phases 9 (locations) and 10 (public player registration) added to the roadmap at the owner's request.                                                                                                                                      |
 | 2026-09-20 | Phase 9 completed: locations (sessions, subscriptions, expenses and players by location; reports and CSV split and filtered by location; the free-text session place migrated).                                                            |
 | 2026-09-20 | Phase 10 completed: a public registration form for parents (no login, up to 4 children), an admin review screen (accept creates the player, reject keeps the request), a one-tap WhatsApp message to the parent, home card and menu badge. |
+| 2026-09-25 | Phase 11 added to the roadmap and completed the same day: an optional CPR file (image or PDF) a parent may attach per child on the registration form; a photo and a CPR file an admin (or the player's coach) can add from the player page; a private Storage bucket with its own RLS, mirroring the existing "no oracle" and "admin all / coach own" rules. |

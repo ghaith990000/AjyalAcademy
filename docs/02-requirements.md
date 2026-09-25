@@ -22,6 +22,7 @@ Original requests from the product owner, each with an ID, the phase that delive
 | R-16 | Build in phases and document everything in Markdown so Claude can rely on the docs                                                          | 0, continuous                              | [x]    |
 | R-17 | Locations: sessions are arranged into locations created in the system (not free text); expenses and fees collected are tracked per location | 9                                          | [x]    |
 | R-18 | A public registration form (no login) for parents to register their children; admins accept or reject each application                      | 10                                         | [x]    |
+| R-19 | Parents can attach a CPR file (image or PDF) when registering; an admin can add one for any player too; players can have a profile photo     | 11                                         | [x]    |
 
 ## Confirmed clarifications (from the product owner)
 
@@ -32,3 +33,5 @@ Original requests from the product owner, each with an ID, the phase that delive
 ## Not in scope (unless asked later)
 
 Online payments/gateway, parent/player login (the public registration form of Phase 10 needs none), automatic SMS/WhatsApp/email notifications (Phase 10 only prepares a WhatsApp message for the admin to send), multiple branches as separate tenants (locations, Phase 9, are labels inside one academy), match/tournament management, inventory. Design should not block them, but do not build them.
+
+Phase 11: a document/photo gallery per player (one CPR file and one photo only), OCR or automatic verification of a CPR file's contents, cropping/editing an uploaded photo, deleting an application's own upload (it is part of the request's permanent record), automatic clean-up of storage left over from a form nobody finished.

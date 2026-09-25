@@ -301,6 +301,7 @@ export type Database = {
           address: string | null
           child_index: number
           cpr: string
+          cpr_storage_path: string | null
           created_at: string
           date_of_birth: string
           decided_at: string | null
@@ -323,6 +324,7 @@ export type Database = {
           address?: string | null
           child_index: number
           cpr: string
+          cpr_storage_path?: string | null
           created_at?: string
           date_of_birth: string
           decided_at?: string | null
@@ -345,6 +347,7 @@ export type Database = {
           address?: string | null
           child_index?: number
           cpr?: string
+          cpr_storage_path?: string | null
           created_at?: string
           date_of_birth?: string
           decided_at?: string | null
@@ -390,8 +393,10 @@ export type Database = {
       players: {
         Row: {
           address: string | null
+          avatar_path: string | null
           coach_id: string | null
           cpr: string
+          cpr_file_path: string | null
           created_at: string
           created_by: string | null
           date_of_birth: string
@@ -408,8 +413,10 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          avatar_path?: string | null
           coach_id?: string | null
           cpr: string
+          cpr_file_path?: string | null
           created_at?: string
           created_by?: string | null
           date_of_birth: string
@@ -426,8 +433,10 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          avatar_path?: string | null
           coach_id?: string | null
           cpr?: string
+          cpr_file_path?: string | null
           created_at?: string
           created_by?: string | null
           date_of_birth?: string
@@ -736,6 +745,7 @@ export type Database = {
           address: string | null
           child_index: number | null
           cpr: string | null
+          cpr_storage_path: string | null
           created_at: string | null
           date_of_birth: string | null
           decided_at: string | null

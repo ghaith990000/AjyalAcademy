@@ -54,6 +54,21 @@ for (const lang of LANGS) {
       await expectMobileLayout(page, 'new player page')
     })
 
+    test('a coach adds a photo and a CPR document to their own player', async ({ page }) => {
+      await openApp(page, COACH, lang, '/coach/players/p1')
+      await page
+        .getByLabel(t(lang, 'players:files.avatar.choose'))
+        .setInputFiles({ name: 'photo.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('x') })
+      const alt = t(lang, 'players:files.avatar.alt').replace('{{name}}', 'Ali Hassan')
+      await expect(page.getByAltText(alt)).toBeVisible()
+
+      await page
+        .getByLabel(t(lang, 'players:files.cpr.choose'))
+        .setInputFiles({ name: 'cpr.pdf', mimeType: 'application/pdf', buffer: Buffer.from('x') })
+      await expect(page.getByText(t(lang, 'players:files.cpr.pdf'))).toBeVisible()
+      await expectMobileLayout(page, 'player detail with files')
+    })
+
     test('a coach creates a subscription for a returning player and pays in full', async ({
       page,
     }) => {
@@ -213,6 +228,39 @@ for (const lang of LANGS) {
         ],
       })
       await expectMobileLayout(page, 'registration thank-you', 'body')
+    })
+
+    test('a parent can attach their child’s CPR file, uploaded to its own path before the request is sent', async ({
+      page,
+    }) => {
+      const api = await openApp(page, null, lang, '/register')
+      await page.getByLabel(t(lang, 'register:parent.name.label')).fill('Mona Al Mahmood')
+      await page.getByLabel(t(lang, 'register:parent.phone.label')).fill('39001234')
+      await page.getByLabel(t(lang, 'register:parent.location.label')).selectOption({ index: 1 })
+      const card = page.getByRole('group', { name: childTitle(lang, 1) })
+      await card.getByLabel(t(lang, 'register:child.fullName.label')).fill('Yousef Al Mahmood')
+      await card.getByLabel(t(lang, 'register:child.cpr.label')).fill('150312345')
+      await card.getByLabel(t(lang, 'register:child.dob.label')).fill('2015-03-12')
+      await card
+        .getByLabel(t(lang, 'register:child.cprFile.choose'))
+        .setInputFiles({ name: 'cpr.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('x') })
+      await expect(card.getByLabel(t(lang, 'register:child.cprFile.replace'))).toBeVisible()
+      await page.getByRole('checkbox', { name: t(lang, 'register:confirm.label') }).check()
+      await page.getByRole('button', { name: t(lang, 'register:submit') }).click()
+      await expect(page.getByRole('heading', { level: 1 })).toContainText(
+        t(lang, 'register:done.title'),
+      )
+      const children = api.world.submitAttempts[0]!.p_children as { cpr_storage_path: string }[]
+      const sentPath = children[0]!.cpr_storage_path
+      expect(sentPath).toMatch(/^applications\/.+\/1-.+\.jpg$/)
+      expect(api.world.files.has(sentPath)).toBe(true)
+    })
+
+    test('the admin opens a request that has a CPR file attached and can view it', async ({ page }) => {
+      await openApp(page, ADMIN, lang, '/admin/applications/ap3')
+      const preview = page.getByAltText(t(lang, 'applications:detail.cprFile'))
+      await expect(preview).toBeVisible()
+      await expect(preview).toHaveAttribute('src', /\/object\/sign\//)
     })
 
     test('a dropped connection keeps the parent’s answers, and sending again does not duplicate the request', async ({

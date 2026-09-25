@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Providers } from '@/app/providers'
 import * as coachesApi from '@/features/coaches/api'
 import i18n from '@/lib/i18n'
+import * as storage from '@/lib/storage'
 import { fakeApplication } from '@/test/applications'
 import * as api from './api'
 import ApplicationDetailPage from './ApplicationDetailPage'
@@ -18,6 +19,10 @@ vi.mock('./api', async (importOriginal) => ({
 vi.mock('@/features/coaches/api', async (importOriginal) => ({
   ...(await importOriginal<typeof coachesApi>()),
   listCoaches: vi.fn(),
+}))
+vi.mock('@/lib/storage', async (importOriginal) => ({
+  ...(await importOriginal<typeof storage>()),
+  signedUrl: vi.fn(),
 }))
 
 const pending = fakeApplication({
@@ -115,6 +120,38 @@ describe('ApplicationDetailPage', () => {
       ).toBeInTheDocument()
       const link = screen.getByRole('link', { name: 'Noor Al Mahmood' })
       expect(link).toHaveAttribute('href', '/admin/players/p-old')
+    })
+
+    it("shows the parent's uploaded CPR file as a thumbnail, linking to the full image", async () => {
+      vi.mocked(storage.signedUrl).mockResolvedValue('https://files.test/signed-cpr')
+      vi.mocked(api.getApplication).mockResolvedValue({
+        ...pending,
+        cpr_storage_path: 'applications/sub-1/1-abc.jpg',
+      })
+      renderPage()
+      const image = await screen.findByAltText('CPR document the parent attached')
+      expect(image).toHaveAttribute('src', 'https://files.test/signed-cpr')
+      expect(image.closest('a')).toHaveAttribute('href', 'https://files.test/signed-cpr')
+      expect(storage.signedUrl).toHaveBeenCalledWith('applications/sub-1/1-abc.jpg')
+    })
+
+    it('offers a plain "open" link for a PDF instead of a thumbnail', async () => {
+      vi.mocked(storage.signedUrl).mockResolvedValue('https://files.test/signed-cpr.pdf')
+      vi.mocked(api.getApplication).mockResolvedValue({
+        ...pending,
+        cpr_storage_path: 'applications/sub-1/1-abc.pdf',
+      })
+      renderPage()
+      expect(await screen.findByRole('link', { name: 'Open the file' })).toHaveAttribute(
+        'href',
+        'https://files.test/signed-cpr.pdf',
+      )
+    })
+
+    it('says nothing about a CPR file when the parent did not attach one', async () => {
+      renderPage()
+      await screen.findByRole('heading', { name: 'Noor Al Mahmood' })
+      expect(screen.queryByText('CPR document the parent attached')).not.toBeInTheDocument()
     })
 
     it('shows a medical condition prominently', async () => {

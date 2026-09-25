@@ -1,6 +1,6 @@
 # Data model (Postgres / Supabase)
 
-Status: **migrated in Phase 2; extended in Phase 9 (locations) and Phase 10 (public registration)** — tables, constraints, RLS, guard/activity triggers and `remove_player` exist (`supabase/migrations/`). Other RPCs are implemented in the phase that uses them (see the RPC table). This doc is the contract; migrations must match it. Update both together.
+Status: **migrated in Phase 2; extended in Phase 9 (locations), Phase 10 (public registration) and Phase 11 (uploads)** — tables, constraints, RLS, guard/activity triggers and `remove_player` exist (`supabase/migrations/`). Other RPCs are implemented in the phase that uses them (see the RPC table). This doc is the contract; migrations must match it. Update both together.
 
 ## Conventions
 
@@ -49,6 +49,8 @@ Status: **migrated in Phase 2; extended in Phase 9 (locations) and Phase 10 (pub
 | `school`              | text             |                                                                                                       |
 | `phone`               | text not null    | guardian/contact number                                                                               |
 | `guardian_name`       | text             | optional (≤ 120): the parent's name; filled when a registration request is accepted (Phase 10, D-094) |
+| `cpr_file_path`       | text             | optional: a `player-files` object (an image or PDF); admin any, coach own — set from the player page or inherited from an accepted request (Phase 11) |
+| `avatar_path`         | text             | optional: a `player-files` object (an image); same access as `cpr_file_path` (Phase 11)               |
 | `has_disease`         | bool not null    | default false                                                                                         |
 | `disease_description` | text             | **check:** required (non-empty) when `has_disease`, null when not                                     |
 | `coach_id`            | uuid → profiles  | nullable (unassigned); admin assigns; coach-created ⇒ that coach                                      |
@@ -77,10 +79,24 @@ One row per child asked for through the public form. A parent's submission of 1�
 | `guardian_name`, `phone`, `language`                                                           | text                                                       | the parent; phone `^\+?[0-9]{8,15}$` (spaces removed); `language` `ar` \| `en` = the form's language |
 | `location_id`                                                                                  | uuid → locations                                           | optional: the location the parent chose (active when submitted)                                      |
 | `full_name`, `cpr`, `date_of_birth`, `address`, `school`, `has_disease`, `disease_description` | as `players`                                               | same checks; length limits (name 120, address 200, school 120, description 500); born 1990 or later  |
+| `cpr_storage_path`                                                                              | text                                                        | optional: the parent's own upload (Phase 11) — kept as-is (never copied) if the request is accepted   |
 | `status`                                                                                       | application_status                                         | default `pending`                                                                                    |
 | `decided_at`, `decided_by`, `decision_note`, `player_id`                                       | timestamptz, uuid → profiles, text (≤ 500), uuid → players | set when accepted (`player_id`) or rejected (`decision_note`, optional)                              |
 
 Admins read; **nobody writes through the API** (no insert/update/delete grant): `submit_player_applications`, `accept_player_application` and `reject_player_application` are the only way in. The view `player_application_overview` (`security_invoker`) adds `location_name`, `decided_by_name`, and, while pending, `existing_player_id` / `existing_player_name` (a non-removed player with the same CPR) and `same_cpr_pending` (other waiting requests with it). Rejected requests are kept (Q-010).
+
+### Storage (Phase 11)
+
+One private bucket, **`player-files`** (`public = false`, 8 MB limit, `image/jpeg` / `image/png` / `image/webp` / `application/pdf` only). `storage.objects` has its own RLS (D-096), the only gate — the schema keeps Supabase's own project-wide table grants, unlike `public` (D-036 does not apply here):
+
+| Policy                    | To            | Allows                                                                                                    |
+| ------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------- |
+| `player_files_insert_anon` | anon          | `INSERT` where the object's name starts with `applications/` — a parent's own upload, before their request exists |
+| `player_files_insert_auth` | authenticated | `INSERT` where the name starts with `players/<id>/` and `owns_player_file(name)` (admin, or the coach who owns that player) |
+| `player_files_select`      | authenticated | `SELECT` when `is_admin()`, or a player the caller owns has `cpr_file_path` or `avatar_path` equal to the object's name |
+| `player_files_delete`      | authenticated | `DELETE` where the name starts with `players/<id>/` and `owns_player_file(name)` — an `applications/…` object can never be deleted, the same as the request row itself |
+
+`owns_player_file(name)` extracts the player id from a `players/<id>/…` name and checks `is_admin()` or `owns_player(id)`. Object names the app writes: `applications/<submission_id>/<child_index>-<random>.<ext>` (the parent's own upload) and `players/<player_id>/{cpr,avatar}-<random>.<ext>` (added from the player page). Nothing reads or writes `storage.objects` directly — the client calls the Storage API (`upload`, `createSignedUrl`, `remove`), and `players.cpr_file_path` / `avatar_path` / `player_applications.cpr_storage_path` just hold the resulting path as text.
 
 ### `plans` (seeded, admin-editable prices)
 
@@ -275,11 +291,20 @@ No schema change. The home feed reads `activity_log` as the caller — row-level
 - **Error codes** (`ajyal:<code>`): `invalid_input`, `too_many_children`, `duplicate_child`, `invalid_location`, `rate_limited` · `forbidden`, `application_not_found`, `already_decided`, `cpr_taken`, `invalid_coach`.
 - pgTAP: `supabase/tests/database/08_applications.test.sql` (139 assertions): the anonymous door (what `anon` can and cannot touch), input checks, honeypot, retry, the rate limits (per phone, per hour, per day), who sees and decides, the decisions, warnings, the activity trail. `01` and `07` now expect `anon` to execute exactly `public_locations` and `submit_player_applications`.
 
+### As built (Phase 11)
+
+- **Migration** `20260925120000_player_files.sql`: the `player-files` bucket; `players.cpr_file_path` / `avatar_path`; `player_applications.cpr_storage_path`; `owns_player_file(text) → boolean`; the four `storage.objects` policies (see "Storage" above); a `create or replace` of `trg_players_guard` adding the file checks; `player_application_overview` dropped and recreated (a `create or replace` cannot absorb a new column in the middle of a view built from `a.*`); `submit_player_applications` and `accept_player_application` re-created with the additions below.
+- **`trg_players_guard`** (extended): when `cpr_file_path` is set or changes, it must match `^(players/<this row's id>/|applications/)` and the object must exist in `storage.objects` (bucket `player-files`) — else `ajyal:invalid_file` (`22023`) or `ajyal:file_not_found` (`P0002`); `avatar_path` the same, but only the `players/<id>/` form (a parent never uploads one). Clearing either to `null` is always allowed.
+- **`submit_player_applications`** (extended): each child object in `p_children` may carry `cpr_storage_path` — if present, it must start with `applications/<this submission's id>/` and the object must already exist in `storage.objects`, or `ajyal:invalid_input`; stored on the row as-is. No file is the default — nothing about the rest of the function changed.
+- **`accept_player_application`** (extended): the new player's `cpr_file_path` is set to the application's `cpr_storage_path` (or `null`) — a reference, never a copy.
+- **Error codes** (`ajyal:<code>`): `invalid_file`, `file_not_found` (the guard trigger) — added to `submit_player_applications`'s existing `invalid_input` (now also raised for a file that is not this submission's own, or does not exist).
+- pgTAP: `supabase/tests/database/09_uploads.test.sql` (39 assertions): the bucket's own settings; `anon` insert-only under `applications/…` and never able to read anything back; admin-any / coach-own insert and select under `players/<id>/…`; the guard trigger's file checks; `submit_player_applications`'s file validation; `accept_player_application` carrying the path onto the new player, and the coach it is assigned to then being able to read it. Deleting `storage.objects` cannot be tested here — Supabase refuses a plain SQL `DELETE` on it regardless of role ("Direct deletion from storage tables is not allowed") — so the delete policy's *existence* is checked (the privilege audit), and its behaviour by the e2e mock and a live check.
+
 ## Triggers
 
 - `player_applications` has no trigger; its functions log `application.*` themselves (the feed shows a parent's submission with no actor).
 - `locations` AFTER INSERT/UPDATE → `location.created` / `location.updated` (an update that changes nothing is not logged).
-- `trg_sessions_guard`, `trg_players_guard`, `trg_expenses_guard`: a location, when set or changed, must be an **active** location (`ajyal:invalid_location`); a session also requires one on insert and cannot lose it (`ajyal:location_required`).
+- `trg_sessions_guard`, `trg_players_guard`, `trg_expenses_guard`: a location, when set or changed, must be an **active** location (`ajyal:invalid_location`); a session also requires one on insert and cannot lose it (`ajyal:location_required`). `trg_players_guard` also checks a `cpr_file_path` / `avatar_path`, when set or changed, against `storage.objects` (Phase 11: `ajyal:invalid_file`, `ajyal:file_not_found`).
 - `on_auth_user_created` → nothing (profiles are inserted by the `create-coach` Edge Function / seed, never self-signup).
 - `players` AFTER INSERT → `player.created`; AFTER UPDATE of `deleted_at` (null → not null) → `player.removed`; AFTER UPDATE of `coach_id` → `player.reassigned`.
 - `training_sessions` BEFORE INSERT/UPDATE → `trg_sessions_guard` (see Phase 5 above).

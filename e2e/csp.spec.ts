@@ -77,10 +77,43 @@ test.describe('content security policy', () => {
     await page.getByLabel("Child's full name").fill('Noor')
     await page.getByLabel('CPR number').fill('160312399')
     await page.getByLabel('Date of birth').fill('2015-03-12')
+    // The attached file previews instantly from a `blob:` object URL — its own CSP source.
+    await page
+      .getByLabel('Add file')
+      .setInputFiles({ name: 'cpr.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('x') })
+    // Not getByRole('button', …): a file input is itself exposed with role "button", same accessible name.
+    await expect(page.getByText('Replace file')).toBeVisible()
     await page.getByRole('checkbox', { name: /I confirm/ }).check()
     await page.getByRole('button', { name: 'Send registration' }).click()
     await expect(page.getByRole('heading', { name: 'Thank you!' })).toBeVisible()
     expect(api.world.submitAttempts).toHaveLength(1)
+    expect(violations).toEqual([])
+  })
+
+  test('a player photo works under the policy, from upload to a signed-URL preview after a reload', async ({
+    page,
+  }) => {
+    const violations: string[] = []
+    await page.exposeFunction('reportViolation', (text: string) => violations.push(text))
+    await page.addInitScript(() => {
+      document.addEventListener('securitypolicyviolation', (event) => {
+        void (window as unknown as { reportViolation: (t: string) => void }).reportViolation(
+          `${event.violatedDirective} ${event.blockedURI}`,
+        )
+      })
+    })
+    await openApp(page, ADMIN, 'en', '/admin/players/p1')
+    await page
+      .getByLabel('Add photo')
+      .setInputFiles({ name: 'photo.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('x') })
+    await expect(page.getByText('Replace photo')).toBeVisible()
+
+    // A fresh mount has no local copy to preview from — it must load the photo from a signed URL instead,
+    // the one new image source (the Supabase host) this phase adds to img-src.
+    await page.goto('/admin/players')
+    await page.goto('/admin/players/p1')
+    await expect(page.getByText('Replace photo')).toBeVisible()
+    await page.waitForLoadState('networkidle')
     expect(violations).toEqual([])
   })
 

@@ -2,6 +2,7 @@ import {
   Check,
   ChevronLeft,
   CloudOff,
+  FileText,
   MessageCircle,
   Phone,
   TriangleAlert,
@@ -18,7 +19,9 @@ import { Card, CardTitle } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ageInYears, formatDate, formatTime } from '@/lib/dates'
+import { isImagePath } from '@/lib/storage'
 import { useLanguage } from '@/lib/useLanguage'
+import { useSignedFileUrl } from '@/lib/useSignedFileUrl'
 import { cn } from '@/lib/utils'
 import { AcceptApplicationDialog } from './AcceptApplicationDialog'
 import { ApplicationStatusBadge } from './ApplicationStatusBadge'
@@ -32,6 +35,37 @@ function InfoRow({ label, children }: { label: string; children: ReactNode }) {
       <dt className="text-[13px] text-ink-muted">{label}</dt>
       <dd className="mt-0.5 break-words font-medium">{children}</dd>
     </div>
+  )
+}
+
+/** The parent's own upload — read-only here; only the player it becomes can gain an editable copy. */
+function CprFilePreview({ path }: { path: string }) {
+  const { t } = useTranslation('applications')
+  const { data: url, isPending, isError } = useSignedFileUrl(path)
+  const image = isImagePath(path)
+
+  if (isPending) return <Skeleton className="h-28 w-40 rounded-card" />
+  if (isError || !url) {
+    return <p className="text-[13px] text-ink-muted">{t('detail.cprFileError')}</p>
+  }
+  if (image) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="inline-block">
+        <img
+          src={url}
+          alt={t('detail.cprFile')}
+          className="h-28 w-40 rounded-card border border-line object-cover"
+        />
+      </a>
+    )
+  }
+  return (
+    <Button asChild variant="secondary">
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        <FileText className="size-4" aria-hidden />
+        {t('detail.cprFileOpen')}
+      </a>
+    </Button>
   )
 }
 
@@ -256,6 +290,14 @@ export default function ApplicationDetailPage() {
                 : t('players:detail.medicalNone')}
             </p>
           </div>
+          {application.cpr_storage_path && (
+            <div className="mt-4">
+              <p className="mb-2 text-[13px] font-semibold text-ink-muted">
+                {t('applications:detail.cprFile')}
+              </p>
+              <CprFilePreview path={application.cpr_storage_path} />
+            </div>
+          )}
         </Card>
 
         <Card>

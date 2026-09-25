@@ -13,13 +13,28 @@ function initialsOf(name: string): string {
 
 interface AvatarProps {
   name: string
+  /** A resolved (signed) URL for the player's photo, when one is set. */
+  photoUrl?: string | null
   size?: keyof typeof SIZES
   className?: string
 }
 
-/** Shield-shaped avatar with the person's initials (works for Arabic and Latin names). */
-export function Avatar({ name, size = 'md', className }: AvatarProps) {
+/** A photo when one is set, otherwise the shield-shaped initials (works for Arabic and Latin names). */
+export function Avatar({ name, photoUrl, size = 'md', className }: AvatarProps) {
   const width = SIZES[size]
+  if (photoUrl) {
+    return (
+      <span
+        className={cn(
+          'inline-block shrink-0 overflow-hidden rounded-full border border-line bg-page',
+          className,
+        )}
+        style={{ width, height: width }}
+      >
+        <img src={photoUrl} alt={name} className="size-full object-cover" />
+      </span>
+    )
+  }
   return (
     <span
       role="img"

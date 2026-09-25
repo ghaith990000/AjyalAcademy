@@ -13,6 +13,7 @@ import {
   listPlayers,
   removePlayer,
   updatePlayer,
+  updatePlayerFile,
   type PlayerFilters,
 } from './api'
 import type { PlayerInput } from './schema'
@@ -75,6 +76,23 @@ export function useRemovePlayer() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => removePlayer(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: PLAYERS_KEY }),
+  })
+}
+
+export function useUpdatePlayerFile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      field,
+      path,
+    }: {
+      id: string
+      field: 'cpr_file_path' | 'avatar_path'
+      path: string | null
+    }) => updatePlayerFile(id, field, path),
+    meta: { silent: true }, // the FileSlot control shows its own error
     onSuccess: () => queryClient.invalidateQueries({ queryKey: PLAYERS_KEY }),
   })
 }

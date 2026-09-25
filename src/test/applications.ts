@@ -15,6 +15,7 @@ export function fakeApplication(overrides: Partial<ApplicationRow> = {}): Applic
     location_name: 'Al-Rifa',
     full_name: `Child ${counter}`,
     cpr: String(160000000 + counter),
+    cpr_storage_path: null,
     date_of_birth: '2015-03-12',
     address: 'Riffa, Block 901',
     school: 'Al Rifa Primary School',

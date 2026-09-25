@@ -133,6 +133,20 @@ export async function removePlayer(id: string): Promise<void> {
   if (error) throw error
 }
 
+/**
+ * Sets or clears a player's CPR file / photo (whoever may edit the player: admin any, coach their own —
+ * RLS decides). The path itself is uploaded to storage first (`@/lib/storage`); this just records it.
+ */
+export async function updatePlayerFile(
+  id: string,
+  field: 'cpr_file_path' | 'avatar_path',
+  path: string | null,
+): Promise<void> {
+  const patch = field === 'cpr_file_path' ? { cpr_file_path: path } : { avatar_path: path }
+  const { error } = await supabase.from('players').update(patch).eq('id', id)
+  if (error) throw error
+}
+
 /** Admin only. `coachId = null` unassigns. Returns how many players actually changed. */
 export async function assignPlayers(playerIds: string[], coachId: string | null): Promise<number> {
   const { data, error } = await supabase.rpc(

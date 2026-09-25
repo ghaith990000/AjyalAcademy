@@ -9,6 +9,8 @@ export function fakePlayer(overrides: Partial<PlayerRow> = {}): PlayerRow {
     id: `p${counter}`,
     full_name: `Player ${counter}`,
     cpr: String(150000000 + counter),
+    cpr_file_path: null,
+    avatar_path: null,
     date_of_birth: '2015-03-12',
     address: 'Riffa, Block 901',
     school: 'Al Rifa Primary School',

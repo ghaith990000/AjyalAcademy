@@ -22,7 +22,7 @@
 ```
 src/
   app/             App, providers, routes (lazy pages), shells (layouts/), error screens, pwa/ (update, offline, install)
-  components/ui/   design-system components (Button, Input, Select, Card, Dialog, Badge, DataList, FilterChips, Toast…)
+  components/ui/   design-system components (Button, Input, Select, Card, Dialog, Badge, DataList, FilterChips, Toast, FileSlot…)
   features/<x>/    auth, players, coaches, subscriptions, discounts, sessions, attendance, expenses, reports,
                    activity, home, settings, locations, applications (admin review), register (the public form) (+ dev, the component gallery — development only)
                      api.ts            supabase queries/mutations (thin, typed)
@@ -30,7 +30,7 @@ src/
                      schema.ts         zod schema + inferred types (where the feature has forms)
                      <Thing>Page.tsx   route components; <Thing>Dialog.tsx etc. feature UI
                      *.test.ts(x)      next to the code
-  lib/             supabase.ts, money.ts, pricing.ts, dates.ts, reports.ts, i18n.ts, errors.ts, utils.ts, …
+  lib/             supabase.ts, money.ts, pricing.ts, dates.ts, reports.ts, i18n.ts, errors.ts, storage.ts, useSignedFileUrl.ts, utils.ts, …
   locales/{ar,en}/ one JSON namespace per feature (common, players, subscriptions, …)
   styles/          index.css (Tailwind + tokens)
   test/            vitest setup, fixtures (players, sessions, finance, activity…)
@@ -145,3 +145,13 @@ Postgres triggers / RPCs → activity_log → Realtime channel → Home feed (in
 - **Menu badge:** `NavItem.badge` + `useNavBadges` (`src/app/`) put a count on the _Registrations_ entry, and on the phone's _More_ tab.
 - **Security surface:** the form talks only to Supabase (the CSP is unchanged; a browser test proves nothing is blocked); `anon` can execute two functions and touch no table.
 - **Tests:** `src/test/applications.ts` (`fakeApplication`); the e2e mock knows the two public functions, the review view, the decision functions and can fail the next submission (`world.failNextSubmit`).
+
+## As built (Phase 11)
+
+- **`src/lib/storage.ts`** — the one place that knows the `player-files` bucket: `applicationFilePath` / `playerFilePath` (build a path), `rejectionOf` (client-side type/size check, mirrors the bucket's own limits), `uploadFile`, `removeFile` (best-effort — errors are swallowed, replacing a file is not meant to block on tidying up the old one), `signedUrl`, `isImagePath`. `src/lib/useSignedFileUrl.ts` wraps `signedUrl` in a `useQuery` (a few minutes' `staleTime`, `meta.silent`).
+- **`src/components/ui/FileSlot.tsx`** — the one control for "pick, preview, replace, remove" a file: empty state (a button) or filled (a thumbnail — or a plain chip for a PDF — with Replace/Remove); uploads immediately on pick and reports the new path to its caller, who decides what that path means (a form field, or an immediate `players` update). Previews a file it just uploaded from the browser's own copy (`URL.createObjectURL`, no round trip); a path it did not just upload (loaded from the server) resolves a signed URL through `useSignedFileUrl`. Used by the register form (per child), the applications review (read-only, via a small local wrapper), and the player page (photo + CPR file). It is a rare `components/ui` piece that talks to Supabase directly — justified by being shared across three unrelated features rather than duplicating the upload mechanics three times.
+- **Register form:** each child card gets an optional `FileSlot` (`accept` = image or PDF); its path rides along in `ChildInput.cpr_storage_path`, validated server-side against the submission it claims to belong to.
+- **Applications review:** `ApplicationDetailPage`'s `CprFilePreview` — read-only, a signed URL resolved only for an admin (the same "admin sees a pending application, a coach never does" rule as everything else about applications).
+- **Player page:** `PlayerFiles` (in `PlayerDetailPage.tsx`) — two `FileSlot`s (circular for the photo, rectangular for the CPR file), each write going through `useUpdatePlayerFile` (a plain `players` update: RLS decides who may). `Avatar` gained an optional `photoUrl` prop; the header resolves it with `useSignedFileUrl(player.avatar_path)`.
+- **CSP:** `img-src` gained the Supabase host (a signed URL) and `blob:` (the local preview) in `vite.config.ts`, `vercel.json` and `netlify.toml` — the one place all three must agree (D-080).
+- **Tests:** the e2e mock (`e2e/support/mock-api.ts`) answers `storage/v1/object/**` (upload, sign, remove) and tracks `world.files`; a real 1×1 PNG is served for a signed-URL `<img>` load so the browser has something to actually paint.

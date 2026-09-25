@@ -22,6 +22,8 @@ export interface ChildInput {
   school: string | null
   has_disease: boolean
   disease_description: string | null
+  /** An object the parent already uploaded under `applications/<submissionId>/…`, or null. */
+  cpr_storage_path: string | null
 }
 
 export interface SubmitInput {

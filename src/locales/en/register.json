@@ -43,6 +43,20 @@
     "diseaseDescription": {
       "label": "Describe the condition",
       "placeholder": "What should the coaches know?"
+    },
+    "cprFile": {
+      "label": "CPR document (optional)",
+      "hint": "A photo or scan of the CPR card, if you have one handy — you can also send it later.",
+      "choose": "Add file",
+      "replace": "Replace file",
+      "remove": "Remove file",
+      "pdf": "PDF document",
+      "error": {
+        "tooLarge": "That file is larger than 8 MB.",
+        "badType": "Choose an image (JPG, PNG, WEBP) or a PDF.",
+        "network": "Couldn't reach the server. Check your connection and try again.",
+        "generic": "Something went wrong. Try again."
+      }
     }
   },
   "add": {

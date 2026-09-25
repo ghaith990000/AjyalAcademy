@@ -16,12 +16,14 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { CheckboxField } from '@/components/ui/Checkbox'
 import { Field } from '@/components/ui/Field'
+import { FileSlot, type FileSlotFailure } from '@/components/ui/FileSlot'
 import { IconButton } from '@/components/ui/IconButton'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { SwitchField } from '@/components/ui/Switch'
 import { Textarea } from '@/components/ui/Textarea'
 import { ajyalCodeOf, errorKeyOf } from '@/lib/errors'
+import { applicationFilePath, CPR_FILE_TYPES } from '@/lib/storage'
 import { useLanguage } from '@/lib/useLanguage'
 import { submitApplications } from './api'
 import { usePublicLocations } from './hooks'
@@ -59,6 +61,7 @@ interface Sent {
 
 interface ChildCardProps {
   index: number
+  submissionId: string
   control: Control<RegisterFormValues>
   removable: boolean
   onRemove: () => void
@@ -69,6 +72,7 @@ interface ChildCardProps {
 
 function ChildCard({
   index,
+  submissionId,
   control,
   removable,
   onRemove,
@@ -78,6 +82,10 @@ function ChildCard({
 }: ChildCardProps) {
   const { t } = useTranslation('register')
   const hasDisease = useWatch({ control, name: `children.${index}.has_disease` })
+
+  function cprFileFailure(failure: FileSlotFailure): string {
+    return t(`child.cprFile.error.${failure}`)
+  }
   const own = errors.children?.[index]
   const heading = `child-${index}-title`
 
@@ -140,6 +148,29 @@ function ChildCard({
           <Input {...c} {...register(`children.${index}.address`)} dir="auto" autoComplete="off" />
         )}
       </Field>
+
+      <div>
+        <p className="mb-1.5 block text-sm font-semibold text-ink">{t('child.cprFile.label')}</p>
+        <p className="mb-2 text-[13px] text-ink-muted">{t('child.cprFile.hint')}</p>
+        <Controller
+          control={control}
+          name={`children.${index}.cpr_storage_path`}
+          render={({ field }) => (
+            <FileSlot
+              path={field.value}
+              accept={CPR_FILE_TYPES}
+              buildPath={(file) => applicationFilePath(submissionId, index + 1, file)}
+              onChange={field.onChange}
+              chooseLabel={t('child.cprFile.choose')}
+              replaceLabel={t('child.cprFile.replace')}
+              removeLabel={t('child.cprFile.remove')}
+              imageAlt={t('child.cprFile.label')}
+              pdfLabel={t('child.cprFile.pdf')}
+              failureMessage={cprFileFailure}
+            />
+          )}
+        />
+      </div>
 
       <div className="space-y-3 rounded-card border border-line bg-page p-3.5">
         <Controller
@@ -341,6 +372,7 @@ export default function RegisterPage() {
         <ChildCard
           key={field.id}
           index={index}
+          submissionId={submissionId}
           control={control}
           register={register}
           errors={errors}

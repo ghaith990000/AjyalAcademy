@@ -8,6 +8,7 @@ import * as attendanceApi from '@/features/attendance/api'
 import * as coachesApi from '@/features/coaches/api'
 import * as subscriptionsApi from '@/features/subscriptions/api'
 import i18n from '@/lib/i18n'
+import * as storage from '@/lib/storage'
 import { fakeAuth, fakeProfile } from '@/test/auth'
 import { fakePlayer } from '@/test/players'
 import * as api from './api'
@@ -19,6 +20,13 @@ vi.mock('./api', async (importOriginal) => ({
   removePlayer: vi.fn(),
   assignPlayers: vi.fn(),
   updatePlayer: vi.fn(),
+  updatePlayerFile: vi.fn(),
+}))
+vi.mock('@/lib/storage', async (importOriginal) => ({
+  ...(await importOriginal<typeof storage>()),
+  uploadFile: vi.fn(),
+  signedUrl: vi.fn(),
+  removeFile: vi.fn(),
 }))
 vi.mock('@/features/subscriptions/api', async (importOriginal) => ({
   ...(await importOriginal<typeof subscriptionsApi>()),
@@ -73,12 +81,23 @@ function renderDetail(id: string, role: 'admin' | 'coach' = 'admin') {
 }
 
 describe('PlayerDetailPage', () => {
+  // Mutable copies: updatePlayerFile's mock writes into these, so a refetch after a file change (the
+  // mutation invalidates the query) reflects it, the same as the real update + RLS-scoped re-select would.
+  let p1State = healthy
+  let p2State = withCondition
+
   beforeEach(async () => {
     vi.resetAllMocks()
     await i18n.changeLanguage('en')
+    p1State = healthy
+    p2State = withCondition
     vi.mocked(api.getPlayer).mockImplementation(async (id) =>
-      id === 'p1' ? healthy : id === 'p2' ? withCondition : null,
+      id === 'p1' ? p1State : id === 'p2' ? p2State : null,
     )
+    vi.mocked(api.updatePlayerFile).mockImplementation(async (id, field, path) => {
+      if (id === 'p1') p1State = { ...p1State, [field]: path }
+      if (id === 'p2') p2State = { ...p2State, [field]: path }
+    })
     vi.mocked(subscriptionsApi.listPlayerSubscriptions).mockResolvedValue([])
     vi.mocked(attendanceApi.listPlayerAttendance).mockResolvedValue({ rows: [], total: 0 })
     vi.mocked(attendanceApi.countPlayerPresent).mockResolvedValue(0)
@@ -86,6 +105,9 @@ describe('PlayerDetailPage', () => {
       fakeProfile('coach', { id: 'c1', full_name: 'Khalid Al Dosari' }),
       fakeProfile('coach', { id: 'c2', full_name: 'Sara Al Khalifa' }),
     ])
+    vi.mocked(storage.uploadFile).mockResolvedValue()
+    vi.mocked(storage.signedUrl).mockResolvedValue('https://files.test/signed')
+    URL.createObjectURL = vi.fn(() => 'blob:mock')
   })
 
   it('shows the player, formatted date, age and a tappable phone number', async () => {
@@ -122,6 +144,45 @@ describe('PlayerDetailPage', () => {
     await screen.findByRole('heading', { name: 'Yousef Al Mahmood' })
     expect(screen.getByText('Parent or guardian')).toBeInTheDocument()
     expect(screen.getByText('Mona Al Mahmood')).toBeInTheDocument()
+  })
+
+  it('lets whoever may edit the player add a photo and a CPR document', async () => {
+    renderDetail('p1')
+    await screen.findByRole('heading', { name: 'Yousef Al Mahmood' })
+    expect(screen.getByText('Photo & CPR document')).toBeInTheDocument()
+
+    const cprInputLabel = screen.getByText('CPR document')
+    expect(cprInputLabel).toBeInTheDocument()
+    const [addPhoto, addFile] = screen.getAllByRole('button', { name: /Add photo|Add file/ })
+    expect(addPhoto).toHaveAccessibleName('Add photo')
+    expect(addFile).toHaveAccessibleName('Add file')
+
+    const [photoInput, cprFileInput] = document.querySelectorAll('input[type="file"]')
+    const cprScan = new File([new Uint8Array(10)], 'scan.jpg', { type: 'image/jpeg' })
+    await userEvent.upload(cprFileInput as HTMLInputElement, cprScan)
+
+    await waitFor(() =>
+      expect(api.updatePlayerFile).toHaveBeenCalledWith(
+        'p1',
+        'cpr_file_path',
+        expect.stringMatching(/^players\/p1\/cpr-[0-9a-f-]{36}\.jpg$/),
+      ),
+    )
+    expect(photoInput).toBeTruthy()
+  })
+
+  it('removing an attached file clears it and best-effort deletes the old object', async () => {
+    renderDetail('p1', 'admin')
+    await screen.findByRole('heading', { name: 'Yousef Al Mahmood' })
+    const cprFileInput = document.querySelectorAll('input[type="file"]')[1] as HTMLInputElement
+    await userEvent.upload(cprFileInput, new File([new Uint8Array(10)], 'scan.jpg', { type: 'image/jpeg' }))
+    await waitFor(() => expect(api.updatePlayerFile).toHaveBeenCalledOnce())
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove file' }))
+    await waitFor(() =>
+      expect(api.updatePlayerFile).toHaveBeenLastCalledWith('p1', 'cpr_file_path', null),
+    )
+    expect(storage.removeFile).toHaveBeenCalled()
   })
 
   it("lists the player's subscriptions with status, and offers a new one for this player", async () => {

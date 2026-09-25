@@ -155,6 +155,31 @@
     "location": "Location",
     "guardian": "Parent or guardian"
   },
+  "files": {
+    "title": "Photo & CPR document",
+    "avatar": {
+      "label": "Photo",
+      "choose": "Add photo",
+      "replace": "Replace photo",
+      "remove": "Remove photo",
+      "alt": "{{name}}'s photo",
+      "badType": "Choose an image (JPG, PNG or WEBP)."
+    },
+    "cpr": {
+      "label": "CPR document",
+      "hint": "An image or a PDF of the CPR card. Visible to admins and this player's coach.",
+      "choose": "Add file",
+      "replace": "Replace file",
+      "remove": "Remove file",
+      "pdf": "PDF document",
+      "badType": "Choose an image (JPG, PNG, WEBP) or a PDF."
+    },
+    "error": {
+      "tooLarge": "That file is larger than 8 MB.",
+      "network": "Couldn't reach the server. Check your connection and try again.",
+      "generic": "Something went wrong. Try again."
+    }
+  },
   "assign": {
     "title": "Assign to coach",
     "single": {

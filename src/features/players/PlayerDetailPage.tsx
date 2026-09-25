@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardTitle } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Field } from '@/components/ui/Field'
+import { FileSlot, type FileSlotFailure } from '@/components/ui/FileSlot'
 import { Select } from '@/components/ui/Select'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/toast-context'
@@ -23,9 +24,11 @@ import { useAuth } from '@/features/auth/useAuth'
 import { PlayerAttendanceCard } from '@/features/attendance/PlayerAttendanceCard'
 import { useCoaches } from '@/features/coaches/hooks'
 import { ageInYears, formatDate } from '@/lib/dates'
+import { AVATAR_TYPES, CPR_FILE_TYPES, playerFilePath, removeFile } from '@/lib/storage'
+import { useSignedFileUrl } from '@/lib/useSignedFileUrl'
 import { cn } from '@/lib/utils'
 import type { PlayerRow } from './api'
-import { useAssignPlayers, usePlayer, usePlayersBasePath } from './hooks'
+import { useAssignPlayers, usePlayer, usePlayersBasePath, useUpdatePlayerFile } from './hooks'
 import { PlayerSubscriptionsCard } from '@/features/subscriptions/PlayerSubscriptionsCard'
 import { PlayerFormDialog } from './PlayerFormDialog'
 import { RemovePlayerDialog } from './RemovePlayerDialog'
@@ -88,6 +91,65 @@ function CoachAssignment({ player }: { player: PlayerRow }) {
   )
 }
 
+/** A photo and a CPR document, each optional — whoever loaded this page may already edit the player (RLS). */
+function PlayerFiles({ player }: { player: PlayerRow }) {
+  const { t } = useTranslation(['players'])
+  const update = useUpdatePlayerFile()
+
+  function failureMessage(kind: 'avatar' | 'cpr') {
+    return (failure: FileSlotFailure) =>
+      failure === 'badType'
+        ? t(`players:files.${kind}.badType`)
+        : t(`players:files.error.${failure}`)
+  }
+
+  // The old object is removed only after the row points somewhere else (or nowhere); best-effort tidy-up.
+  async function save(field: 'cpr_file_path' | 'avatar_path', path: string | null) {
+    const previous = field === 'cpr_file_path' ? player.cpr_file_path : player.avatar_path
+    await update.mutateAsync({ id: player.id, field, path })
+    if (previous && previous !== path) void removeFile(previous)
+  }
+
+  return (
+    <Card className="space-y-4">
+      <CardTitle>{t('players:files.title')}</CardTitle>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <p className="mb-2 text-sm font-semibold text-ink">{t('players:files.avatar.label')}</p>
+          <FileSlot
+            path={player.avatar_path}
+            accept={AVATAR_TYPES}
+            shape="circle"
+            buildPath={(file) => playerFilePath(player.id, 'avatar', file)}
+            onChange={(path) => save('avatar_path', path)}
+            chooseLabel={t('players:files.avatar.choose')}
+            replaceLabel={t('players:files.avatar.replace')}
+            removeLabel={t('players:files.avatar.remove')}
+            imageAlt={t('players:files.avatar.alt', { name: player.full_name })}
+            failureMessage={failureMessage('avatar')}
+          />
+        </div>
+        <div>
+          <p className="mb-2 text-sm font-semibold text-ink">{t('players:files.cpr.label')}</p>
+          <p className="mb-2 text-[13px] text-ink-muted">{t('players:files.cpr.hint')}</p>
+          <FileSlot
+            path={player.cpr_file_path}
+            accept={CPR_FILE_TYPES}
+            buildPath={(file) => playerFilePath(player.id, 'cpr', file)}
+            onChange={(path) => save('cpr_file_path', path)}
+            chooseLabel={t('players:files.cpr.choose')}
+            replaceLabel={t('players:files.cpr.replace')}
+            removeLabel={t('players:files.cpr.remove')}
+            imageAlt={t('players:files.cpr.label')}
+            pdfLabel={t('players:files.cpr.pdf')}
+            failureMessage={failureMessage('cpr')}
+          />
+        </div>
+      </div>
+    </Card>
+  )
+}
+
 export default function PlayerDetailPage() {
   const { id = '' } = useParams()
   const { t } = useTranslation(['players', 'common'])
@@ -98,6 +160,7 @@ export default function PlayerDetailPage() {
   const { data: player, isPending, isError, refetch } = usePlayer(id)
   const [editing, setEditing] = useState(false)
   const [removing, setRemoving] = useState(false)
+  const avatar = useSignedFileUrl(player?.avatar_path ?? null)
 
   const back = (
     <Link
@@ -161,7 +224,7 @@ export default function PlayerDetailPage() {
       <div className="space-y-4">
         <Card className="flex flex-col gap-4 md:flex-row md:items-center">
           <div className="flex min-w-0 flex-1 items-center gap-4">
-            <Avatar name={player.full_name} size="lg" />
+            <Avatar name={player.full_name} photoUrl={avatar.data} size="lg" />
             <div className="min-w-0">
               <h1 className="break-words text-2xl font-extrabold text-ink">{player.full_name}</h1>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -247,6 +310,8 @@ export default function PlayerDetailPage() {
             </div>
           </div>
         </Card>
+
+        <PlayerFiles player={player} />
 
         {isAdmin && <CoachAssignment key={player.coach_id ?? 'none'} player={player} />}
 
