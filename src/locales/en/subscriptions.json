@@ -180,7 +180,10 @@
       "returning": "Returning player",
       "tshirt": "T-shirt ({{fee}})",
       "tshirtAuto": "Charged on a player's first subscription.",
-      "transport": "Transport ({{fee}})"
+      "transport": "Transport ({{fee}})",
+      "specialPrice": "Special price for this player",
+      "specialPriceHint": "Leave blank to use the standard fee.",
+      "specialPricePlaceholder": "e.g. 3.000"
     },
     "discount": {
       "heading": "Discount",
@@ -229,6 +232,7 @@
     "reason_required": "Enter a reason.",
     "value_invalid": "Enter a valid discount value.",
     "amount_invalid": "Enter an amount between 0.001 and the total.",
+    "fee_invalid": "Enter a valid, non-negative special price (or leave it blank for the standard fee).",
     "overlap": "{{names}} already has a subscription that overlaps these dates.",
     "overlapUnknown": "A player already has a subscription that overlaps these dates.",
     "player_not_found": "One of the players is not available to you.",

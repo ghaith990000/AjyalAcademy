@@ -15,7 +15,7 @@ Ajyal Academy Management System. This folder is the **source of truth** for what
 | Doc                                          | What it answers                                                              |
 | -------------------------------------------- | ---------------------------------------------------------------------------- |
 | [01-overview.md](01-overview.md)             | What is the product? Who uses it? Glossary (EN/AR).                          |
-| [02-requirements.md](02-requirements.md)     | Every requirement (R-01…R-19) mapped to phases, with status.                 |
+| [02-requirements.md](02-requirements.md)     | Every requirement (R-01…R-20) mapped to phases, with status.                 |
 | [03-architecture.md](03-architecture.md)     | Stack, folder layout, data flow, patterns to follow.                         |
 | [04-data-model.md](04-data-model.md)         | Tables, columns, constraints, RLS matrix, triggers, RPCs.                    |
 | [05-business-rules.md](05-business-rules.md) | Pricing, fees, discounts, payments, reports — formulas with worked examples. |
@@ -26,6 +26,6 @@ Ajyal Academy Management System. This folder is the **source of truth** for what
 | [10-deployment.md](10-deployment.md)         | Deploying: Supabase project, Edge Function, hosting, first admin, backups.   |
 | [11-user-guide.md](11-user-guide.md)         | Short guide for coaches and admins, in English and Arabic.                   |
 | [ROADMAP.md](ROADMAP.md)                     | Phase status table — single source of progress.                              |
-| [phases/](phases/)                           | One file per build phase (PHASE-0 … PHASE-10).                               |
+| [phases/](phases/)                           | One file per build phase (PHASE-0 … PHASE-12).                               |
 
 Root file [../CLAUDE.md](../CLAUDE.md) holds the short list of hard rules and commands.

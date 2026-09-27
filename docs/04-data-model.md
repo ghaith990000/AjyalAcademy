@@ -143,8 +143,8 @@ Derived status (view/computed in SQL and TS): `upcoming`, `active`, `expiring_so
 | -------------------- | -------------------------------------- | ------------------------------------------------ |
 | `subscription_id`    | uuid → subscriptions on delete cascade |                                                  |
 | `player_id`          | uuid → players                         | PK is `(subscription_id, player_id)`             |
-| `tshirt_fee_fils`    | int not null                           | 0 unless first-time (or admin-forced) — snapshot |
-| `transport_fee_fils` | int not null                           | 0 unless the player uses transport — snapshot    |
+| `tshirt_fee_fils`    | int not null                           | 0 unless first-time (or admin-forced) — snapshot; an admin's special price (Phase 12), if any, instead of the Settings amount |
+| `transport_fee_fils` | int not null                           | 0 unless the player uses transport — snapshot; an admin's special price (Phase 12), if any, instead of the Settings amount    |
 
 Rules (enforced in `create_subscription` RPC): row count = `plans.player_count`; a player cannot be in two non-cancelled subscriptions with overlapping dates.
 
@@ -224,7 +224,7 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 | Function                                         | Who                        | Purpose                                                                                                                                                        |
 | ------------------------------------------------ | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `calc_subscription_total(...)`                   | internal                   | Authoritative total calculation (mirrors `src/lib/pricing.ts`).                                                                                                |
-| `create_subscription(...)`                       | admin, coach (own players) | Validates (incl. a **required active location**, Phase 9), recomputes fees/discount/total, inserts subscription + players (+ optional payment), logs activity. |
+| `create_subscription(...)`                       | admin, coach (own players) | Validates (incl. a **required active location**, Phase 9), recomputes fees/discount/total (an admin may set a per-player special T-shirt/transport price, Phase 12), inserts subscription + players (+ optional payment), logs activity. |
 | `set_subscription_location(id, location)`        | admin                      | Labels an older subscription or corrects one; moves all its payments to that location; logged with both names (Phase 9).                                       |
 | `record_payment(subscription_id, ...)`           | admin, coach (own)         | Adds a payment, guards overpayment, logs activity.                                                                                                             |
 | `cancel_subscription(id, reason)`                | admin, coach (own)         | Sets `cancelled_at`, logs activity.                                                                                                                            |
@@ -242,7 +242,7 @@ Actions: `player.created`, `player.updated`, `player.removed`, `player.reassigne
 
 ### As built (Phase 4)
 
-- `create_subscription(p_start_date, p_end_date, p_players jsonb, p_discount_code, p_manual_discount_type, p_manual_discount_value, p_manual_discount_reason, p_initial_payment_fils, p_payment_method, p_payment_note) → uuid` — `p_players` = `[{player_id, transport?, tshirt?}]` (1–4; the `tshirt` override is honoured for admins only). Checks, in order: caller active → players (own for a coach, not removed) → dates → plan for the count (active) → **overlap** (`23P01`, DETAIL = conflicting player ids; the end date is inclusive) → fees → discount (code **or** manual, not both) → totals (`calc_subscription_total`) → initial payment ≤ total. Writes subscription + players (+ payment) and logs `subscription.created` (+ `payment.recorded`).
+- `create_subscription(p_start_date, p_end_date, p_players jsonb, p_discount_code, p_manual_discount_type, p_manual_discount_value, p_manual_discount_reason, p_initial_payment_fils, p_payment_method, p_payment_note) → uuid` — `p_players` = `[{player_id, transport?, tshirt?, tshirt_fee_fils?, transport_fee_fils?}]` (1–4; `tshirt`, `tshirt_fee_fils` and `transport_fee_fils` are honoured for admins only — the last two since Phase 12, D-103/D-104). Checks, in order: caller active → players (own for a coach, not removed) → dates → plan for the count (active) → **overlap** (`23P01`, DETAIL = conflicting player ids; the end date is inclusive) → fees → discount (code **or** manual, not both) → totals (`calc_subscription_total`) → initial payment ≤ total. Writes subscription + players (+ payment) and logs `subscription.created` (+ `payment.recorded`).
 - `record_payment(p_subscription_id, p_amount_fils, p_method default 'cash', p_paid_at default today, p_note) → uuid` — amount > 0, not future-dated, `paid + amount ≤ total`, subscription not cancelled.
 - `cancel_subscription(p_subscription_id, p_reason)` — reason required; payments are kept.
 - `calc_subscription_total(plan, tshirt_total, transport_total, type, value) → (subtotal, discount, total)` — internal, pinned to the worked examples (pgTAP + `pricing.test.ts`). `today_bh()` — the academy's date (D-047). `subscription_player_names`, `add_payment_internal` — internal.
@@ -299,6 +299,13 @@ No schema change. The home feed reads `activity_log` as the caller — row-level
 - **`accept_player_application`** (extended): the new player's `cpr_file_path` is set to the application's `cpr_storage_path` (or `null`) — a reference, never a copy.
 - **Error codes** (`ajyal:<code>`): `invalid_file`, `file_not_found` (the guard trigger) — added to `submit_player_applications`'s existing `invalid_input` (now also raised for a file that is not this submission's own, or does not exist).
 - pgTAP: `supabase/tests/database/09_uploads.test.sql` (39 assertions): the bucket's own settings; `anon` insert-only under `applications/…` and never able to read anything back; admin-any / coach-own insert and select under `players/<id>/…`; the guard trigger's file checks; `submit_player_applications`'s file validation; `accept_player_application` carrying the path onto the new player, and the coach it is assigned to then being able to read it. Deleting `storage.objects` cannot be tested here — Supabase refuses a plain SQL `DELETE` on it regardless of role ("Direct deletion from storage tables is not allowed") — so the delete policy's *existence* is checked (the privilege audit), and its behaviour by the e2e mock and a live check.
+
+### As built (Phase 12)
+
+- **Migration** `20260927130000_subscription_fee_overrides.sql`: `create or replace function create_subscription` only — no new column, no signature change (`p_players` entries simply gain two optional keys, so a `drop function` was not needed).
+- **`create_subscription`**: each `p_players` entry may now carry `tshirt_fee_fils` and/or `transport_fee_fils` — an admin-only special price for that player, that subscription only (D-103, D-104). Honoured only when `v_admin`; a coach's values are silently ignored and the Settings fee applies as before. A negative override is `ajyal:invalid_fee` (`22023`, D-105); a blank/absent override falls back to the Settings amount (or, for T-shirt, to whatever the existing `tshirt` waive/force override already decided). The snapshotted `tshirt_fee_fils`/`transport_fee_fils` on `subscription_players` are the special amounts, not the Settings ones, so financial history is unaffected by a later Settings change (same guarantee as before this phase).
+- **Error codes** (`ajyal:<code>`): `invalid_fee` — added to the existing set.
+- pgTAP: `supabase/tests/database/04_subscriptions.test.sql` extended (127 assertions total): an admin charging a first-time player a special T-shirt and transport fee; the special T-shirt amount surviving a later "force the fee back on" for a now-returning player; a coach's special-price attempt being ignored (the Settings amount charged instead); a negative special fee refused and nothing created.
 
 ## Triggers
 

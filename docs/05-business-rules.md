@@ -30,10 +30,11 @@ For each player in the subscription:
 
 - **T-shirt fee** = `settings.tshirt_fee_fils` **only if this is the player's first-ever subscription** (no earlier row in `subscription_players` for them, cancelled or not — a cancelled first subscription does not re-trigger the fee). The UI pre-ticks it; an admin may untick/tick it. Otherwise 0.
 - **Transport fee** = `settings.transport_fee_fils` if "needs transportation" is ticked for that player, else 0. Per player, per subscription.
+- **Special price (Phase 12, admin only):** when charging a player a T-shirt and/or transport fee, an admin may type a different amount for **that player, that subscription only** — nothing is remembered afterward (D-103). Left blank, the Settings amount applies as above. A coach never sees this field; if sent anyway it is ignored server-side (D-104). A negative amount is refused (D-105).
 
-Fee amounts are snapshotted on `subscription_players`.
+Fee amounts are snapshotted on `subscription_players` — the special amount when one was given, otherwise the Settings amount at the time.
 
-_As built:_ the server decides the T-shirt fee. For a **coach** it is always automatic (first subscription ⇒ charged); an **admin** may explicitly waive or add it per player. The wizard reads whether a player is a first-timer from `subscription_players` (RLS-scoped, which is complete for the players a user may subscribe).
+_As built:_ the server decides the T-shirt fee. For a **coach** it is always automatic (first subscription ⇒ charged); an **admin** may explicitly waive or add it per player, and may additionally type a special amount for either fee (Phase 12). The wizard reads whether a player is a first-timer from `subscription_players` (RLS-scoped, which is complete for the players a user may subscribe).
 
 ## Discounts
 

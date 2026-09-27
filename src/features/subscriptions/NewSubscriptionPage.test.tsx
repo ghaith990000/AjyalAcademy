@@ -304,6 +304,27 @@ describe('NewSubscriptionPage', () => {
       await userEvent.click(tshirt)
       expect(await screen.findByText('20.000 BD')).toBeInTheDocument()
     })
+
+    it('does not offer a special price to a coach', async () => {
+      renderWizard('coach')
+      await choose('Yousef Al Mahmood')
+      await next()
+      await screen.findByRole('checkbox', { name: /T-shirt/ })
+      expect(screen.queryByLabelText('Special price for this player')).not.toBeInTheDocument()
+    })
+
+    it("lets an admin type a special T-shirt and transport price, which changes the live total", async () => {
+      renderWizard('admin')
+      await choose('Yousef Al Mahmood')
+      await next()
+      await screen.findByRole('checkbox', { name: /T-shirt/ })
+      await userEvent.type(screen.getByLabelText('Special price for this player'), '3')
+      await userEvent.click(screen.getByRole('checkbox', { name: /Transport/ }))
+      const prices = screen.getAllByLabelText('Special price for this player')
+      await userEvent.type(prices[1]!, '4')
+      // 20 plan + 3 special T-shirt + 4 special transport, instead of 20 + 5 + 10
+      expect(await screen.findByText('27.000 BD')).toBeInTheDocument()
+    })
   })
 
   describe('step 4 — discount', () => {
@@ -390,6 +411,23 @@ describe('NewSubscriptionPage', () => {
       })
       expect(await screen.findByText('detail page')).toBeInTheDocument()
       expect(await screen.findByText('Subscription created')).toBeInTheDocument()
+    })
+
+    it("sends an admin's special price to create_subscription", async () => {
+      renderWizard('admin')
+      await choose('Yousef Al Mahmood')
+      await next() // period → options
+      await screen.findByRole('checkbox', { name: /T-shirt/ })
+      await userEvent.type(screen.getByLabelText('Special price for this player'), '3')
+      await next() // options → discount
+      await next() // discount → summary
+      await next() // summary → payment
+      await screen.findByText('Payment', { selector: 'h2' })
+      await userEvent.click(screen.getByRole('button', { name: 'Create subscription' }))
+      await waitFor(() => expect(api.createSubscription).toHaveBeenCalled())
+      expect(vi.mocked(api.createSubscription).mock.calls[0]![0]).toMatchObject({
+        p_players: [{ player_id: 'p1', transport: false, tshirt_fee_fils: 3000 }],
+      })
     })
 
     it('records only what was received for a part payment, with the chosen method', async () => {

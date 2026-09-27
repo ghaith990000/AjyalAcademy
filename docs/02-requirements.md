@@ -23,6 +23,7 @@ Original requests from the product owner, each with an ID, the phase that delive
 | R-17 | Locations: sessions are arranged into locations created in the system (not free text); expenses and fees collected are tracked per location | 9                                          | [x]    |
 | R-18 | A public registration form (no login) for parents to register their children; admins accept or reject each application                      | 10                                         | [x]    |
 | R-19 | Parents can attach a CPR file (image or PDF) when registering; an admin can add one for any player too; players can have a profile photo     | 11                                         | [x]    |
+| R-20 | An admin can set a special T-shirt/transport price for one player on one subscription, instead of the unified Settings fee                  | 12                                         | [x]    |
 
 ## Confirmed clarifications (from the product owner)
 

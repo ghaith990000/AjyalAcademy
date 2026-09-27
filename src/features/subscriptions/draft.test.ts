@@ -11,7 +11,9 @@ import {
   initialDraft,
   paymentAmount,
   planFor,
+  transportFeeFor,
   tshirtApplies,
+  tshirtFeeFor,
   validateStep,
   withEnd,
   withPlayerToggled,
@@ -103,10 +105,17 @@ describe('choosing players', () => {
   })
 
   it('forgets the options of a removed player', () => {
-    let draft = draftWith([A, B], { transport: { a: true, b: true }, tshirt: { b: false } })
+    let draft = draftWith([A, B], {
+      transport: { a: true, b: true },
+      tshirt: { b: false },
+      tshirtFeeText: { b: '3' },
+      transportFeeText: { a: '4', b: '5' },
+    })
     draft = withPlayerToggled(draft, B)
     expect(draft.transport).toEqual({ a: true })
     expect(draft.tshirt).toEqual({})
+    expect(draft.tshirtFeeText).toEqual({})
+    expect(draft.transportFeeText).toEqual({ a: '4' })
   })
 
   it('picks the plan from the number of players', () => {
@@ -145,6 +154,31 @@ describe('T-shirt fee', () => {
       true,
       false,
     ])
+  })
+})
+
+describe('special (per-player) fees', () => {
+  it('uses the Settings amount when nothing was typed', () => {
+    const draft = draftWith([A])
+    expect(tshirtFeeFor(draft, 'a', ctx({ isAdmin: true }))).toBe(5000)
+    expect(transportFeeFor(draft, 'a', ctx({ isAdmin: true }))).toBe(10000)
+  })
+
+  it("an admin's special price replaces the Settings amount", () => {
+    const draft = draftWith([A], { tshirtFeeText: { a: '3' }, transportFeeText: { a: '4' } })
+    expect(tshirtFeeFor(draft, 'a', ctx({ isAdmin: true }))).toBe(3000)
+    expect(transportFeeFor(draft, 'a', ctx({ isAdmin: true }))).toBe(4000)
+  })
+
+  it("a coach's typed special price is ignored — always the Settings amount", () => {
+    const draft = draftWith([A], { tshirtFeeText: { a: '3' }, transportFeeText: { a: '4' } })
+    expect(tshirtFeeFor(draft, 'a', ctx({ isAdmin: false }))).toBe(5000)
+    expect(transportFeeFor(draft, 'a', ctx({ isAdmin: false }))).toBe(10000)
+  })
+
+  it('a blank field means "use the Settings amount", not zero', () => {
+    const draft = draftWith([A], { tshirtFeeText: { a: '  ' } })
+    expect(tshirtFeeFor(draft, 'a', ctx({ isAdmin: true }))).toBe(5000)
   })
 })
 
@@ -222,6 +256,15 @@ describe('live price — the worked examples', () => {
   it('ignores an invalid discount in the preview (the step blocks it)', () => {
     const draft = draftWith([A], { discountMode: 'code', code: 'NOPE' })
     expect(computePricing(draft, ctx())?.discountFils).toBe(0)
+  })
+
+  it("an admin's special T-shirt and transport price change the total", () => {
+    const draft = draftWith([A], {
+      transport: { a: true },
+      tshirtFeeText: { a: '3' },
+      transportFeeText: { a: '4' },
+    })
+    expect(computePricing(draft, ctx({ isAdmin: true }))?.totalFils).toBe(27000) // 20.000 + 3.000 + 4.000
   })
 })
 
@@ -335,6 +378,20 @@ describe('step validation', () => {
     expect(validateStep('options', draftWith([A]), ctx())).toBeNull()
     expect(validateStep('summary', draftWith([A]), ctx())).toBeNull()
   })
+
+  it("blocks a negative or unparseable special price from an admin, ignores a coach's", () => {
+    const draft = draftWith([A], { tshirtFeeText: { a: '-1' } })
+    expect(validateStep('options', draft, ctx({ isAdmin: true }))).toBe('fee_invalid')
+    expect(validateStep('options', draft, ctx({ isAdmin: false }))).toBeNull()
+    const wordy = draftWith([A], { transport: { a: true }, transportFeeText: { a: 'abc' } })
+    expect(validateStep('options', wordy, ctx({ isAdmin: true }))).toBe('fee_invalid')
+  })
+
+  it('a special price on a fee that does not apply is not checked', () => {
+    // a is not selected for transport, so a bad transport price for them does not block the step
+    const draft = draftWith([A], { transportFeeText: { a: '-1' } })
+    expect(validateStep('options', draft, ctx({ isAdmin: true }))).toBeNull()
+  })
 })
 
 describe('buildParams (arguments for create_subscription)', () => {
@@ -356,6 +413,34 @@ describe('buildParams (arguments for create_subscription)', () => {
     expect(params.p_players).toEqual([
       { player_id: 'a', transport: false, tshirt: false },
       { player_id: 'b', transport: true },
+    ])
+  })
+
+  it("sends an admin's valid special prices, keyed per player", () => {
+    const draft = draftWith([A, B], {
+      transport: { a: true, b: true },
+      tshirtFeeText: { a: '3' },
+      transportFeeText: { a: '4' },
+    })
+    const params = buildParams(draft, ctx({ isAdmin: true }))
+    expect(params.p_players).toEqual([
+      { player_id: 'a', transport: true, tshirt_fee_fils: 3000, transport_fee_fils: 4000 },
+      { player_id: 'b', transport: true },
+    ])
+  })
+
+  it('omits the special price when blank, invalid, or entered by a coach', () => {
+    const blank = draftWith([A], { tshirtFeeText: { a: '  ' } })
+    expect(buildParams(blank, ctx({ isAdmin: true })).p_players).toEqual([{ player_id: 'a', transport: false }])
+
+    const invalid = draftWith([A], { tshirtFeeText: { a: '-1' } })
+    expect(buildParams(invalid, ctx({ isAdmin: true })).p_players).toEqual([
+      { player_id: 'a', transport: false },
+    ])
+
+    const coach = draftWith([A], { tshirtFeeText: { a: '3' }, transportFeeText: { a: '4' } })
+    expect(buildParams(coach, ctx({ isAdmin: false })).p_players).toEqual([
+      { player_id: 'a', transport: false },
     ])
   })
 

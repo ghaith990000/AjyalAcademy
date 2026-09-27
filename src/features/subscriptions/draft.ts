@@ -36,6 +36,9 @@ export interface Draft {
   transport: Record<string, boolean>
   /** Admin-only T-shirt overrides; a missing key means "automatic" (first subscription ⇒ charged). */
   tshirt: Record<string, boolean>
+  /** Admin-only special price for one player, one subscription (Phase 12), typed in BD; '' or missing means the Settings amount. */
+  tshirtFeeText: Record<string, string>
+  transportFeeText: Record<string, string>
   discountMode: DiscountMode
   code: string
   manualType: 'percent' | 'fixed'
@@ -55,6 +58,8 @@ export function initialDraft(today: string): Draft {
     locationId: '',
     transport: {},
     tshirt: {},
+    tshirtFeeText: {},
+    transportFeeText: {},
     discountMode: 'none',
     code: '',
     manualType: 'percent',
@@ -121,7 +126,14 @@ export function withPlayerToggled(draft: Draft, player: PlayerRow): Draft {
   const keep = new Set(players.map((p) => p.id))
   const only = <T>(record: Record<string, T>) =>
     Object.fromEntries(Object.entries(record).filter(([id]) => keep.has(id)))
-  return { ...draft, players, transport: only(draft.transport), tshirt: only(draft.tshirt) }
+  return {
+    ...draft,
+    players,
+    transport: only(draft.transport),
+    tshirt: only(draft.tshirt),
+    tshirtFeeText: only(draft.tshirtFeeText),
+    transportFeeText: only(draft.transportFeeText),
+  }
 }
 
 // ---- pricing ---------------------------------------------------------------------------------------------
@@ -137,6 +149,40 @@ export function tshirtApplies(draft: Draft, playerId: string, ctx: DraftContext)
   const override = draft.tshirt[playerId]
   if (ctx.isAdmin && override !== undefined) return override
   return !ctx.returning.has(playerId)
+}
+
+/**
+ * A player's typed special price: `undefined` = not touched (use the Settings amount), `null` = typed but
+ * not a valid non-negative BD amount, otherwise the fils it parses to.
+ */
+function specialFee(text: string | undefined): number | null | undefined {
+  if (text === undefined || text.trim() === '') return undefined
+  const value = parseBD(text)
+  return value !== null && value >= 0 ? value : null
+}
+
+/** The T-shirt fee to charge this player, when it applies: an admin's special price, else the Settings amount. */
+export function tshirtFeeFor(draft: Draft, playerId: string, ctx: DraftContext): number {
+  const special = ctx.isAdmin ? specialFee(draft.tshirtFeeText[playerId]) : undefined
+  return special ?? ctx.settings?.tshirt_fee_fils ?? 0
+}
+
+/** The transport fee to charge this player, when it applies: an admin's special price, else the Settings amount. */
+export function transportFeeFor(draft: Draft, playerId: string, ctx: DraftContext): number {
+  const special = ctx.isAdmin ? specialFee(draft.transportFeeText[playerId]) : undefined
+  return special ?? ctx.settings?.transport_fee_fils ?? 0
+}
+
+/** True while a player who would be charged a fee has typed a special price that is not a valid amount. */
+function hasInvalidFee(draft: Draft, ctx: DraftContext): boolean {
+  if (!ctx.isAdmin) return false
+  return draft.players.some((player) => {
+    const badTshirt =
+      tshirtApplies(draft, player.id, ctx) && specialFee(draft.tshirtFeeText[player.id]) === null
+    const badTransport =
+      draft.transport[player.id] === true && specialFee(draft.transportFeeText[player.id]) === null
+    return badTshirt || badTransport
+  })
 }
 
 export type DiscountError =
@@ -193,8 +239,8 @@ export function computePricing(draft: Draft, ctx: DraftContext): PricingResult |
   return calcSubscriptionTotal({
     planPriceFils: plan.price_fils,
     players: draft.players.map((player) => ({
-      tshirtFils: tshirtApplies(draft, player.id, ctx) ? ctx.settings!.tshirt_fee_fils : 0,
-      transportFils: draft.transport[player.id] ? ctx.settings!.transport_fee_fils : 0,
+      tshirtFils: tshirtApplies(draft, player.id, ctx) ? tshirtFeeFor(draft, player.id, ctx) : 0,
+      transportFils: draft.transport[player.id] ? transportFeeFor(draft, player.id, ctx) : 0,
     })),
     discount: discount.kind === 'ok' ? discount.pricing : null,
   })
@@ -221,6 +267,7 @@ export type StepError =
   | 'location_required'
   | DiscountError
   | 'amount_invalid'
+  | 'fee_invalid'
 
 /** Why the user cannot leave this step yet, or null. Messages live in the `subscriptions` namespace. */
 export function validateStep(step: Step, draft: Draft, ctx: DraftContext): StepError | null {
@@ -233,6 +280,8 @@ export function validateStep(step: Step, draft: Draft, ctx: DraftContext): StepE
       if (!isValidISODate(draft.end)) return 'end_invalid'
       if (draft.end < draft.start) return 'end_before_start'
       return effectiveLocationId(draft, ctx) === '' ? 'location_required' : null
+    case 'options':
+      return hasInvalidFee(draft, ctx) ? 'fee_invalid' : null
     case 'discount': {
       const check = checkDiscount(draft, ctx)
       return check.kind === 'error' ? check.error : null
@@ -258,13 +307,21 @@ export function buildParams(draft: Draft, ctx: DraftContext): CreateSubscription
     p_start_date: draft.start,
     p_end_date: draft.end,
     p_location_id: effectiveLocationId(draft, ctx),
-    p_players: draft.players.map((player) => ({
-      player_id: player.id,
-      transport: draft.transport[player.id] === true,
-      ...(ctx.isAdmin && draft.tshirt[player.id] !== undefined
-        ? { tshirt: draft.tshirt[player.id] }
-        : {}),
-    })),
+    p_players: draft.players.map((player) => {
+      const tshirtFee = ctx.isAdmin ? specialFee(draft.tshirtFeeText[player.id]) : undefined
+      const transportFee = ctx.isAdmin ? specialFee(draft.transportFeeText[player.id]) : undefined
+      return {
+        player_id: player.id,
+        transport: draft.transport[player.id] === true,
+        ...(ctx.isAdmin && draft.tshirt[player.id] !== undefined
+          ? { tshirt: draft.tshirt[player.id] }
+          : {}),
+        ...(tshirtFee !== undefined && tshirtFee !== null ? { tshirt_fee_fils: tshirtFee } : {}),
+        ...(transportFee !== undefined && transportFee !== null
+          ? { transport_fee_fils: transportFee }
+          : {}),
+      }
+    }),
   }
   if (discount.kind === 'ok') {
     if (discount.code) {

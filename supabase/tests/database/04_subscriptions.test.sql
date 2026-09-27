@@ -3,7 +3,8 @@
 -- See 01_access_control.test.sql for how to run. Ids: tests.u(n) = f7000000-…-n.
 --   users: admin u(1), coach1 u(2), coach2 u(3)
 --   players (full_name sp-A1…): A1–A9 = u(11)–u(19) and A10 = u(20) belong to coach1; B1–B4 = u(21)–u(24) to coach2
---   u(31) is a removed player, u(32) is used for status fixtures.  A1, A2, B1, B2 are "returning" (prior subscription s0).
+--   u(25) (A11) is a spare coach1 player, used only by the fee-override tests. u(31) is a removed player,
+--   u(32) is used for status fixtures.  A1, A2, B1, B2 are "returning" (prior subscription s0).
 begin;
 
 create extension if not exists pgtap with schema extensions;
@@ -18,11 +19,21 @@ $$;
 create table tests.ids (k text primary key, id uuid not null);
 grant all on tests.ids to public;
 create function tests.s(k text) returns uuid language sql stable as $$ select id from tests.ids where tests.ids.k = $1 $$;
--- [{player_id, transport?, tshirt?}] for players given as small ints
-create function tests.pj(p_ids integer[], p_transport integer[] default '{}', p_tshirt jsonb default '{}')
+-- [{player_id, transport?, tshirt?, tshirt_fee_fils?, transport_fee_fils?}] for players given as small ints;
+-- p_tshirt_fee / p_transport_fee are keyed the same way as p_tshirt ({"20": 3000}) — an admin-only override
+-- of the fee *amount* (Phase 12), independent of whether it applies.
+create function tests.pj(
+  p_ids integer[], p_transport integer[] default '{}', p_tshirt jsonb default '{}',
+  p_tshirt_fee jsonb default '{}', p_transport_fee jsonb default '{}'
+)
 returns jsonb language sql stable as $$
   select jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
-    'player_id', tests.u(i), 'transport', i = any (p_transport), 'tshirt', (p_tshirt ->> i::text)::boolean)) order by ord)
+    'player_id', tests.u(i),
+    'transport', i = any (p_transport),
+    'tshirt', (p_tshirt ->> i::text)::boolean,
+    'tshirt_fee_fils', (p_tshirt_fee ->> i::text)::integer,
+    'transport_fee_fils', (p_transport_fee ->> i::text)::integer
+  )) order by ord)
   from unnest(p_ids) with ordinality as t (i, ord)
 $$;
 create function tests.err_detail(p_sql text) returns text language plpgsql as $$
@@ -74,6 +85,7 @@ select tests.u(n), 'sp-A' || (n - 10), '91000' || lpad(n::text, 4, '0'), '2015-0
 from generate_series(11, 19) n;
 insert into public.players (id, full_name, cpr, date_of_birth, phone, coach_id) values
   (tests.u(20), 'sp-A10', '910000020', '2015-01-01', '39000000', tests.u(2)),
+  (tests.u(25), 'sp-A11', '910000025', '2015-01-01', '39000000', tests.u(2)),
   (tests.u(21), 'sp-B1', '910000021', '2015-01-01', '39000000', tests.u(3)),
   (tests.u(22), 'sp-B2', '910000022', '2015-01-01', '39000000', tests.u(3)),
   (tests.u(23), 'sp-B3', '910000023', '2015-01-01', '39000000', tests.u(3)),
@@ -182,6 +194,23 @@ insert into tests.ids select 'T8', public.create_subscription(public.today_bh(),
 select is((select total_fils from public.subscriptions where id = tests.s('T8')), 20000, 'an admin can waive the T-shirt fee for a first-time player');
 insert into tests.ids select 'T8b', public.create_subscription(public.today_bh() + 200, public.today_bh() + 229, tests.pj(array[12], '{}', '{"12": true}'), tests.loc());
 select is((select total_fils from public.subscriptions where id = tests.s('T8b')), 25000, 'and charge it to a returning one');
+
+-- ---------------------------------------------------------------------------
+-- create_subscription: per-player fee overrides (Phase 12) — a special price for one player, one subscription
+-- ---------------------------------------------------------------------------
+insert into tests.ids select 'T10', public.create_subscription(public.today_bh(), public.today_bh() + 29, tests.pj(array[25], array[25], '{}', '{"25": 3000}', '{"25": 4000}'), tests.loc());
+select is((select total_fils from public.subscriptions where id = tests.s('T10')), 27000, 'an admin can charge a first-time player a special T-shirt (3.000) and transport (4.000) fee: 20.000 + 3.000 + 4.000');
+select is((select tshirt_fee_fils || '/' || transport_fee_fils from public.subscription_players where subscription_id = tests.s('T10')), '3000/4000', 'the special amounts, not the settings ones, are snapshotted');
+
+insert into tests.ids select 'T10b', public.create_subscription(public.today_bh() + 30, public.today_bh() + 59, tests.pj(array[25], '{}', '{"25": true}', '{"25": 2000}'), tests.loc());
+select is((select total_fils from public.subscriptions where id = tests.s('T10b')), 22000, 'forcing the T-shirt fee onto a now-returning player still honours a special amount: 20.000 + 2.000');
+
+select tests.act_as(tests.u(2));
+insert into tests.ids select 'T10c', public.create_subscription(public.today_bh() + 60, public.today_bh() + 89, tests.pj(array[25], array[25], '{}', '{}', '{"25": 1}'), tests.loc());
+select is((select total_fils from public.subscriptions where id = tests.s('T10c')), 30000, 'a coach''s special-price attempt is ignored — the standard transport fee (10.000) is charged instead: 20.000 + 10.000');
+select tests.act_as(tests.u(1));
+select throws_ok($$select public.create_subscription(public.today_bh() + 90, public.today_bh() + 119, tests.pj(array[25], array[25], '{}', '{}', '{"25": -100}'), tests.loc())$$, '22023', 'ajyal:invalid_fee', 'a negative special fee is refused');
+select is((select count(*)::int from public.subscription_players where player_id = tests.u(25) and subscription_id not in (tests.s('T10'), tests.s('T10b'), tests.s('T10c'))), 0, 'the refused attempt created nothing');
 
 insert into tests.ids select 'Q', public.create_subscription(public.today_bh() + 100, public.today_bh() + 129, tests.pj(array[11, 12, 21, 22], array[11, 21]), tests.loc(), null, 'percent', 1500, 'Sibling promo');
 select is((select plan_code || '/' || discount_fils || '/' || total_fils from public.subscription_overview where id = tests.s('Q')), 'quad/12000/68000', '#6 an admin can mix any coaches'' players: quad, 15%, two with transport');
