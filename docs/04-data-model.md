@@ -166,7 +166,7 @@ Rules (enforced in `create_subscription` RPC): row count = `plans.player_count`;
 | ----------------- | -------------------- | -------------------------------------------- |
 | `subscription_id` | uuid → subscriptions |                                              |
 | `amount_fils`     | int (> 0)            | must not push `paid` above `total_fils`      |
-| `paid_at`         | date not null        | the date used for monthly/yearly "collected" |
+| `paid_at`         | date not null        | the date the money was received; reports count a payment in its subscription's `start_date` month (D-106) |
 | `method`          | payment_method       |                                              |
 | `note`            | text                 |                                              |
 | `received_by`     | uuid → profiles      |                                              |
@@ -178,7 +178,7 @@ Rules (enforced in `create_subscription` RPC): row count = `plans.player_count`;
 | `session_date` | date not null    |                                                                                                                       |
 | `start_time`   | time not null    |                                                                                                                       |
 | `end_time`     | time not null    | check `end_time > start_time`                                                                                         |
-| `coach_id`     | uuid → profiles  | who runs it; its roster = that coach's active players                                                                 |
+| `coach_id`     | uuid → profiles  | who runs it; its roster = that coach's active players at the session's location (D-107)                                                                 |
 | `location_id`  | uuid → locations | required for new sessions, and an **active** location (the old free-text `location` was migrated and dropped — D-086) |
 | `notes`        | text             |                                                                                                                       |
 | `cancelled_at` | timestamptz      |                                                                                                                       |

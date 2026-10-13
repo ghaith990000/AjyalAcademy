@@ -73,7 +73,7 @@ _Fee values above assume the **placeholder** settings: T-shirt 5000 fils, transp
 
 - A `payment` is money actually received. `paid_fils = Σ payments`; `balance_fils = total_fils − paid_fils` (never negative; overpayment is rejected).
 - `create_subscription` accepts an optional initial payment; the UI defaults to **"paid in full today"** (creates a payment for `total_fils`, method cash by default). It can be unticked to leave the subscription unpaid, and further payments added later.
-- **Collected fees** for a period = `Σ payments.amount_fils` where `paid_at` is in that period (not subscription totals, not start dates). A payment counts for its **subscription's location** (see Locations).
+- **Collected fees** for a period = `Σ payments.amount_fils` whose **subscription's `start_date`** is in that period (D-106) — not the day the money was paid (`paid_at` stays the receipt date), and not subscription totals. A payment made late still belongs to the month the player subscribed for. A payment counts for its **subscription's location** (see Locations).
 - A fully discounted (total 0) subscription creates no payment.
 - A payment cannot be dated in the future, must be above zero, and cannot take `paid` above `total`. A cancelled subscription accepts no payments.
 - Cancelling a subscription does **not** delete or refund payments; refunds are out of scope (record a negative adjustment as an `other` expense if needed).
@@ -88,7 +88,7 @@ Expense categories: `coach_salary`, `field_rent`, `transportation`, `equipment`,
 For a period (a calendar month, or a calendar year):
 
 ```
-collected  = Σ payments.amount_fils        (paid_at in period)
+collected  = Σ payments.amount_fils        (subscription start_date in period)
 expenses   = Σ expenses.amount_fils        (expense_date in period)
 profit     = collected − expenses
 margin     = profit / collected × 100 %    (shown as "—" when collected = 0)
@@ -132,7 +132,7 @@ Reports also show: collected vs expenses per month for the selected year (12 bar
 - **Photo and CPR file:** both optional, added or replaced from the player's own page (not the create/edit form) by an admin or the player's own coach — an image for the photo, an image or PDF for the CPR file, 8 MB at most. Private: visible only to whoever may already see that player.
 - **Location:** optional. It pre-fills the subscription wizard's location when all the players chosen share one that is still in use.
 - **Ownership:** a coach who creates a player is automatically their coach. Only an admin can reassign (single or bulk). A player can have **one** coach.
-- **Roster for a session** = active (non-removed) players whose `coach_id` equals the session's coach. Players without an active subscription are flagged with a warning badge but can still be marked. "Active subscription" is judged on the **session's own date**: a non-cancelled subscription whose (inclusive) period covers that day (D-057).
+- **Roster for a session** = active (non-removed) players whose `coach_id` equals the session's coach **and who are at the session's location** (D-107; a player with no location, or a session with none, is not filtered out). Players without an active subscription are flagged with a warning badge but can still be marked. "Active subscription" is judged on the **session's own date**: a non-cancelled subscription whose (inclusive) period covers that day (D-057).
 
 ## Sessions and attendance
 
