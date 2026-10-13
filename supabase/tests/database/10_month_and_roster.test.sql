@@ -38,10 +38,9 @@ $$;
 grant execute on all functions in schema tests to public;
 
 -- Fixtures ------------------------------------------------------------------------------------------
--- The hosted project may hold real rows: everything below is rolled back, but the totals must be exact.
-delete from public.payments;
-delete from public.expenses;
-
+-- Unlike the other report pgTAP files, this one does not `delete from payments/expenses` to guarantee an
+-- exact total — every assertion below is instead scoped to this file's own fixture ids, and D-106's dates
+-- are picked safely before the app existed (2019), so a real row can never be counted alongside it.
 insert into auth.users (id, email) values (tests.u(1), 'admin@tests.invalid'), (tests.u(2), 'coach1@tests.invalid');
 insert into public.profiles (id, full_name, email, role, active) values
   (tests.u(1), 'Admin A', 'admin@tests.invalid', 'admin', true),
@@ -64,20 +63,18 @@ insert into public.training_sessions (id, session_date, start_time, end_time, co
   (tests.u(203), public.today_bh(), '16:00', '17:00', tests.u(2), null);
 alter table public.training_sessions enable trigger sessions_guard;
 
-delete from public.activity_log; -- exact counts below (rolled back with everything else)
-
 -- ---------------------------------------------------------------------------
 -- D-106: a payment counts in its subscription's month, not the day it was paid
 -- ---------------------------------------------------------------------------
 insert into public.subscriptions (id, plan_id, start_date, end_date, plan_price_fils, total_fils)
-  select tests.u(301), id, '2025-10-01', '2025-10-31', 20000, 20000 from public.plans where code = 'solo';
-insert into public.payments (subscription_id, amount_fils, paid_at) values (tests.u(301), 20000, '2025-12-25');
+  select tests.u(301), id, '2019-10-01', '2019-10-31', 20000, 20000 from public.plans where code = 'solo';
+insert into public.payments (subscription_id, amount_fils, paid_at) values (tests.u(301), 20000, '2019-12-25');
 
 select tests.act_as(tests.u(1));
-select is(tests.summary('2025-10-01', '2025-10-31'), '20000/0/20000/10000', 'October (the subscription''s month) collects the payment, though it was paid in December');
-select is(tests.summary('2025-12-01', '2025-12-31'), '0/0/0/null', 'December (the day it was actually paid) collects nothing');
-select is((select collected_fils from public.revenue_by_month(2025) where month_start = '2025-10-01'), 20000::bigint, 'revenue_by_month agrees: October, not December');
-select is((select collected_fils from public.report_by_location('2025-10-01', '2025-10-31') where location_id is null), 20000::bigint, 'report_by_location agrees too (this subscription has no location)');
+select is(tests.summary('2019-10-01', '2019-10-31'), '20000/0/20000/10000', 'October 2019 (the subscription''s month) collects the payment, though it was paid in December');
+select is(tests.summary('2019-12-01', '2019-12-31'), '0/0/0/null', 'December 2019 (the day it was actually paid) collects nothing');
+select is((select collected_fils from public.revenue_by_month(2019) where month_start = '2019-10-01'), 20000::bigint, 'revenue_by_month agrees: October, not December');
+select is((select collected_fils from public.report_by_location('2019-10-01', '2019-10-31') where location_id is null), 20000::bigint, 'report_by_location agrees too (this subscription has no location)');
 select tests.reset();
 
 -- ---------------------------------------------------------------------------
@@ -98,7 +95,9 @@ select lives_ok($$select public.save_attendance(tests.u(203), tests.recs(array[1
   'a session with no location (legacy) filters nobody out — every one of the coach''s players is on it');
 select tests.reset();
 
-select is((select count(*)::int from public.activity_log where action = 'attendance.saved'), 3, 'one log entry per successful save');
+select is((select count(*)::int from public.activity_log
+  where action = 'attendance.saved' and entity_id in (tests.u(201), tests.u(202), tests.u(203))), 3,
+  'one log entry per successful save');
 
 select * from finish();
 rollback;
