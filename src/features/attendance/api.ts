@@ -26,14 +26,18 @@ export interface PlayerAttendanceRow {
 
 export const PLAYER_ATTENDANCE_PAGE_SIZE = 10
 
-/** The session coach's active players — the roster of a session (docs/05-business-rules.md). */
-export async function listRoster(coachId: string): Promise<RosterPlayer[]> {
-  const { data, error } = await supabase
+/**
+ * The session coach's active players at the session's location — the roster of a session (docs/05-business-rules.md).
+ * A player without a location stays on every roster; a session without one (legacy) has no location filter.
+ */
+export async function listRoster(coachId: string, locationId: string | null): Promise<RosterPlayer[]> {
+  let query = supabase
     .from('players')
     .select('id, full_name')
     .eq('coach_id', coachId)
     .is('deleted_at', null)
-    .order('full_name')
+  if (locationId) query = query.or(`location_id.is.null,location_id.eq.${locationId}`)
+  const { data, error } = await query.order('full_name')
   if (error) throw error
   return data
 }

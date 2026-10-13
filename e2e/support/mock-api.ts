@@ -1023,7 +1023,14 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
         const locationOfPayment = (payment: Row) =>
           (world.subscriptions.find((x) => x.id === payment.subscription_id)?.location_id ??
             null) as string | null
-        const paymentsHere = world.payments.filter((x) => !where || locationOfPayment(x) === where)
+        // A payment counts in its subscription's month (D-106), so the reports read the subscription's start date.
+        const byStart = (payment: Row): Row => ({
+          ...payment,
+          sub_start: world.subscriptions.find((x) => x.id === payment.subscription_id)?.start_date,
+        })
+        const paymentsHere = world.payments
+          .filter((x) => !where || locationOfPayment(x) === where)
+          .map(byStart)
         const expensesHere = world.expenses.filter((x) => !where || x.location_id === where)
         const sum = (rows: Row[], from: string, to: string, key: string) =>
           rows
@@ -1041,10 +1048,10 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
             200,
             [...ids].map((location_id) => {
               const c = sum(
-                world.payments.filter((x) => locationOfPayment(x) === location_id),
+                world.payments.filter((x) => locationOfPayment(x) === location_id).map(byStart),
                 p_from,
                 p_to,
-                'paid_at',
+                'sub_start',
               )
               const e = sum(
                 world.expenses.filter((x) => (x.location_id ?? null) === location_id),
@@ -1064,7 +1071,7 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
         }
         if (path === 'rpc/report_summary') {
           const { p_from, p_to } = body as { p_from: string; p_to: string }
-          const collected = sum(paymentsHere, p_from, p_to, 'paid_at')
+          const collected = sum(paymentsHere, p_from, p_to, 'sub_start')
           const spent = sum(expensesHere, p_from, p_to, 'expense_date')
           const profit = collected - spent
           return json(route, 200, [
@@ -1084,7 +1091,7 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
             Array.from({ length: 12 }, (_, i) => {
               const from = `${p_year}-${pad(i + 1)}-01`
               const to = `${p_year}-${pad(i + 1)}-31`
-              const c = sum(paymentsHere, from, to, 'paid_at')
+              const c = sum(paymentsHere, from, to, 'sub_start')
               const e = sum(expensesHere, from, to, 'expense_date')
               return { month_start: from, collected_fils: c, expenses_fils: e, profit_fils: c - e }
             }),

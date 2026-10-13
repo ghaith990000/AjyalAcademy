@@ -11,10 +11,10 @@ import type { SavedMark } from './marks'
 const KEY = ['attendance'] as const
 
 /** `coachId` is undefined until the session has loaded. */
-export function useRoster(coachId: string | undefined) {
+export function useRoster(coachId: string | undefined, locationId: string | null) {
   return useQuery({
-    queryKey: [...KEY, 'roster', coachId],
-    queryFn: () => listRoster(coachId!),
+    queryKey: [...KEY, 'roster', coachId, locationId],
+    queryFn: () => listRoster(coachId!, locationId),
     enabled: coachId !== undefined,
     meta: { silent: true },
   })

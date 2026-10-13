@@ -225,9 +225,17 @@ insert into public.subscriptions (id, plan_id, start_date, end_date, plan_price_
   select tests.u(n), id, '2025-01-01', '2025-12-31', 1000000, 1000000, l
   from public.plans, (values (501, tests.u(101)), (502, tests.u(102)), (503, null::uuid)) as s (n, l)
   where code = 'solo';
-insert into public.payments (subscription_id, amount_fils, paid_at) values
-  (tests.u(501), 100000, '2025-10-05'), (tests.u(501), 50000, '2025-10-20'), (tests.u(502), 80000, '2025-10-10'),
-  (tests.u(503), 30000, '2025-10-12'), (tests.u(501), 7000, '2025-11-01');
+-- Reports count a payment in its subscription's start month (D-106): one subscription per payment, starting that day.
+create temp table pay_fixture (n integer, grp integer, amount integer, d date);
+insert into pay_fixture values
+  (1, 501, 100000, '2025-10-05'), (2, 501, 50000, '2025-10-20'), (3, 502, 80000, '2025-10-10'),
+  (4, 503, 30000, '2025-10-12'), (5, 501, 7000, '2025-11-01');
+insert into public.subscriptions (id, plan_id, start_date, end_date, plan_price_fils, total_fils, location_id)
+  select tests.u(1500 + f.n), pl.id, f.d, f.d + 30, 1000000, 1000000, s.location_id
+  from pay_fixture f join public.subscriptions s on s.id = tests.u(f.grp), public.plans pl where pl.code = 'solo';
+insert into public.payments (subscription_id, amount_fils, paid_at)
+  select tests.u(1500 + n), amount, d from pay_fixture;
+drop table pay_fixture;
 insert into public.expenses (category, amount_fils, expense_date, coach_id, location_id) values
   ('field_rent', 40000, '2025-10-03', null, tests.u(101)),
   ('field_rent', 20000, '2025-10-04', null, tests.u(102)),

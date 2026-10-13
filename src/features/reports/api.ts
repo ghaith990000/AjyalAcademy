@@ -151,8 +151,9 @@ export function listPaymentsForExport(
       .select(
         'paid_at, amount_fils, method, note, received_by:profiles!payments_received_by_fkey(full_name), subscription:subscriptions!inner(location_id, plan:plans(code), location:locations(name), subscription_players(player:players(full_name)))',
       )
-      .gte('paid_at', range.from)
-      .lte('paid_at', range.to)
+      // A payment counts in its subscription's month, not the day it was paid (D-106).
+      .gte('subscription.start_date', range.from)
+      .lte('subscription.start_date', range.to)
     if (locationId) query = query.eq('subscription.location_id', locationId)
     const { data, error } = await query
       .order('paid_at')

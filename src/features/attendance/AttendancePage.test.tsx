@@ -68,7 +68,7 @@ describe('AttendancePage', () => {
     vi.resetAllMocks()
     await i18n.changeLanguage('en')
     vi.mocked(sessionsApi.getSession).mockResolvedValue(
-      fakeSession({ id: 's1', coach_id: 'coach-1' }),
+      fakeSession({ id: 's1', coach_id: 'coach-1', location_id: 'loc-1' }),
     )
     vi.mocked(api.listRoster).mockResolvedValue(ROSTER)
     vi.mocked(api.getSessionAttendance).mockResolvedValue([])
@@ -76,11 +76,11 @@ describe('AttendancePage', () => {
     vi.mocked(subscriptionsApi.listPlayersCoveredOn).mockResolvedValue(['p1', 'p2', 'p3'])
   })
 
-  it("lists exactly the session coach's players, by name, everyone absent to start with", async () => {
+  it("lists exactly the session coach's players at the session's location, by name, everyone absent to start with", async () => {
     renderPage()
     await screen.findByRole('heading', { name: 'Attendance' })
     await waitFor(() => expect(rows()).toHaveLength(3))
-    expect(api.listRoster).toHaveBeenCalledWith('coach-1')
+    expect(api.listRoster).toHaveBeenCalledWith('coach-1', 'loc-1')
     expect(rows().map((r) => r.textContent)).toEqual([
       expect.stringContaining('Ali Hassan'),
       expect.stringContaining('Hamad Salman'),

@@ -43,7 +43,7 @@ export default function AttendancePage() {
 
   const sessionQuery = useSession(id)
   const session = sessionQuery.data
-  const rosterQuery = useRoster(session?.coach_id)
+  const rosterQuery = useRoster(session?.coach_id, session?.location_id ?? null)
   const savedQuery = useSessionAttendance(id)
   const save = useSaveAttendance()
 

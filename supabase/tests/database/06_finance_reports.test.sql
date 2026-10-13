@@ -67,19 +67,28 @@ insert into public.subscriptions (id, plan_id, start_date, end_date, plan_price_
   from public.plans, (values (201, now()), (202, null::timestamptz)) as s (n, c)
   where code = 'solo';
 
-insert into public.payments (subscription_id, amount_fils, paid_at) values
-  (tests.u(202), 20000,  '2025-01-31'),  -- Jan: collected 20.000 vs expenses 20.001 → profit -1 fil
-  (tests.u(202), 20000,  '2025-02-28'),  -- Feb: collected 20.000 vs expenses 19.999 → profit +1 fil
-  (tests.u(202), 10000,  '2025-07-15'),
-  (tests.u(202), 100000, '2025-09-30'),  -- last day of September
-  (tests.u(201), 200000, '2025-10-01'),  -- first day of October (S1 is cancelled: still counts)
-  (tests.u(202), 240000, '2025-10-15'),
-  (tests.u(201), 100000, '2025-10-31'),  -- last day of October
-  (tests.u(202), 70000,  '2025-11-01'),  -- first day of November
-  (tests.u(202), 60000,  '2025-12-31'),  -- last day of the year
-  (tests.u(202), 30000,  '2026-01-01'),  -- first day of the next year
-  (tests.u(202), 15000,  '2024-12-31'),  -- last day of the previous year
-  (tests.u(202), 10000,  '2024-02-29');  -- a leap day
+-- Reports count a payment in its subscription's start month (D-106), so every payment gets a subscription that
+-- starts on the day the payment is meant to count (grp 201 = the cancelled one).
+create temp table pay_fixture (n integer, grp integer, amount integer, d date);
+insert into pay_fixture values
+  (1, 202, 20000, '2025-01-31'),   -- Jan: collected 20.000 vs expenses 20.001 → profit -1 fil
+  (2, 202, 20000, '2025-02-28'),   -- Feb: collected 20.000 vs expenses 19.999 → profit +1 fil
+  (3, 202, 10000, '2025-07-15'),
+  (4, 202, 100000, '2025-09-30'),  -- last day of September
+  (5, 201, 200000, '2025-10-01'),  -- first day of October (S1 is cancelled: still counts)
+  (6, 202, 240000, '2025-10-15'),
+  (7, 201, 100000, '2025-10-31'),  -- last day of October
+  (8, 202, 70000, '2025-11-01'),   -- first day of November
+  (9, 202, 60000, '2025-12-31'),   -- last day of the year
+  (10, 202, 30000, '2026-01-01'),  -- first day of the next year
+  (11, 202, 15000, '2024-12-31'),  -- last day of the previous year
+  (12, 202, 10000, '2024-02-29');  -- a leap day
+insert into public.subscriptions (id, plan_id, start_date, end_date, plan_price_fils, total_fils, cancelled_at)
+  select tests.u(1000 + f.n), pl.id, f.d, f.d + 30, 1000000, 1000000, case when f.grp = 201 then now() end
+  from pay_fixture f, public.plans pl where pl.code = 'solo';
+insert into public.payments (subscription_id, amount_fils, paid_at)
+  select tests.u(1000 + n), amount, d from pay_fixture;
+drop table pay_fixture;
 
 insert into public.expenses (category, amount_fils, expense_date, coach_id) values
   ('other',          20001,  '2025-01-15', null),
