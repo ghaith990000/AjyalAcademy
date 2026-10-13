@@ -173,6 +173,8 @@ function seedWorld() {
     mkPlayer('p6', 'ناصر بن راشد', 'c-1'),
     mkPlayer('p7', 'Omar Faisal', 'c-2'),
     mkPlayer('p8', 'Bader Khaled', null),
+    // D-107: this one is c-1's, but at the other location — on the roster only of a session held there.
+    mkPlayer('p9', 'Rashid Humood', 'c-1', { location_id: LOC.hamad.id, location: { name: LOC.hamad.name } }),
   ]
 
   const sub = (
@@ -301,11 +303,14 @@ function seedWorld() {
   })
   const sessions = [
     mkSession('se1', TODAY, '00:10:00', '00:20:00', 'c-1', LOC.rifa),
-    mkSession('se2', TODAY, '16:00:00', '17:30:00', 'c-1', LOC.hamad),
+    // se2 shares its players' own location (D-107: "the whole roster" means everyone, nobody filtered).
+    mkSession('se2', TODAY, '16:00:00', '17:30:00', 'c-1', LOC.rifa),
     mkSession('se3', plusDays(1), '16:00:00', '17:30:00', 'c-1', LOC.hamad),
     mkSession('se4', plusDays(1), '18:00:00', '19:00:00', 'c-2', LOC.rifa),
     mkSession('se5', plusDays(-3), '16:00:00', '17:30:00', 'c-1', LOC.hamad),
     mkSession('se6', plusDays(-2), '16:00:00', '17:30:00', 'c-1', LOC.hamad, true),
+    // D-107: at Hamad, so only p9 (also at Hamad) is on the roster — the other five of c-1's players are not.
+    mkSession('se7', TODAY, '19:00:00', '20:00:00', 'c-1', LOC.hamad),
   ]
   const attendance: Row[] = [
     {
@@ -819,11 +824,16 @@ export async function installMockApi(page: Page, { as, lang }: MockOptions): Pro
         }
         let rows = own(world.players)
         const or = q.get('or')
-        if (or) {
+        if (or?.includes('ilike')) {
+          // the player search box: full_name/cpr/phone ilike %needle%
           const needle = /ilike\.%(.*?)%/.exec(or)?.[1]?.toLowerCase() ?? ''
           rows = rows.filter((r) =>
             [r.full_name, r.cpr, r.phone].some((v) => String(v).toLowerCase().includes(needle)),
           )
+        } else if (or?.includes('location_id')) {
+          // the attendance roster: a player with no location, or at this session's location (D-107)
+          const locId = /location_id\.eq\.([^,)]+)/.exec(or)?.[1]
+          rows = rows.filter((r) => !r.location_id || r.location_id === locId)
         }
         rows = applyFilters(rows, q)
         if (method === 'HEAD') return head(rows.length)

@@ -119,6 +119,14 @@ for (const lang of LANGS) {
       expect(body.p_records.filter((r) => r.status === 'present')).toHaveLength(2)
     })
 
+    test("a session's roster is limited to players at its own location", async ({ page }) => {
+      // se7 is at Hamad; only p9 (also at Hamad) belongs there — c-1's other five players (at Rifa) do not.
+      await openApp(page, COACH, lang, '/coach/sessions/se7/attendance')
+      const rows = page.locator('button[aria-pressed]')
+      await expect(rows).toHaveCount(1)
+      await expect(rows.first()).toContainText('Rashid Humood')
+    })
+
     test('a session in the future cannot be marked', async ({ page }) => {
       await openApp(page, COACH, lang, '/coach/sessions/se3/attendance')
       await expect(page.getByText(t(lang, 'attendance:future.title'))).toBeVisible()

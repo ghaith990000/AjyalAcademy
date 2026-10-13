@@ -17,7 +17,7 @@ Single source of progress. Work **one phase at a time, in order**. Status values
 | 10  | Public player registration               | **Done** | R-18                                             | [PHASE-10](phases/PHASE-10-player-registration.md)   |
 | 11  | CPR documents & player photos            | **Done** | R-19                                             | [PHASE-11](phases/PHASE-11-uploads.md)               |
 | 12  | Per-player fee overrides                 | **Done** | R-20                                             | [PHASE-12](phases/PHASE-12-fee-overrides.md)         |
-| 13  | Payments by subscription month, roster by location | **Done** | R-08, R-03                          | [PHASE-13](phases/PHASE-13-payment-month-roster-location.md) |
+| 13  | Payments by subscription month, roster by location | **In progress** | R-08, R-03                      | [PHASE-13](phases/PHASE-13-payment-month-roster-location.md) |
 
 ## Dependency notes
 
@@ -45,4 +45,4 @@ Single source of progress. Work **one phase at a time, in order**. Status values
 | 2026-09-20 | Phase 10 completed: a public registration form for parents (no login, up to 4 children), an admin review screen (accept creates the player, reject keeps the request), a one-tap WhatsApp message to the parent, home card and menu badge. |
 | 2026-09-25 | Phase 11 added to the roadmap and completed the same day: an optional CPR file (image or PDF) a parent may attach per child on the registration form; a photo and a CPR file an admin (or the player's coach) can add from the player page; a private Storage bucket with its own RLS, mirroring the existing "no oracle" and "admin all / coach own" rules. |
 | 2026-09-27 | Phase 12 added to the roadmap and completed the same day: an admin can type a special T-shirt and/or transport price for one player, one subscription only (not remembered on the player record), instead of the unified Settings fee; a coach's attempt is ignored server-side. |
-| 2026-10-13 | Phase 13 added and completed: reports count a payment in its subscription's start-date month instead of its payment date (D-106); a session's roster shows only the coach's players at the session's location (D-107). |
+| 2026-10-13 | Phase 13 added (on another machine) and brought to `npm run typecheck/lint/test/build/e2e` passing (a missing pgTAP file and an e2e mock blind spot were found and fixed along the way) — see the phase file's "Testing session" note. Not yet done: pgTAP against the hosted database (the migration is not yet applied) and a browser check at 390px. |
